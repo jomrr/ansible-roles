@@ -4,6 +4,10 @@ apache_group:
   hosts:
     apache:
   vars:
-    # meta/main.yml vars
+    # --- meta/main.yml vars ---------------------------------------------------
     meta_role_name: apache
     meta_role_description: "Ansible role for setting up apache."
+    # --- meta/requirements.yml ------------------------------------------------
+    requirements_collections:
+      - containers.podman
+    requirements_roles: []

@@ -1,6 +1,6 @@
 ---
 # role: {{ meta_role_name }}
-# file: meta/main.yml
+# file: {{ template_destpath }}
 
 galaxy_info:
   namespace: {{ meta_namespace }}
@@ -32,7 +32,7 @@ galaxy_tags:
 
 {% if not meta_dependencies %}dependencies: []{% endif %}
 {% if meta_dependencies %}
-+ dependencies:
+dependencies:
 {% for dependency in meta_dependencies %}
     - {{ dependency }}
 {% endfor %}

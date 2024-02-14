@@ -1,0 +1,5 @@
+---
+# play: ansible-roles
+# file: inventory/group_vars/all/connection.yml
+
+ansible_connection: local

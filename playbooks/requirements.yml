@@ -1,8 +1,8 @@
 ---
 # play: ansible-roles
-# file: playbooks/meta.yml
+# file: playbooks/requirements.yml
 
-- name: "Play: generate meta/main.yml for roles inventory"
+- name: "Gsenerate requirements.yml in base and meta for roles inventory"
   hosts: all
   become: false
   gather_facts: true
@@ -19,9 +19,8 @@
         state: present
         extra_args: "--user --upgrade"
 
-    - name: "Generate meta/main.yml for role {{ meta_role_name }}"
+    - name: "Generate meta/requirements.yml for ansible-galaxy metadata in role {{ meta_role_name }}"
       ansible.builtin.template:
-        src: "{{ base_directory }}/templates/main.yml.j2"
-        dest: "{{ relative_role_path }}/meta/main.yml"
+        src: "{{ base_directory }}/templates/requirements.yml.j2"
+        dest: "{{ relative_role_path }}/meta/requirements.yml"
         mode: "0755"
-        validate: "ansible-lint %s"

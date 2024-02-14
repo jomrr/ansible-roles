@@ -1,0 +1,20 @@
+---
+# play: ansible-roles
+# file: playbooks/tox.yml
+
+- name: "Play: generate tox.ini"
+  hosts: all
+  become: false
+  gather_facts: true
+  tasks:
+    - name: "Ensure that role and meta directory exist"
+      ansible.builtin.file:
+        path: "{{ relative_role_path }}"
+        state: directory
+        mode: "0755"
+
+    - name: "Generate tox.ini for role {{ meta_role_name }}"
+      ansible.builtin.template:
+        src: "{{ base_directory }}/templates/tox.ini.j2"
+        dest: "{{ relative_role_path }}/tox.ini"
+        mode: "0755"

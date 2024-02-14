@@ -1,0 +1,14 @@
+---
+# play: ansible-roles
+# file: playbooks/directory.yml
+
+- name: "Play: generate base directories for roles inventory"
+  hosts: all
+  become: false
+  gather_facts: true
+  tasks:
+    - name: "Ensure that role directory exists"
+      ansible.builtin.file:
+        path: "{{ relative_role_path }}"
+        state: directory
+        mode: "0755"

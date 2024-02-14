@@ -1,0 +1,16 @@
+---
+# play: ansible-roles
+# file: inventory/group_vars/all/paths.yml
+
+# base dirctory of this role
+base_directory: "~/src/ansible/ansible-roles"
+
+# base directory of ansible roles
+base_directory_roles: "~/src/ansible/roles"
+
+# list of paths to remove
+relative_paths_to_remove:
+  - requirements.txt
+
+# relative role path constructed from inventory_host -> role_name
+relative_role_path: "{{ base_directory_roles }}/ansible-role-{{ meta_role_name }}"

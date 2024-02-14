@@ -1,4 +1,8 @@
 ---
+# play: ansible-roles
+# file: inventory/group_vars/all/role_meta.yml
+
+# block for meta/main.yml ------------------------------------------------------
 meta_author: Jonas Mauer
 meta_allow_duplicates: false
 meta_company: none
@@ -20,3 +24,7 @@ meta_platforms:
     versions:
       - focal
       - jammy
+
+# block for requirements.yml----------------------------------------------------
+
+# block for tox.ini ------------------------------------------------------------

@@ -1,0 +1,19 @@
+---
+# role: {{ meta_role_name }}
+# file: {{ template_destpath }}
+
+{% if not requirements_collections %}collections: []{% endif %}
+{% if requirements_collections %}
+collections:
+{% for collection in requirements_collections %}
+    - {{ collection }}
+{% endfor %}
+{% endif %}
+
+{% if not requirements_roles %}roles: []{% endif %}
+{% if requirements_roles %}
+roles:
+{% for role in requirements_roles %}
+    - {{ role }}
+{% endfor %}
+{% endif %}
