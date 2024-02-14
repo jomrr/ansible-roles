@@ -1,0 +1,7 @@
+---
+# play: ansible-roles
+# file: inventory/host_vars/nginx/meta.yml
+
+# --- meta/main.yml vars -------------------------------------------------------
+meta_role_name: 'nginx'
+meta_role_description: 'Ansible role for setting up nginx.'

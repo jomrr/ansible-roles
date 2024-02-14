@@ -1,6 +1,6 @@
 ---
 # play: ansible-roles
-# file: inventory/group_vars/all/role_meta.yml
+# file: inventory/group_vars/all/meta.yml
 
 # block for meta/main.yml ------------------------------------------------------
 meta_author: Jonas Mauer
@@ -10,7 +10,7 @@ meta_dependencies: []
 meta_galaxy_tags: []
 meta_issue_tracker_url: "https://github.com/jam82/ansible-role-{{ meta_role_name }}/issues"
 meta_license: MIT
-meta_min_ansible_version: 2.15
+meta_min_ansible_version: "2.15"
 meta_namespace: jam82
 meta_platforms:
   - name: Debian
@@ -24,7 +24,3 @@ meta_platforms:
     versions:
       - focal
       - jammy
-
-# block for requirements.yml----------------------------------------------------
-
-# block for tox.ini ------------------------------------------------------------

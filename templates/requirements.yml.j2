@@ -1,12 +1,12 @@
 ---
 # role: {{ meta_role_name }}
-# file: {{ template_destpath }}
+# file: meta/requirements.yml
 
 {% if not requirements_collections %}collections: []{% endif %}
 {% if requirements_collections %}
 collections:
 {% for collection in requirements_collections %}
-    - {{ collection }}
+  - {{ collection }}
 {% endfor %}
 {% endif %}
 
@@ -14,6 +14,6 @@ collections:
 {% if requirements_roles %}
 roles:
 {% for role in requirements_roles %}
-    - {{ role }}
+  - {{ role }}
 {% endfor %}
 {% endif %}

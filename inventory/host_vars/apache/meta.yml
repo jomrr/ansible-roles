@@ -1,0 +1,7 @@
+---
+# play: ansible-roles
+# file: inventory/host_vars/apache/meta.yml
+
+# --- meta/main.yml vars -------------------------------------------------------
+meta_role_name: 'apache'
+meta_role_description: 'Ansible role for setting up apache.'
