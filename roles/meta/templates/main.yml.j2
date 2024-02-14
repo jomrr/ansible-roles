@@ -1,0 +1,39 @@
+---
+# role: {{ meta_role_name }}
+# file: meta/main.yml
+
+galaxy_info:
+  namespace: {{ meta_namespace }}
+  role_name: {{ meta_role_name }}
+  author: {{ meta_author }}
+  company: {{ meta_company }}
+  description: {{ meta_role_description }}
+  license: {{ meta_license }}
+  issue_tracker_url: {{ meta_issue_tracker_url }}
+  min_ansible_version: "{{ meta_min_ansible_version }}"
+  {% if not meta_platforms %}platforms: []{% endif %}
+{% if meta_platforms %}
+platforms:
+{% for platform in meta_platforms %}
+    - name: {{ platform.name }}
+      versions:
+{% for version in platform.versions %}
+        - {{ version }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+  {% if not meta_galaxy_tags %}galaxy_tags: []{% endif %}
+{% if meta_galaxy_tags %}
+galaxy_tags:
+{% for tag in meta_galaxy_tags %}
+    - {{ tag }}
+{% endfor %}
+{% endif %}
+
+{% if not meta_dependencies %}dependencies: []{% endif %}
+{% if meta_dependencies %}
+dependencies:
+{% for dependency in meta_dependencies %}
+    - {{ dependency }}
+{% endfor %}
+{% endif %}

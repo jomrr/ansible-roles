@@ -1,0 +1,10 @@
+---
+
+- name: "Playbook to generate meta/main.yml for roles inventory"
+  hosts: all
+  become: false
+  gather_facts: true
+  tasks:
+    - name: "Include role(s) for play meta.yml"
+      ansible.builtin.include_role:
+        name: meta

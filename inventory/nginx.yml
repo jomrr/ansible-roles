@@ -1,0 +1,9 @@
+---
+
+nginx_group:
+  hosts:
+    nginx:
+  vars:
+    # meta/main.yml vars
+    meta_role_name: nginx
+    meta_role_description: "Ansible role for setting up nginx."

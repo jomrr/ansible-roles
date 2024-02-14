@@ -1,0 +1,22 @@
+---
+meta_author: Jonas Mauer
+meta_allow_duplicates: false
+meta_company: none
+meta_dependencies: []
+meta_galaxy_tags: []
+meta_issue_tracker_url: "https://github.com/jam82/ansible-role-{{ meta_role_name }}/issues"
+meta_license: MIT
+meta_min_ansible_version: 2.15
+meta_namespace: jam82
+meta_platforms:
+  - name: Debian
+    versions:
+      - bullseye
+      - bookworm
+  - name: Fedora
+    versions:
+      - all
+  - name: Ubuntu
+    versions:
+      - focal
+      - jammy
