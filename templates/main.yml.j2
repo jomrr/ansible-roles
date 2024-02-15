@@ -29,11 +29,3 @@ galaxy_tags:
     - {{ tag }}
 {% endfor %}
 {% endif %}
-
-{% if not meta_dependencies %}dependencies: []{% endif %}
-{% if meta_dependencies %}
-dependencies:
-{% for dependency in meta_dependencies %}
-    - {{ dependency }}
-{% endfor %}
-{% endif %}
