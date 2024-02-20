@@ -30,7 +30,7 @@ platforms:
 {% for platform in meta_platforms %}
 {% for tag in platform.tags %}
   - name: {{ platform.distribution | lower }}-{{ tag }}-{{ meta_role_name }}
-    image: "docker.io/molecule-{{ platform.distribution | lower }}:{{ tag }}"
+    image: "docker.io/{{ meta_namespace }}/molecule-{{ platform.distribution | lower }}:{{ tag }}"
     pre_build_image: true
     command: ""
 {% endfor %}
