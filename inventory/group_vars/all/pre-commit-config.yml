@@ -2,6 +2,8 @@
 # name: ansible-roles
 # file: inventory/group_vars/all/precommit.yml
 
+# defaults for pre-commit-config.yml -------------------------------------------
+
 meta_precommit_config:
   repos:
     - repo: https://github.com/ansible-community/ansible-lint

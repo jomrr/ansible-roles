@@ -1,0 +1,9 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/meta_requirements.yml
+
+# defaults for meta/meta_requirements.yml --------------------------------------
+
+meta_requirements_collections: []
+
+meta_requirements_roles: []
