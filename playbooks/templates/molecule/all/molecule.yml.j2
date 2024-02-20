@@ -31,6 +31,5 @@ platforms:
   - name: {{ platform.distribution | lower }}-{{ tag }}-{{ meta_role_name }}
     image: "docker.io/{{ meta_namespace }}/molecule-{{ platform.distribution | lower }}:{{ tag }}"
     pre_build_image: true
-    command: ""
 {% endfor %}
 {% endfor %}
