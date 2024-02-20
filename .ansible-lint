@@ -1,0 +1,14 @@
+---
+# name: ansible-roles
+# file: .ansible-lint
+
+profile: production # min, basic, moderate,safety, shared, production
+
+exclude_paths:
+  - .git/*
+  - .venv/*
+  - collections/*
+  - roles/
+
+# Offline mode disables installation of requirements.yml and schema refreshing
+offline: false

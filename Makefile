@@ -19,7 +19,7 @@ FEATURE				?= feature/$(shell date +%Y%m%d%H%M%S)
 # --- Makefile variables -------------------------------------------------------
 BASEDIR				:= $(shell pwd)
 ROLEDIR				:= $(realpath ~/src/ansible/roles)
-
+PLAYDIR				:= $(BASEDIR)/playbooks
 # --- Makefile targets ---------------------------------------------------------
 
 # default target
@@ -101,12 +101,12 @@ $(ROLEDIR): $(BASEDIR)/inventory/group_vars/all/meta.yml
 	@echo "ansible roles directory not found"
 	@exit 1
 
-all: contributing license meta_main meta_requirements readme remove
+all: contributing license meta_main meta_requirements pre-commit-config pyproject readme remove
 
 docs: license readme
 
-contributing license meta_main meta_requirements readme remove: $(ROLEDIR)
-	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$@.yml --limit=$(LIMIT)
+contributing license meta_main meta_requirements pre-commit-config pyproject readme remove: $(ROLEDIR)
+	@$(ANSIBLE_PLAYBOOK) -vvv $(PLAYDIR)/$@.yml --limit=$(LIMIT)
 
 # --- git targets --------------------------------------------------------------
 .PHONY: checkout-dev commit start-feature merge-feature-to-dev prepare-release

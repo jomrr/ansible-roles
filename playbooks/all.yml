@@ -2,37 +2,26 @@
 # name: ansible-roles
 # file: playbooks/all.yml
 
-- name: "Playbook 'all'"
-  hosts: "{{ target | default('test') }}"
-  become: false
-  gather_facts: false
-  tasks:
-    - name: "Import playbook 'contributing'"
-      ansible.builtin.import_playbook:
-        free-form: "contributing.yml"
-      tags: ["contributing"]
+- name: "Import playbook 'contributing'"
+  ansible.builtin.import_playbook: "contributing.yml"
+  tags: ["contributing"]
 
-    - name: "Import playbook 'license'"
-      ansible.builtin.import_playbook:
-        free-form: "license.yml"
-      tags: ["license"]
+- name: "Import playbook 'license'"
+  ansible.builtin.import_playbook: "license.yml"
+  tags: ["license"]
 
-    - name: "Import playbook 'meta_main'"
-      ansible.builtin.import_playbook:
-        free-form: "meta_main.yml"
-      tags: ["meta_main"]
+- name: "Import playbook 'meta_main'"
+  ansible.builtin.import_playbook: "meta_main.yml"
+  tags: ["meta_main"]
 
-    - name: "Import playbook 'meta_requirements'"
-      ansible.builtin.import_playbook:
-        free-form: "meta_requirements.yml"
-      tags: ["meta_requirements"]
+- name: "Import playbook 'meta_requirements'"
+  ansible.builtin.import_playbook: "meta_requirements.yml"
+  tags: ["meta_requirements"]
 
-    - name: "Import playbook 'readme'"
-      ansible.builtin.import_playbook:
-        free-form: "readme.yml"
-      tags: ["readme"]
+- name: "Import playbook 'readme'"
+  ansible.builtin.import_playbook: "readme.yml"
+  tags: ["readme"]
 
-    - name: "Import playbook 'remove'"
-      ansible.builtin.import_playbook:
-        free-form: "remove.yml"
-      tags: ["remove"]
+- name: "Import playbook 'remove'"
+  ansible.builtin.import_playbook: "remove.yml"
+  tags: ["remove"]

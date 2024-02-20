@@ -1,0 +1,14 @@
+---
+# name: ansible-roles
+# file: playbooks/precommit.yml
+
+- name: "Playbook 'precommit' for role {{ meta_role_name }}"
+  hosts: "{{ target | default('all') }}"
+  become: false
+  gather_facts: false
+  tasks:
+    - name: "Generate pre-commit configuration"
+      ansible.builtin.template:
+        src: '.pre-commit-config.yaml.j2'
+        dest: "{{ ansible_host }}/.pre-commit-config.yaml"
+        mode: "0644"

@@ -1,0 +1,14 @@
+---
+# name: ansible-roles
+# file: playbooks/pyproject.yml
+
+- name: "Playbook 'pyproject' for role {{ meta_role_name }}"
+  hosts: "{{ target | default('all') }}"
+  become: false
+  gather_facts: false
+  tasks:
+    - name: "Generate pyproject.toml"
+      ansible.builtin.template:
+        src: 'pyproject.toml.j2'
+        dest: "{{ ansible_host }}/pyproject.toml"
+        mode: "0644"

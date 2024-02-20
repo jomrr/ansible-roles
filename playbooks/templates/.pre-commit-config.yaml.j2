@@ -2,4 +2,4 @@
 # name: {{ meta_role_name }}
 # file: .pre-commit-config.yaml
 
-repos: {{ meta_precommit_repos | to_nice_yaml }}
+{{ meta_precommit_config | to_nice_yaml(width=80, indent=2, sort_keys=false) }}
