@@ -12,38 +12,38 @@
         available: true
         update_cache: true
         upgrade: true
-      when: ansible_pkg_mgr == "apk" and prepare_update | bool
+      when: ansible_pkg_mgr == "apk"
 
     - name: "Update apt cache and installed packages"  # noqa: package-latest
       ansible.builtin.apt:
         force_apt_get: true
         state: latest
         update_cache: true
-      when: ansible_pkg_mgr == "apt" and prepare_update | bool
+      when: ansible_pkg_mgr == "apt"
 
     - name: "Update dnf cache and installed packages"  # noqa: package-latest
       ansible.builtin.dnf:
         name: "*"
         state: latest
         update_cache: true
-      when: ansible_pkg_mgr == "dnf" and prepare_update | bool
+      when: ansible_pkg_mgr == "dnf"
 
     - name: "Update pacman cache and installed packages"
       community.general.pacman:
         update_cache: true
         upgrade: true
-      when: ansible_pkg_mgr == "pacman" and prepare_update | bool
+      when: ansible_pkg_mgr == "pacman"
 
     - name: "Update yum cache and installed packages"  # noqa: package-latest
       ansible.builtin.yum:
         name: "*"
         state: latest
         update_cache: true
-      when: ansible_pkg_mgr == "yum" and prepare_update | bool
+      when: ansible_pkg_mgr == "yum"
 
     - name: "Update zypper cache and installed packages"  # noqa: package-latest
       community.general.zypper:
         name: "*"
         state: latest
         update_cache: true
-      when: ansible_pkg_mgr == "zypper" and prepare_update | bool
+      when: ansible_pkg_mgr == "zypper"
