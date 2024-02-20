@@ -18,6 +18,18 @@
   ansible.builtin.import_playbook: "meta_requirements.yml"
   tags: ["meta_requirements"]
 
+- name: "Import playbook 'molecule'"
+  ansible.builtin.import_playbook: "molecule.yml"
+  tags: ["molecule"]
+
+- name: "Import playbook 'pre-commit-config'"
+  ansible.builtin.import_playbook: "pre-commit-config.yml"
+  tags: ["pre-commit-config"]
+
+- name: "Import playbook 'pyproject'"
+  ansible.builtin.import_playbook: "pyproject.yml"
+  tags: ["pyproject"]
+
 - name: "Import playbook 'readme'"
   ansible.builtin.import_playbook: "readme.yml"
   tags: ["readme"]
