@@ -7,6 +7,11 @@
   become: false
   gather_facts: false
   tasks:
+    - name: "Set fact 'meta_release_version'"
+      ansible.builtin.set_fact:
+        meta_release_version: "{{ lookup('jam82.dev.github_version', \
+          lookup('ansible.builtin.env', 'GH_TOKEN'), meta_namespace, meta_role_name) }}"
+
     - name: "Generate pyproject.toml"
       ansible.builtin.template:
         src: 'pyproject.toml.j2'
