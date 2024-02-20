@@ -1,0 +1,22 @@
+[project]
+name = "ansible-roles"
+version = "0.0.0"
+description = "Ansible roles database and development playbooks."
+authors = ["Jonas Mauer"]
+license = "MIT"
+keywords = ["ansible", "molecule", "roles"]
+repository = "https://github.com/jam82/ansible-roles"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_provider = "pep621"
+tag_format = "v$version"
+
+[tool.semantic_release]
+commit_message = "build(release): version {version}"
+major_on_zero = true
+upload_to_pypi = false
+upload_to_vcs_release = true
+version_toml = [
+    "pyproject.toml:project.version",
+]

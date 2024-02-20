@@ -1,0 +1,21 @@
+---
+# name: ansible-roles
+# file: playbooks/meta_requirements.yml
+
+- name: "Playbook 'meta_requirements' for role '{{ meta_role_name }}"
+  hosts: "{{ target | default('all') }}"
+  become: false
+  gather_facts: false
+  tasks:
+    - name: "Ensure that path exists"
+      ansible.builtin.file:
+        path: "{{ ansible_host }}/meta"
+        state: directory
+        mode: "0755"
+
+    - name: "Generate meta/requirements.yml"
+      ansible.builtin.template:
+        src: "meta/requirements.yml.j2"
+        dest: "{{ ansible_host }}/meta/requirements.yml"
+        mode: "0644"
+        validate: "ansible-lint %s"

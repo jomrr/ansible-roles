@@ -1,9 +1,0 @@
----
-# play: ansible-roles
-# file: inventory/group_vars/all/requirements.yml
-
-# block for {./, ./meta}/requirements.yml --------------------------------------
-requirements_collections:
-  - containers.podman
-
-requirements_roles: []

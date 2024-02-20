@@ -1,0 +1,5 @@
+---
+# name: {{ meta_role_name }}
+# file: .pre-commit-config.yaml
+
+repos: {{ meta_precommit_repos | to_nice_yaml }}

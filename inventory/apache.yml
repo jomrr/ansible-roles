@@ -1,7 +1,0 @@
----
-# play: ansible-roles
-# file: inventory/apache.yml
-
-apache_group:
-  hosts:
-    apache:

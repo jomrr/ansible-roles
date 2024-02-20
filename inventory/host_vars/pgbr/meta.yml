@@ -1,0 +1,7 @@
+---
+# play: ansible-roles
+# file: inventory/host_vars/pgbr/meta.yml
+
+# --- meta/main.yml vars -------------------------------------------------------
+meta_role_name: 'pgbr'
+meta_role_description: 'Ansible role for creating and restoring backups of postgresql databases.'

@@ -4,4 +4,31 @@
 
 # --- meta/main.yml vars -------------------------------------------------------
 meta_role_name: 'apache'
-meta_role_description: 'Ansible role for setting up apache.'
+meta_role_description: 'Ansible role for setting up the apache webserver.'
+meta_year_created: '2024'
+meta_galaxy_tags:
+  - apache
+  - apache2
+  - apache24
+  - httpd
+  - reverseproxy
+  - server
+  - vhost
+  - web
+  - webserver
+
+meta_platforms:
+  - { os_family: Debian, distribution: Debian, tags: ['11', '12', 'latest', 'testing'] }
+  - { os_family: Debian, distribution: Ubuntu, tags: ['20.04', '22.04', 'latest'] }
+  - { os_family: RedHat, distribution: AlmaLinux, tags: ['8', '9', 'latest'] }
+  - { os_family: RedHat, distribution: Fedora, tags: ['39', 'latest', 'rawhide'] }
+
+# block for README.md ----------------------------------------------------------
+# long description
+meta_description: |-
+  This role sets up the Apache web server, including the installation of the
+  Apache package, the configuration of the Apache service, and the management
+  of Apache configuration files, modules and virtual host configurations.
+
+# role default variables from meta/argument_specs.yml
+meta_role_variables: []

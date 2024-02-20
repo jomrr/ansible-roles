@@ -1,0 +1,14 @@
+---
+# name: ansible-roles
+# file: playbooks/docs.yml
+
+- name: "Playbook 'license' for role {{ meta_role_name }}"
+  hosts: "{{ target | default('all') }}"
+  become: false
+  gather_facts: false
+  tasks:
+    - name: "Generate LICENSE file"
+      ansible.builtin.template:
+        src: 'LICENSE.j2'
+        dest: "{{ ansible_host }}/LICENSE"
+        mode: "0644"

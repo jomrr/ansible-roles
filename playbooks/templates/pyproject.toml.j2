@@ -1,0 +1,22 @@
+[project]
+name = "{{ meta_repo_name }}"
+version = "{{ meta_release_version | default('0.0.0') }}"
+description = "{{ meta_role_description }}"
+authors = ["{{ meta_author }}"]
+license = "{{ meta_license }}"
+keywords = {{ meta_galaxy_tags | to_yaml }}
+repository = "{{ meta_repo_url }}"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_provider = "pep621"
+tag_format = "v$version"
+
+[tool.semantic_release]
+commit_message = "build(release): version {version}"
+major_on_zero = true
+upload_to_pypi = false
+upload_to_vcs_release = true
+version_toml = [
+    "pyproject.toml:project.version",
+]

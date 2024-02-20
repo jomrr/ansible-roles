@@ -1,0 +1,143 @@
+# Ansible role {{ meta_role_name }}
+
+![GitHub](https://img.shields.io/github/license/{{ meta_role_name }}/ansible-role-{{ meta_role_name }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ meta_role_name }}/ansible-role-{{ meta_role_name }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ meta_role_name }}/ansible-role-{{ meta_role_name }})
+
+**{{ meta_role_description }}**
+
+## Description
+
+{{ meta_description }}
+
+## Table of Contents
+
+- [Description](#description)
+- [Table of Contents](#table-of-contents)
+- [Prerequisites](#prerequisites)
+  - [System packages (Fedora)](#system-packages-fedora)
+  - [Python (requirements.txt)](#python-requirementstxt)
+- [Dependencies (requirements.yml)](#dependencies-requirementsyml)
+- [Supported Platforms](#supported-platforms)
+- [Role Variables](#role-variables)
+- [Example Playbook](#example-playbook)
+- [The default example playbook](#the-default-example-playbook)
+- [License](#license)
+- [Author Information](#author-information)
+- [Contributing](#contributing)
+- [References](#references)
+
+## Prerequisites
+
+### System packages (Fedora)
+
+- `python3` (Python 3.6 or later)
+{% if meta_system_requirements %}
+{% for requirement in meta_system_requirements %}
+- {{ requirement }}
+{% endfor %}
+{% endif %}
+
+### Python (requirements.txt)
+
+- ansible >= {{ meta_min_ansible_version }}
+{% if meta_python_requirements %}
+{% for requirement in meta_python_requirements %}
+- {{ requirement }}
+{% endfor %}
+{% endif %}
+
+## Dependencies (requirements.yml)
+
+{% if meta_requirements_collections or meta_requirements_roles %}
+```yaml
+{% if meta_requirements_collections %}
+collections:
+{% for collection in meta_requirements_collections %}
+  - {{ collection }}
+{% endfor %}
+{% else %}
+collections []
+{% endif %}
+
+{% if meta_requirements_roles %}
+roles:
+{% for role in meta_requirements_roles %}
+  - {{ role }}
+{% endfor %}
+{% else %}
+roles []
+{% endif %}
+```
+{% else %}
+This role has no dependencies.
+{% endif %}
+
+## Supported Platforms
+
+{% if meta_platforms %}
+| OS Family | Distribution | Version | Container Image |
+|-----------|--------------|---------|-----------------|
+{% for platform in meta_platforms %}
+{% for tag in platform.tags %}
+{% if loop.first %}
+| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ meta_namespace }}/molecule-{{ platform.distribution | lower }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace }}/molecule-{{ platform.distribution | lower }} ) |
+{% else %}
+| | | {{ tag }} | [{{ meta_namespace }}/molecule-{{ platform.distribution | lower }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace }}/molecule-{{ platform.distribution | lower }} ) |
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% else %}
+This role has no specific platform requirements.
+{% endif %}
+
+## Role Variables
+
+{% if not meta_role_variables %}
+No role default variables specified, see [defaults/main.yml](defaults/main.yml).
+{% else %}
+The following are the default variables that should be adjusted:
+
+{% for variable in meta_role_variables %}
+- `{{ variable.name }}`: {{ variable.description }} (Default: `{{ variable.default }}`)
+{% endfor %}
+{% endif %}
+
+## Example Playbook
+
+Example(s) of how to use this role:
+
+{% for example in meta_examples %}
+## {{ example.name }}
+
+{{ example.description }}
+
+```yaml
+{{ example.code }}
+```
+{% endfor %}
+
+## License
+
+This role is published under the [{{ meta_license }} License](LICENSE).
+
+## Author Information
+
+This role was created in {{ meta_year_created }} by {{ meta_author }} (@{{ meta_namespace }}).
+
+## Contributing
+
+Contributions to this role are welcome.
+Please follow the steps described in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## References
+
+{% if not meta_references %}
+No references.
+{% else %}
+The following are the default variables that should be adjusted:
+
+{% for reference in meta_references %}
+- {{ reference }}
+{% endfor %}
+{% endif %}
+
+---

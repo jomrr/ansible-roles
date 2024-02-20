@@ -11,17 +11,6 @@ galaxy_info:
   license: {{ meta_license }}
   issue_tracker_url: {{ meta_issue_tracker_url }}
   min_ansible_version: "{{ meta_min_ansible_version }}"
-  {% if not meta_platforms %}platforms: []{% endif %}
-{% if meta_platforms %}
-platforms:
-{% for platform in meta_platforms %}
-    - name: {{ platform.name }}
-      versions:
-{% for version in platform.versions %}
-        - {{ version }}
-{% endfor %}
-{% endfor %}
-{% endif %}
   {% if not meta_galaxy_tags %}galaxy_tags: []{% endif %}
 {% if meta_galaxy_tags %}
 galaxy_tags:
