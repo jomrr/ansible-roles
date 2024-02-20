@@ -1,0 +1,12 @@
+---
+# role: {{ meta_repo_name }}
+# file: molecule/resources/playbooks/verify.yml
+
+- name: "PLAYBOOK | Verify"
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "Assert true"
+      ansible.builtin.assert:
+        that: "true"
+        fail_msg: "This should never fail"

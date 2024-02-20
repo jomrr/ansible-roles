@@ -27,7 +27,11 @@ provisioner:
 verifier:
   name: ansible
 platforms:
-  - name: {{ meta_role_name }}
-    image: "docker.io/${uns:-{{ meta_namespace }}}/molecule-${img:-fedora}:${tag:-latest}"
+{% for platform in meta_platforms %}
+{% for tag in platform.tags %}
+  - name: {{ platform.distribution | lower }}-{{ tag }}-{{ meta_role_name }}
+    image: "docker.io/molecule-{{ platform.distribution | lower }}:{{ tag }}"
     pre_build_image: true
     command: ""
+{% endfor %}
+{% endfor %}
