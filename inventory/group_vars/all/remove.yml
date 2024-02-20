@@ -1,9 +1,6 @@
 ---
 # play: ansible-roles
-# file: inventory/group_vars/all/paths.yml
-
-# base dirctory of this role
-base_directory: "~/src/ansible/ansible-roles"
+# file: inventory/group_vars/all/remove.yml
 
 # list of paths to be removed relative to role directory (ansible_host)
 relative_paths_to_remove:

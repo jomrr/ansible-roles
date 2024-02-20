@@ -1,0 +1,6 @@
+---
+# play: ansible-roles
+# file: inventory/group_vars/all/ansible-roles.yml
+
+# base dirctory of this role
+base_directory: "~/src/ansible/ansible-roles"
