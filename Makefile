@@ -14,12 +14,17 @@ ANSIBLE_LINT		:= $(VENV)/bin/ansible-lint
 ANSIBLE_PLAYBOOK	:= $(VENV)/bin/ansible-playbook
 ANSIBLE_VAULT		:= $(VENV)/bin/ansible-vault
 LIMIT				?= test
+EXTRA_VARS			?=
+SKIP_TAGS			?=
+TAGS				?=
+
 # --- Git variables ------------------------------------------------------------
 FEATURE				?= feature/$(shell date +%Y%m%d%H%M%S)
 # --- Makefile variables -------------------------------------------------------
 BASEDIR				:= $(shell pwd)
 ROLEDIR				:= $(realpath ~/src/ansible/roles)
 PLAYDIR				:= $(BASEDIR)/playbooks
+PLAYBOOKS			:= $(basename $(notdir $(wildcard $(PLAYDIR)/*.yml)))
 # --- Makefile targets ---------------------------------------------------------
 
 # default target
@@ -91,7 +96,7 @@ clean:
 	@rm -rf $(VENV)
 
 # --- targets for ansible ------------------------------------------------------
-.PHONY: all contributing docs license meta_main meta_requirements readme remove
+.PHONY: $(PLAYBOOKS)
 
 $(BASEDIR)/inventory/group_vars/all/meta.yml:
 	@echo "default config in inventory/group_vars/all/meta.yml not found"
@@ -101,12 +106,16 @@ $(ROLEDIR): $(BASEDIR)/inventory/group_vars/all/meta.yml
 	@echo "ansible roles directory not found"
 	@exit 1
 
-all: contributing license meta_main meta_requirements molecule pre-commit-config pyproject readme remove
+all: comment contributing license meta_main meta_requirements molecule pre-commit-config pyproject readme remove
 
 docs: license readme
 
-contributing license meta_main meta_requirements molecule pre-commit-config pyproject readme remove: $(ROLEDIR)
-	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$@.yml --limit=$(LIMIT)
+$(PLAYBOOKS): $(ROLEDIR)
+	$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$@.yml \
+		$(if $(EXTRA_VARS),--extra-vars "$(EXTRA_VARS)") \
+		--limit=$(LIMIT) \
+		$(if $(SKIP_TAGS),--skip-tags $(SKIP_TAGS)) \
+		$(if $(TAGS),--tags $(TAGS))
 
 # --- git targets --------------------------------------------------------------
 .PHONY: checkout-dev commit start-feature merge-feature-to-dev prepare-release

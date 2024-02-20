@@ -24,6 +24,7 @@
         src: "{{ item }}.j2"
         dest: "{{ ansible_host }}/{{ item }}"
         mode: "0644"
+        validate: "ansible-lint %s"
       loop:
         - molecule/all/molecule.yml
         - molecule/default/molecule.yml
