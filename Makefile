@@ -106,7 +106,7 @@ $(ROLEDIR): $(BASEDIR)/inventory/group_vars/all/meta.yml
 	@echo "ansible roles directory not found"
 	@exit 1
 
-all: comment contributing license meta_main meta_requirements molecule pre-commit-config pyproject readme remove
+all: contributing license meta_main meta_requirements molecule pre-commit-config pyproject readme remove
 
 docs: license readme
 
