@@ -5,8 +5,9 @@
 # defaults for README.md -------------------------------------------------------
 
 # long description
-meta_description: |-
-  This role generates quadlet systemd unit files and reloads the systemd daemon.
+meta_description: |
+  This role deploys systemd managed podman artifacts by using quadlet and the podman-systemd-generator.
+
 meta_prerequisites: "A current version of podman and a systemd based Linux distribution are required."
 # python requirements
 meta_python_requirements: []
