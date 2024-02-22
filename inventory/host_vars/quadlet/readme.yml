@@ -31,4 +31,5 @@ meta_examples:
         roles:
           - role: "{{ meta_namespace }}.{{ meta_role_name }}"
 # references
-meta_references: []
+meta_references:
+  - "[podman-systemd.unit](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)"
