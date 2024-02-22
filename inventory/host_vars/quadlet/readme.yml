@@ -1,0 +1,33 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/readme.yml
+
+# defaults for README.md -------------------------------------------------------
+
+# long description
+meta_description: |-
+  This role generates quadlet systemd unit files and reloads the systemd daemon.
+meta_prerequisites: "A current version of podman and a systemd based Linux distribution are required."
+# python requirements
+meta_python_requirements: []
+# system packages required
+meta_system_requirements:
+  - podman >=4.6.0
+  - systemd
+# role default variables from meta/argument_specs.yml
+meta_role_variables: []
+# Example playbooks
+meta_examples:
+  - name: The default example playbook
+    description: |
+      The default example playbook for the role.
+    code: |
+      ---
+      # play: "{{ meta_role_name }}"
+      # file: "{{ meta_role_name }}.yml"
+      - hosts: all
+        gather_facts: true
+        roles:
+          - role: "{{ meta_namespace }}.{{ meta_role_name }}"
+# references
+meta_references: []

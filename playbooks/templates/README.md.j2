@@ -27,6 +27,12 @@
 
 ## Prerequisites
 
+{% if meta_prerequisites %}
+{{ meta_prerequisites }}
+{% else %}
+This role has no special prerequisites.
+{% endif %}
+
 ### System packages (Fedora)
 
 - `python3` (Python 3.6 or later)
@@ -109,7 +115,6 @@ Example(s) of how to use this role:
 ## {{ example.name }}
 
 {{ example.description }}
-
 ```yaml
 {{ example.code }}
 ```
