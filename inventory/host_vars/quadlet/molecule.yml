@@ -1,0 +1,19 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/quadlet/molecule.yml
+
+meta_molecule_playbooks:
+    converge: ../resources/playbooks/converge.yml
+    prepare: ../resources/playbooks/prepare.yml
+    verify: ../resources/playbooks/verify.yml
+
+meta_molecule_prepare: |
+  - name: "PLAYBOOK | Prepare"
+    hosts: all
+    become: true
+    gather_facts: true
+    tasks:
+      - name: "Install podman"
+        ansible.builtin.package:
+          name: podman
+          state: present

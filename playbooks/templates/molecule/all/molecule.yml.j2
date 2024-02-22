@@ -21,8 +21,9 @@ provisioner:
       pipelining: true
   log: true
   playbooks:
-    converge: ../resources/playbooks/converge.yml
-    verify: ../resources/playbooks/verify.yml
+{% for playbook in meta_molecule_playbooks | dict2items %}
+    {{ playbook.key }}: "{{ playbook.value }}"
+{% endfor -%}
 verifier:
   name: ansible
 platforms:
