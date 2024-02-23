@@ -45,12 +45,15 @@ help:
 	@echo ""
 	@echo "  all                  Run all playbooks"
 	@echo "  docs                 Run contributing, license, readme playbooks"
-	@echo "  contributing         Run the contributing playbook"
-	@echo "  license              Run the license playbook"
-	@echo "  readme               Run the readme playbook"
-	@echo "  meta_main            Run the meta_main playbook"
-	@echo "  meta_requirements    Run the meta_requirements playbook"
-	@echo "  remove               Run the remove playbook"
+	@echo "  contributing         Generate contributing.md"
+	@echo "  license              Generate LICENSE.md"
+	@echo "  meta_main            Generate meta/main.yml"
+	@echo "  meta_requirements    Generate meta/requirements.yml"
+	@echo "  molecule             Generate molecule scenarios and playbooks"
+	@echo "  pre-commit-config    Generate .pre-commit-config.yaml"
+	@echo "  pyproject            Generate pyproject.toml"
+	@echo "  readme               Generate README.md"
+	@echo "  remove               Remove configured files"
 	@echo ""
 	@echo "  # --- git targets ------------------------------------------------"
 	@echo ""
@@ -111,7 +114,7 @@ all: contributing license meta_main meta_requirements molecule pre-commit-config
 docs: license readme
 
 $(PLAYBOOKS): $(ROLEDIR)
-	$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$@.yml \
+	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$@.yml \
 		$(if $(EXTRA_VARS),--extra-vars "$(EXTRA_VARS)") \
 		--limit=$(LIMIT) \
 		$(if $(SKIP_TAGS),--skip-tags $(SKIP_TAGS)) \
