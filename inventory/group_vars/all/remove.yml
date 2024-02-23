@@ -7,9 +7,10 @@
 # list of paths to be removed relative to role directory (ansible_host)
 relative_paths_to_remove:
   - .ansible-lint.yml
-  - .github/workflows
+  - .github
   - .travis.yml
   - .yamllint.yml
+  - Makefile
   - requirements.txt
   - requirements.yml
   - tasks.yml
