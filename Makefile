@@ -109,11 +109,9 @@ $(ROLEDIR): $(BASEDIR)/inventory/group_vars/all/meta.yml
 	@echo "ansible roles directory not found"
 	@exit 1
 
-all: contributing license meta_main meta_requirements molecule pre-commit-config pyproject readme remove
-
 docs: license readme
 
-$(PLAYBOOKS): $(ROLEDIR)
+all $(PLAYBOOKS): $(ROLEDIR)
 	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$@.yml \
 		$(if $(EXTRA_VARS),--extra-vars "$(EXTRA_VARS)") \
 		--limit=$(LIMIT) \
