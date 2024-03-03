@@ -27,11 +27,7 @@
 
 ## Prerequisites
 
-{% if meta_prerequisites %}
-{{ meta_prerequisites }}
-{% else %}
-This role has no special prerequisites.
-{% endif %}
+{{ meta_prerequisites | default('This role has no special prerequisites.') }}
 
 ### System packages (Fedora)
 
