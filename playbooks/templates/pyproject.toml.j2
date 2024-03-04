@@ -4,7 +4,7 @@ version = "{{ meta_release_version | default('0.0.0') }}"
 description = "{{ meta_role_description }}"
 authors = ["{{ meta_author }}"]
 license = "{{ meta_license }}"
-keywords = {{ meta_galaxy_tags | to_yaml }}
+keywords = [{{ '\"' + meta_galaxy_tags | join('\", \"') + '\"' if meta_galaxy_tags | length > 0 }}]
 repository = "{{ meta_repo_url }}"
 
 [tool.commitizen]
