@@ -3,59 +3,30 @@
 - name: "Get ansible role repositories from GitHub within a user or organization context"
   hosts: localhost
   gather_facts: false
+  vars:
+    gh_user_or_org: "{{ lookup('env', 'GH_USER', default='') }}"
+    gh_is_org: false
+    gh_name: "{{ 'org:' if gh_is_org else 'user:' }}{{ gh_user_or_org }}"
+    gh_token: "{{ lookup('env', 'GH_TOKEN', default='') }}"
+    gh_query: "{{ lookup('env', 'QUERY', default='ansible-role-') }}"
   tasks:
-    - name: "Lookup 'ansible-role-*' repositories on GitHub for {{ github_user_or_org }}"
+    - name: "Lookup 'ansible-role-*' repositories on GitHub for {{ gh_user_or_org }}"
       ansible.builtin.uri:
-        url: "https://api.github.com/search/repositories?q=ansible-role-*+in:name+user:{{ github_user_or_org }}"
+        url: "https://api.github.com/search/repositories?q={{ gh_query }}+in:name+{{ gh_name }}"
         method: GET
         headers:
           Accept: "application/vnd.github.v3+json"
-          Authorization: "{{ 'Bearer ' + github_token if github_token else omit }}"
+          Authorization: "{{ 'Bearer ' + gh_token if gh_token else omit }}"
         return_content: true
         validate_certs: true
       register: github_response
 
-    - name: "Display repository names and descriptions"
-      ansible.builtin.debug:
-        msg: "Repository Name: {{ item.name }}, Description: {{ item.description }}"
-      loop: "{{ github_response.json.items }}"
+    - name: "Include the 'github_clone.yml' tasks for each repository found"
+      vars:
+        repo_path: "{{ role_directory }}/{{ item.name }}"
+      ansible.builtin.include_tasks: tasks/github_clone.yml
+      loop: "{{ github_response.json['items'] }}"
       loop_control:
         label: "{{ item.name }}"
-
-    # - name: Clone or update repositories
-    #   vars:
-    #     repo_path: "{{ base_directory_roles }}/{{ item.name }}"
-    #   block:
-    #     - name: Check if the repository directory exists
-    #       ansible.builtin.stat:
-    #         path: "{{ repo_path }}"
-    #       register: repo_dir
-
-    #     - name: Clone repository if it does not exist
-    #       ansible.builtin.git:
-    #         repo: "{{ item.ssh_url }}"
-    #         dest: "{{ repo_path }}"
-    #         clone: yes
-    #         update: no
-    #         accept_newhostkey: true
-    #       when: not repo_dir.stat.exists
-
-    #     # - name: Update repository if it exists
-    #     #   ansible.builtin.git:
-    #     #     repo: "{{ item.clone_url }}"
-    #     #     dest: "{{ repo_path }}"
-    #     #     remote: origin
-    #     #     version: dev
-    #     #     force: yes
-    #     #   when: repo_dir.stat.exists
-
-    #     - name: Create local dev branch if it does not exist
-    #       ansible.builtin.command:
-    #         cmd: git checkout -b dev
-    #         chdir: "{{ repo_path }}"
-    #       register: branch_creation
-    #       failed_when: branch_creation.rc != 0 and 'already exists' not in branch_creation.stderr
-    #       when: repo_dir.stat.exists and not '"dev"' in branch_creation.stdout
-    #   loop: "{{ github_response.json.items }}"
-    #   loop_control:
-    #     label: "{{ item.name }}"
+      # exact matching as github api returns e.g. ansible-roles for gh_query=ansible-role-
+      when: gh_query in item.name and item.owner.login == gh_user_or_org

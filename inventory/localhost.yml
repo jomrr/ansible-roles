@@ -1,0 +1,8 @@
+---
+# name: ansible-roles
+# file: inventory/localost.yml
+
+all:
+  hosts:
+    localhost:
+      ansible_connection: local
