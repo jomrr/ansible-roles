@@ -2,6 +2,17 @@
 # role: {{ meta_repo_name }}
 # file: molecule/default/molecule.yml
 
+# Note on command and entrypoint = ~ ... :/ ???
+#
+# Using the pre-built container defaults, when nothing is specified should be straight forward
+# at least what I thought, but with molecule it isn't...
+#
+# The default command is "sleep infinity", entrypoint is "/bin/sh", regardless of container
+# configuration. I would think that the default should be used when nothing is specified,
+# and when that leads to immediately terminating the image, then the wrong image is used.
+# It is the responsibiltiy of the Dev to choose or build the right one and not of
+# molecule to guess what the Dev wants. Besides it clutters configuration files.
+
 dependency:
   name: galaxy
   options:
@@ -30,3 +41,5 @@ platforms:
   - name: {{ meta_role_name }}
     image: "docker.io/${uns:-{{ meta_namespace }}}/molecule-${img:-fedora}:${tag:-latest}"
     pre_build_image: true
+    entrypoint: ~
+    command: ~
