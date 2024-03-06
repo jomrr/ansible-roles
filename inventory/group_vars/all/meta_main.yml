@@ -18,7 +18,7 @@ meta_year_created: '2024'
 meta_min_ansible_version: "2.15"
 meta_namespace: jam82
 meta_platforms:
-  - { os_family: Debian, distribution: Debian, tags: ['11', '12', 'latest', 'testing'] }
-  - { os_family: Debian, distribution: Ubuntu, tags: ['20.04', '22.04', 'latest'] }
-  - { os_family: RedHat, distribution: AlmaLinux, tags: ['8', '9', 'latest'] }
-  - { os_family: RedHat, distribution: Fedora, tags: ['39', 'latest', 'rawhide'] }
+  - { distribution: AlmaLinux, os_family: RedHat, tags: ['8', '9'] }
+  - { distribution: Debian, os_family: Debian, tags: ['11', '12'] }
+  - { distribution: Fedora, os_family: RedHat, tags: ['39', '40', 'rawhide'] }
+  - { distribution: Ubuntu, os_family: Debian, tags: ['20.04', '22.04'] }
