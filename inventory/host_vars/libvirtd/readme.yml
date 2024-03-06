@@ -6,13 +6,7 @@
 
 # long description
 meta_description: |
-  A longer description. :) t.b.d.
-# python requirements
-meta_python_requirements: []
-# system packages required
-meta_system_requirements: []
-# role default variables from meta/argument_specs.yml
-meta_role_variables: []
+  Install libvirtd, client tools and qemu-kvm packags on supported systems.
 # Example playbooks
 meta_examples:
   - name: The default example playbook
@@ -22,9 +16,11 @@ meta_examples:
       ---
       # name: "{{ meta_namespace }}.{{ meta_role_name }}"
       # file: "{{ meta_role_name }}.yml"
-      - hosts: all
+      - hosts: libvirtd
         gather_facts: true
         roles:
           - role: "{{ meta_namespace }}.{{ meta_role_name }}"
 # references
-meta_references: []
+meta_references:
+  - "[ArchWiki](https://wiki.archlinux.org/index.php/Libvirt)"
+  - "[Fedora Documentation](https://docs.fedoraproject.org/en-US/quick-docs/virtualization-getting-started/)"

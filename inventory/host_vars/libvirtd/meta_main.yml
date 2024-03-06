@@ -1,0 +1,23 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/meta_main.yml
+
+# defaults for meta/meta_main.yml ----------------------------------------------
+
+meta_role_description: 'Ansible role for installing libvirt-daemon and tools.'
+meta_galaxy_tags:
+  - libvirt
+  - libvirtd
+  - kvm
+  - qemu
+  - virtualization
+meta_year_created: '2024'
+meta_platforms:
+  - { os_family: Alpine, distribution: Alpine, tags: ['3.18', '3.19', 'latest'] }
+  - { os_family: Archlinux, distribution: ArchLinux, tags: ['latest'] }
+  - { os_family: Amazon, distribution: AmazonLinux, tags: ['2', '2023', 'latest'] }
+  - { os_family: Debian, distribution: Debian, tags: ['11', '12', 'latest', 'testing'] }
+  - { os_family: Debian, distribution: Ubuntu, tags: ['20.04', '22.04', 'latest'] }
+  - { os_family: RedHat, distribution: AlmaLinux, tags: ['8', '9', 'latest'] }
+  - { os_family: RedHat, distribution: Fedora, tags: ['39', 'latest', 'rawhide'] }
+  - { os_family: RedHat, distribution: OracleLinux, tags: ['8', '9', 'latest'] }

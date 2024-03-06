@@ -10,12 +10,6 @@ meta_description: |
   destinations and updated the ca-trust on the OS. Furthermore it deploys
   TLS certificates and keys to the operating systems default location for
   TLS certificates and keys.
-# python requirements
-meta_python_requirements: []
-# system packages required
-meta_system_requirements: []
-# role default variables from meta/argument_specs.yml
-meta_role_variables: []
 # Example playbooks
 meta_examples:
   - name: The default example playbook
