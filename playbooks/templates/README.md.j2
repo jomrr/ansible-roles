@@ -107,11 +107,11 @@ Example playbooks(s) that show how to use this role.
 ```
 {% endfor %}
 
-## License, Author(s) and Contributors
+## Author(s) and License
 
-This role is published under the [{{ meta_license }} License](LICENSE)
-
-and was initially created in {{ meta_year_created }} by {{ meta_author }} (@{{ meta_namespace | default('jam82') }}).
+- Author::    :octocat: [{{ meta_namespace | default('jam82') }}](https://github.com/{{ meta_namespace | default('jam82') }})
+- Copyright:: :triangular_flag_on_post: {{ meta_year_created }} {{ meta_author }}
+- License::   :page_with_curl: [{{ meta_license | default('MIT') }}](LICENSE)
 
 {% if read_references | default([]) | length > 0 -%}
 ## References
