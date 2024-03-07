@@ -2,7 +2,7 @@
 # name: ansible-roles
 # file: playbooks/precommit.yml
 
-- name: "Playbook 'precommit' for role {{ meta_role_name }}"
+- name: "PLAYBOOK | Precommit"
   hosts: "{{ target | default('all') }}"
   become: false
   gather_facts: false

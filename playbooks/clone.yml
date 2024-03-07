@@ -1,6 +1,9 @@
 ---
+# name: ansible-roles
+# file: playbooks/contributing.yml
+# description: Clone GitHub repositories for 'gh_user_or_org' matching 'gh_query'
 
-- name: "Get ansible role repositories from GitHub within a user or organization context"
+- name: "PLAYBOOK | Clone"
   hosts: localhost
   gather_facts: false
   vars:

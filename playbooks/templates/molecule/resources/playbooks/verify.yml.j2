@@ -1,7 +1,10 @@
 ---
-# role: {{ meta_repo_name }}
+# name: {{ meta_namespace | default('jam82') }}.{{ meta_repo_name }}
 # file: molecule/resources/playbooks/verify.yml
 
+{% if mole_verify | default([]) | length > 0 -%}
+{{ mole_verify | jam82.dev.to_lintable_yaml(indent=2) }}
+{% else -%}
 - name: "PLAYBOOK | Verify"
   hosts: all
   gather_facts: false
@@ -10,3 +13,4 @@
       ansible.builtin.assert:
         that: "true"
         fail_msg: "This should never fail"
+{% endif %}

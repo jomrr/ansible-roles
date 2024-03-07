@@ -1,72 +1,80 @@
-# Ansible role {{ meta_role_name }}
+# Ansible role {{ meta_role_name | default(inventory_hostname) }}
 
-![GitHub](https://img.shields.io/github/license/{{ meta_namespace }}/ansible-role-{{ meta_role_name }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ meta_namespace }}/ansible-role-{{ meta_role_name }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ meta_namespace }}/ansible-role-{{ meta_role_name }})
+![GitHub](https://img.shields.io/github/license/{{ meta_namespace | default('jam82') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ meta_namespace | default('jam82') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ meta_namespace | default('jam82') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }})
 
-**{{ meta_role_description }}**
+{% if meta_description is defined -%}
+**{{ meta_description }}**
+{% else -%}
+**Ansible role for setting up {{ inventory_hostname }}**
+{% endif %}
 
 ## Description
 
-{{ meta_description }}
+{% if read_description is defined -%}
+{{ read_description }}
+{% else -%}
+Install and configure {{ inventory_hostname }} with Ansible.
+{% endif %}
 
 ## Prerequisites
 
-{{ meta_prerequisites | default('This role has no special prerequisites.') }}
+{{ read_prerequisites | default('This role has no special prerequisites.') }}
 
 ### System packages (Fedora)
 
-- `python3` (Python 3.6 or later)
-{% if meta_system_requirements %}
-{% for requirement in meta_system_requirements %}
-- {{ requirement }}
+- `python3` (Python 3.8 or later)
+{% if reqs_packages is defined -%}
+{% for package in reqs_packages %}
+- {{ package }}
 {% endfor %}
 {% endif %}
 
 ### Python (requirements.txt)
 
 - ansible >= {{ meta_min_ansible_version }}
-{% if meta_python_requirements %}
-{% for requirement in meta_python_requirements %}
-- {{ requirement }}
+{% if reqs_pip is defined -%}
+{% for pip in reqs_pip %}
+- {{ pip }}
 {% endfor %}
 {% endif %}
 
 ## Dependencies (requirements.yml)
 
-{% if meta_requirements_collections or meta_requirements_roles %}
+{% if reqs_collections is defined or reqs_roles is defined -%}
 ```yaml
-{% if meta_requirements_collections %}
+{% if reqs_collections -%}
 collections:
-{% for collection in meta_requirements_collections %}
+{% for collection in reqs_collections %}
   - {{ collection }}
 {% endfor %}
-{% else %}
+{% else -%}
 collections []
 {% endif %}
 
-{% if meta_requirements_roles %}
+{% if reqs_roles is defined -%}
 roles:
-{% for role in meta_requirements_roles %}
+{% for role in reqs_roles %}
   - {{ role }}
 {% endfor %}
-{% else %}
+{% else -%}
 roles []
 {% endif %}
 ```
-{% else %}
+{% else -%}
 This role has no dependencies.
 {% endif %}
 
 ## Supported Platforms
 
-{% if meta_platforms %}
+{% if meta_platforms is defined -%}
 | OS Family | Distribution | Version | Container Image |
 |-----------|--------------|---------|-----------------|
 {% for platform in meta_platforms %}
 {% for tag in platform.tags %}
 {% if loop.first %}
-| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ meta_namespace }}/molecule-{{ platform.distribution | lower }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace }}/molecule-{{ platform.distribution | lower }} ) |
-{% else %}
-| | | {{ tag }} | [{{ meta_namespace }}/molecule-{{ platform.distribution | lower }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace }}/molecule-{{ platform.distribution | lower }} ) |
+| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ meta_namespace | default('jam82') }}/molecule-{{ platform.distribution | lower }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace | default('jam82') }}/molecule-{{ platform.distribution | lower }} ) |
+{% else -%}
+| | | {{ tag }} | [{{ meta_namespace | default('jam82') }}/molecule-{{ platform.distribution | lower }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace | default('jam82') }}/molecule-{{ platform.distribution | lower }} ) |
 {% endif %}
 {% endfor %}
 {% endfor %}
@@ -76,21 +84,21 @@ This role has no specific platform requirements.
 
 ## Role Variables
 
-{% if not meta_role_variables %}
-No role default variables specified, see [defaults/main.yml](defaults/main.yml).
-{% else %}
+{% if meta_role_variables is defined -%}
 The following are the default variables that should be adjusted:
 
 {% for variable in meta_role_variables %}
 - `{{ variable.name }}`: {{ variable.description }} (Default: `{{ variable.default }}`)
 {% endfor %}
+{% else -%}
+No role default variables specified, see [defaults/main.yml](defaults/main.yml).
 {% endif %}
 
 ## Example Playbook
 
-Example(s) of how to use this role:
+Example playbooks(s) that show how to use this role.
 
-{% for example in meta_examples %}
+{% for example in read_examples %}
 ## {{ example.name }}
 
 {{ example.description }}
@@ -99,29 +107,20 @@ Example(s) of how to use this role:
 ```
 {% endfor %}
 
-## License
+## License, Author(s) and Contributors
 
-This role is published under the [{{ meta_license }} License](LICENSE).
+This role is published under the [{{ meta_license }} License](LICENSE)
 
-## Author Information
+and was initially created in {{ meta_year_created }} by {{ meta_author }} (@{{ meta_namespace | default('jam82') }}).
 
-This role was created in {{ meta_year_created }} by {{ meta_author }} (@{{ meta_namespace }}).
-
-## Contributing
-
-Contributions to this role are welcome.
-Please follow the steps described in [CONTRIBUTING.md](CONTRIBUTING.md).
-
+{%- if read_references | default([]) | length > 0 %}
 ## References
 
-{% if not meta_references %}
-No references.
-{% else %}
 The following are the default variables that should be adjusted:
 
-{% for reference in meta_references %}
+{% for reference in read_references %}
 - {{ reference }}
 {% endfor %}
-{% endif %}
+{%- endif %}
 
 ---

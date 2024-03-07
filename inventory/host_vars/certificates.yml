@@ -1,0 +1,147 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/certificates.yml
+
+meta_description: 'Ansible role for deploying CA/TLS Certificates and updating the CA Trust Store.'
+
+meta_galaxy_tags:
+  - ca
+  - certificates
+  - https
+  - pki
+  - security
+  - ssl
+  - tls
+  - x509
+
+meta_year_created: '2024'
+
+# default requirements
+reqs_collections: []
+reqs_packages: []
+reqs_pip: []
+reqs_roles: []
+
+# default readme settings
+read_description: |
+  This role deploys CA certificates from a remote or web server to configured
+  destinations and updates the ca trust store on the OS. Furthermore it deploys
+  TLS certificates and keys to the operating systems default location.
+
+# Example playbooks
+read_examples:
+  - name: Simple example playbook
+    description: |
+      A simple default example playbook for using {{ meta_namespace }}.{{ meta_role_name }}.
+    code: |
+      ---
+      # name: "certificates"
+      # file: "site.yml"
+
+      - name: "PLAYBOOK | certificates | distribute certificates"
+        hosts: all
+        gather_facts: true
+        vars:
+          certificates_host: "certificates_ca_host"
+          certificates_ca_certs:
+            - src: "/etc/ssl/ca/example/pub/root-ca.pem"
+              dest: "{{ certificates_ca_trust_dir }}/example-root-ca.crt"
+            - src: "/etc/ssl/ca/example/pub/intermediate-ca.pem"
+              dest: "{{ certificates_ca_trust_dir }}/example-intermediate-ca.crt"
+            - src: "/etc/ssl/ca/example/pub/component-ca.pem"
+              dest: "{{ certificates_ca_trust_dir }}/example-component-ca.crt"
+            - src: "/etc/ssl/ca/example/pub/identity-ca.pem"
+              dest: "{{ certificates_ca_trust_dir }}/example-identity-ca.crt"
+          certificates_certs:
+            - src: "/etc/ssl/ca/example/dist/fritzbox.pem"
+              dest: "{{ certificates_tls_dir }}/certs/fritzbox.pem"
+              mode: "0644"
+            - src: "/etc/ssl/ca/example/dist/fritzbox-fullchain.pem"
+              dest: "{{ certificates_tls_dir }}/certs/fritzbox-fullchain.pem"
+              mode: "0644"
+            - src: "/etc/ssl/ca/example/dist/fritzbox.key"
+              dest: "{{ certificates_tls_dir }}/private/fritzbox.key"
+              mode: "0600"
+        roles:
+          - role: "jam82.certificates"
+
+      - name: "PLAYBOOK | certificates | cleanup controller"
+        hosts: localhost
+        vars:
+          certificates_ca_trust_dir: /tmp   # just a dummy, as we use basename
+          certificates_tls_dir: /tmp        # just a dummy, as we use basename
+        tasks:
+          - name: "TASK | certificates | Remove /tmp files"
+            ansible.builtin.file:
+              path: "/tmp/{{ item | ansible.builtin.basename }}"
+              state: absent
+            loop: "{{ certificates_ca_certs | map(attribute='dest') | list + certificates_certs | map(attribute='dest') | list }}"
+
+# references as single line in markdown
+read_references: []
+
+# default molecule scenario(s)
+mole_scenarios:
+  - name: default
+    dependency: {
+      name: galaxy,
+      role-file: meta/requirements.yml,
+      requirements-file: meta/requirements.yml
+    }
+    driver: { name: podman }
+    lint: set -e; ansible-lint
+    provisioner: {
+      name: ansible,
+      config_options: {
+        defaults: {
+          interpreter_python: auto_silent,
+          callback_whitelist: profile_tasks, timer, yaml,
+        },
+        ssh_connection: { pipelining: true }
+      },
+      log: true,
+      playbooks: {
+        converge: converge.yml,
+        prepare: prepare.yml,
+        verify: verify.yml,
+      },
+      inventory: {
+        group_vars: {
+          all: {
+            certificates_run_once: true,
+            certificates_host: "certificates_ca_host",
+            certificates_ca_certs: [
+              { src: "/etc/ssl/ca/example/pub/root-ca.pem", dest: "{{ certificates_ca_trust_dir }}/example-root-ca.crt" },
+              { src: "/etc/ssl/ca/example/pub/intermediate-ca.pem", dest: "{{ certificates_ca_trust_dir }}/example-intermediate-ca.crt" },
+              { src: "/etc/ssl/ca/example/pub/component-ca.pem", dest: "{{ certificates_ca_trust_dir }}/example-component-ca.crt" },
+              { src: "/etc/ssl/ca/example/pub/identity-ca.pem", dest: "{{ certificates_ca_trust_dir }}/example-identity-ca.crt" },
+            ],
+          }
+        },
+        host_vars: {
+          certificates: {
+            certificates_certs: [
+              { src: "/etc/ssl/ca/example/dist/fritzbox.pem", dest: "{{ certificates_tls_dir }}/certs/fritzbox.pem", mode: "0644" },
+              { src: "/etc/ssl/ca/example/dist/fritzbox-fullchain.pem", dest: "{{ certificates_tls_dir }}/certs/fritzbox-fullchain.pem", mode: "0644" },
+              { src: "/etc/ssl/ca/example/dist/fritzbox.key", dest: "{{ certificates_tls_dir }}/private/fritzbox.key", mode: "0600" },
+            ]
+          }
+        }
+      }
+    }
+    verifier: { name: ansible }
+    platforms:
+      - name: certificates_ca_host
+        image: "docker.io/{{ meta_namespace }}/molecule-alpine:latest"
+        pre_build_image: true
+        entrypoint: ~
+        command: ~
+        networks:
+          - name: certificates
+      - name: certificates
+        image: "docker.io/${uns:-{{ meta_namespace }}}/molecule-${img:-fedora}:${tag:-latest}"
+        pre_build_image: true
+        entrypoint: ~
+        command: ~
+        networks:
+          - name: certificates

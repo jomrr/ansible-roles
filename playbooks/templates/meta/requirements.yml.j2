@@ -1,19 +1,19 @@
 ---
-# name: {{ meta_role_name }}
+# name: {{ meta_namespace | default('jam82') }}.{{ meta_role_name | default('inventory_hostname') }}
 # file: meta/requirements.yml
 
-{% if meta_requirements_collections %}
+{% if reqs_collections | default([]) | length > 0 %}
 collections:
-{% for collection in meta_requirements_collections %}
+{% for collection in reqs_collections %}
   - {{ collection }}
 {% endfor %}
 {% else %}
 collections: []
 {% endif %}
 
-{% if meta_requirements_roles %}
+{% if reqs_roles | default([]) | length > 0 %}
 roles:
-{% for role in requirements_roles %}
+{% for role in reqs_roles %}
   - {{ role }}
 {% endfor %}
 {% else %}

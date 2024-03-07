@@ -2,7 +2,7 @@
 # name: ansible-roles
 # file: playbooks/pyproject.yml
 
-- name: "Playbook 'pyproject' for role {{ meta_role_name }}"
+- name: "PLAYBOOK | Pyproject"
   hosts: "{{ target | default('all') }}"
   become: false
   gather_facts: false
@@ -10,7 +10,7 @@
     - name: "Set fact 'meta_release_version'"
       ansible.builtin.set_fact:
         meta_release_version: "{{ lookup('jam82.dev.github_version', \
-          lookup('ansible.builtin.env', 'GH_TOKEN'), meta_namespace, meta_role_name) }}"
+          lookup('ansible.builtin.env', 'GH_TOKEN'), meta_namespace, meta_repo_name) }}"
 
     - name: "Generate pyproject.toml"
       ansible.builtin.template:

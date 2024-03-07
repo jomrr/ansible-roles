@@ -2,38 +2,42 @@
 # name: ansible-roles
 # file: playbooks/all.yml
 
-- name: "Import playbook 'contributing'"
-  ansible.builtin.import_playbook: "contributing.yml"
-  tags: ["contributing"]
+# 1. remove unwanted files
+- name: "Import playbook 'remove'"
+  ansible.builtin.import_playbook: "remove.yml"
+  tags: ["remove"]
 
-- name: "Import playbook 'license'"
-  ansible.builtin.import_playbook: "license.yml"
-  tags: ["license"]
-
-- name: "Import playbook 'meta_main'"
-  ansible.builtin.import_playbook: "meta_main.yml"
-  tags: ["meta_main"]
-
-- name: "Import playbook 'meta_requirements'"
-  ansible.builtin.import_playbook: "meta_requirements.yml"
-  tags: ["meta_requirements"]
-
-- name: "Import playbook 'molecule'"
-  ansible.builtin.import_playbook: "molecule.yml"
-  tags: ["molecule"]
-
+# 2. generate pre-commit-config.yml
 - name: "Import playbook 'pre-commit-config'"
   ansible.builtin.import_playbook: "pre-commit-config.yml"
   tags: ["pre-commit-config"]
 
+# 3. generate pyproject.toml
 - name: "Import playbook 'pyproject'"
   ansible.builtin.import_playbook: "pyproject.yml"
   tags: ["pyproject"]
 
+# 4. generate CONTRIBUTING.md
+- name: "Import playbook 'contributing'"
+  ansible.builtin.import_playbook: "contributing.yml"
+  tags: ["contributing"]
+
+# 5. generate LICENSE
+- name: "Import playbook 'license'"
+  ansible.builtin.import_playbook: "license.yml"
+  tags: ["license"]
+
+# 6. generate README.md
 - name: "Import playbook 'readme'"
   ansible.builtin.import_playbook: "readme.yml"
   tags: ["readme"]
 
-- name: "Import playbook 'remove'"
-  ansible.builtin.import_playbook: "remove.yml"
-  tags: ["remove"]
+# 7. generate meta/*.yml files
+- name: "Import playbook 'meta'"
+  ansible.builtin.import_playbook: "meta.yml"
+  tags: ["meta_main"]
+
+# 8. generate molecule/* scenarios
+- name: "Import playbook 'molecule'"
+  ansible.builtin.import_playbook: "molecule.yml"
+  tags: ["molecule"]

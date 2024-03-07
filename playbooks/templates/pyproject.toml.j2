@@ -1,7 +1,7 @@
 [project]
-name = "{{ meta_repo_name }}"
+name = "{{ meta_role_name }}"
 version = "{{ meta_release_version | default('0.0.0') }}"
-description = "{{ meta_role_description }}"
+description = "{{ meta_description }}"
 authors = ["{{ meta_author }}"]
 license = "{{ meta_license }}"
 keywords = [{{ '\"' + meta_galaxy_tags | join('\", \"') + '\"' if meta_galaxy_tags | length > 0 }}]

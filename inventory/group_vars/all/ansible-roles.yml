@@ -1,8 +1,0 @@
----
-# play: ansible-roles
-# file: inventory/group_vars/all/ansible-roles.yml
-
-# base dirctory of this project
-base_directory: "~/src/ansible/ansible-roles"
-# directory where roles repositories are cloned
-role_directory: "~/src/ansible/roles"

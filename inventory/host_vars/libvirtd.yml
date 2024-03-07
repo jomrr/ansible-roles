@@ -1,0 +1,32 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/libvirtd.yml
+
+meta_description: 'Ansible role for installing libvirt-daemon and tools.'
+
+meta_galaxy_tags:
+  - libvirt
+  - libvirtd
+  - kvm
+  - qemu
+  - virtualization
+
+meta_year_created: '2024'
+
+# default requirements
+reqs_collections: []
+reqs_packages: []
+reqs_pip: []
+reqs_roles: []
+
+read_description: |
+  Install libvirt daemon, client tools, qemu-kvm, uefi firmware
+  and virt-install packages on supported systems.
+
+read_references:
+  - "[Alpine Linux](https://wiki.alpinelinux.org/wiki/KVM)"
+  - "[ArchWiki](https://wiki.archlinux.org/index.php/Libvirt)"
+  - "[Debian Wiki](https://wiki.debian.org/KVM)"
+  - "[Fedora Documentation](https://docs.fedoraproject.org/en-US/quick-docs/virtualization-getting-started/)"
+  - "[Libvirt](https://libvirt.org/)"
+  - "[Ubuntu Documentation](https://help.ubuntu.com/community/KVM/Installation)"

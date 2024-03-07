@@ -25,6 +25,7 @@ BASEDIR				:= $(shell pwd)
 ROLEDIR				:= $(realpath ~/src/ansible/roles)
 PLAYDIR				:= $(BASEDIR)/playbooks
 PLAYBOOKS			:= $(basename $(notdir $(wildcard $(PLAYDIR)/*.yml)))
+DEFAULT_CONFIG		:= $(BASEDIR)/inventory/group_vars/all.yml
 # --- Makefile targets ---------------------------------------------------------
 
 # default target
@@ -38,21 +39,22 @@ help:
 	@echo "  # --- python virtual environment targets -------------------------"
 	@echo ""
 	@echo "  install              Install the python virtual environment"
-	@echo "  update               Update the python virtual environment"
+	@echo "  update/upgrade       Update the python virtual environment"
 	@echo "  clean                Remove the python virtual environment"
 	@echo ""
 	@echo "  # --- ansible targets --------------------------------------------"
 	@echo ""
-	@echo "  all                  Run all playbooks"
-	@echo "  docs                 Run contributing, license, readme playbooks"
-	@echo "  contributing         Generate contributing.md"
+	@echo "  all                  Run playbooks/all.yml"
+	@echo "  config               Run meta, pyproject, pre-commit-config"
+	@echo "  docs                 Run contributing, license, readme"
+	@echo ""
+	@echo "  contributing         Generate CONTRIBUTING.md"
 	@echo "  license              Generate LICENSE.md"
-	@echo "  meta_main            Generate meta/main.yml"
-	@echo "  meta_requirements    Generate meta/requirements.yml"
+	@echo "  readme               Generate README.md"
+	@echo "  meta                 Generate meta/*.yml"
 	@echo "  molecule             Generate molecule scenarios and playbooks"
 	@echo "  pre-commit-config    Generate .pre-commit-config.yaml"
 	@echo "  pyproject            Generate pyproject.toml"
-	@echo "  readme               Generate README.md"
 	@echo "  remove               Remove configured files"
 	@echo ""
 	@echo "  # --- git targets ------------------------------------------------"
@@ -87,7 +89,7 @@ $(VENV): $(REQS)
 install: $(VENV)
 
 # upgrade the python virtual environment
-upgrade: $(REQS)
+update upgrade: $(REQS)
 	@$(PIP) install --upgrade -r $(REQS)
 	@$(ANSIBLE_GALAXY) collection install \
 		git+https://github.com/jam82/ansible-collection-dev,main
@@ -101,17 +103,19 @@ clean:
 # --- targets for ansible ------------------------------------------------------
 .PHONY: $(PLAYBOOKS)
 
-$(BASEDIR)/inventory/group_vars/all/meta.yml:
-	@echo "default config in inventory/group_vars/all/meta.yml not found"
+$(DEFAULT_CONFIG):
+	@echo "default config $(DEFAULT_CONFIG) not found"
 	@exit 1
 
-$(ROLEDIR): $(BASEDIR)/inventory/group_vars/all/meta.yml
-	@echo "ansible roles directory not found"
+$(ROLEDIR): $(DEFAULT_CONFIG)
+	@echo "ansible roles directory $(ROLEDIR) not found"
 	@exit 1
 
-docs: license readme
+config: meta pyproject pre-commit-config
 
-all $(PLAYBOOKS): $(ROLEDIR)
+docs: contributing license readme
+
+$(PLAYBOOKS): $(ROLEDIR)
 	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$@.yml \
 		$(if $(EXTRA_VARS),--extra-vars "$(EXTRA_VARS)") \
 		--limit=$(LIMIT) \

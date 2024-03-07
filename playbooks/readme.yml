@@ -2,7 +2,7 @@
 # name: ansible-roles
 # file: playbooks/readme.yml
 
-- name: "Playbook 'readme' for role {{ meta_role_name }}"
+- name: "PLAYBOOK | README"
   hosts: "{{ target | default('all') }}"
   become: false
   gather_facts: false

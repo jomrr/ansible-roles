@@ -1,8 +1,8 @@
 ---
 # name: ansible-roles
-# file: playbooks/meta_requirements.yml
+# file: playbooks/meta.yml
 
-- name: "Playbook 'meta_requirements' for role '{{ meta_role_name }}"
+- name: "PLAYBOOK | Meta"
   hosts: "{{ target | default('all') }}"
   become: false
   gather_facts: false
@@ -12,7 +12,12 @@
         path: "{{ ansible_host }}/meta"
         state: directory
         mode: "0755"
-
+    - name: "Generate meta/main.yml"
+      ansible.builtin.template:
+        src: "meta/main.yml.j2"
+        dest: "{{ ansible_host }}/meta/main.yml"
+        mode: "0644"
+        validate: "ansible-lint %s"
     - name: "Generate meta/requirements.yml"
       ansible.builtin.template:
         src: "meta/requirements.yml.j2"

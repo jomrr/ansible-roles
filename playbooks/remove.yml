@@ -2,13 +2,13 @@
 # name: ansible-roles
 # file: playbooks/remove.yml
 
-- name: "Playbook 'remove' for role {{ meta_role_name }}"
+- name: "PLAYBOOK | Remove"
   hosts: "{{ target | default('all') }}"
   become: false
   gather_facts: false
   tasks:
-    - name: "Remove configured paths from 'relative_paths_to_remove'"
+    - name: "Remove configured paths from 'remove'"
       ansible.builtin.file:
         path: "{{ ansible_host }}/{{ item }}"
         state: absent
-      loop: "{{ relative_paths_to_remove }}"
+      loop: "{{ remove }}"

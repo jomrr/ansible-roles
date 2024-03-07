@@ -2,7 +2,7 @@
 # name: ansible-roles
 # file: playbooks/contributing.yml
 
-- name: "Playbook 'contributing' for role {{ meta_role_name }}"
+- name: "PLAYBOOK | Contributing"
   hosts: "{{ target | default('all') }}"
   become: false
   gather_facts: false
