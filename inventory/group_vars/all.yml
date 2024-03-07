@@ -81,8 +81,8 @@ mole_scenarios:
       },
       log: true,
       playbooks: {
-        converge: create.yml,
-        verify: verify.yml,
+        converge: ../resources/playbooks/converge.yml,
+        verify: ../resources/playbooks/verify.yml,
       },
     }
     verifier: { name: ansible }
