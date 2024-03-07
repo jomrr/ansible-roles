@@ -134,14 +134,14 @@ mole_scenarios:
       - name: certificates_ca_host
         image: "docker.io/{{ meta_namespace }}/molecule-alpine:latest"
         pre_build_image: true
-        entrypoint: ~
-        command: ~
+        entrypoint: null
+        command: null
         networks:
           - name: certificates
       - name: certificates
         image: "docker.io/${uns:-{{ meta_namespace }}}/molecule-${img:-fedora}:${tag:-latest}"
         pre_build_image: true
-        entrypoint: ~
-        command: ~
+        entrypoint: null
+        command: null
         networks:
           - name: certificates
