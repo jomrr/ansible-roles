@@ -2,10 +2,6 @@
 # name: {{ meta_namespace | default('jam82') }}.{{ meta_repo_name }}
 # file: molecule/{{ item.scenario.name | default('default') }}/molecule.yml
 
-# Note on command and entrypoint = ~ ... :/ WTF???
-# Using the pre-built container defaults, when nothing is specified would be
-# straight forward ... not some sleep infinite shell command.
-
 {{ item | jam82.dev.to_lintable_yaml(indent=2) }}
 {%- if item.platforms | default([]) | length == 0 %}
 platforms:
@@ -14,8 +10,8 @@ platforms:
   - name: {{ platform.distribution | lower }}-{{ tag }}-{{ meta_role_name }}
     image: "docker.io/{{ meta_namespace }}/molecule-{{ platform.distribution | lower }}:{{ tag }}"
     pre_build_image: {{ platform.pre_build_image | default('true') }}
-    entrypoint: {{ platform.entrypoint | default('~') }}
-    command: {{ platform.command | default('~') }}
+    entrypoint: {{ platform.entrypoint | default('~', true) }}
+    command: {{ platform.command | default('~', true) }}
 {% endfor %}
 {% endfor %}
 {%- endif %}
