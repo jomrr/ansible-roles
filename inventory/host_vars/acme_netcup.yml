@@ -1,0 +1,58 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/acme_netcup.yml
+
+meta_galaxy_tags:
+  - acme
+  - certificate
+  - letsencrypt
+  - https
+  - netcup
+  - ssl
+  - tls
+
+meta_year_created: 2024
+
+read_description: >
+  This role is intended to implement a client-less management of letsencrypt
+  certificates. It retrieves the certificates on a configured controller
+  and pushes them to configured web servers via rsync over ssh.
+  Therefore no additional dependencies need to be installed and managed
+  on the configured target machines.
+
+read_references:
+  - "[Community.Crypto](https://docs.ansible.com/ansible/latest/collections/community/crypto/index.html)"
+
+reqs_collections:
+  - ansible.posix
+  - community.crypto
+  - community.general
+  - containers.podman
+
+mole_verify: |-
+  {% raw -%}
+  - name: "PLAYBOOK | Verify | acme_netcup"
+    hosts: all
+    gather_facts: true
+    tasks:
+      - name: "Find certificates"
+        ansible.builtin.find:
+          paths: "/etc/acme-staging/certs/"
+          patterns: "*[A-Za-z0-9].pem"
+        register: _find
+
+      - name: "Get certificate information including chain"
+        community.crypto.x509_certificate_info:
+          path: "{{ _find.files[0].path }}"
+        register: cert_info
+        when: _find.files | length > 0
+
+      - name: "Assert certificate is currently valid"
+        ansible.builtin.assert:
+          that:
+            - cert_info.not_before | to_datetime('%Y%m%d%H%M%SZ') <= ansible_date_time.iso8601_basic_short | to_datetime('%Y%m%dT%H%M%S')
+            - cert_info.not_after | to_datetime('%Y%m%d%H%M%SZ') >= ansible_date_time.iso8601_basic_short | to_datetime('%Y%m%dT%H%M%S')
+          fail_msg: "Certificate is not currently valid."
+          success_msg: "Certificate is currently valid."
+        when: _find.files | length > 0
+  {% endraw -%}

@@ -3,8 +3,8 @@
 # file: molecule/resources/playbooks/prepare.yml
 
 {% if mole_prepare | default([]) | length > 0 -%}
-{{ mole_prepare | jam82.dev.to_lintable_yaml(indent=2) }}
-{% else -%}
+{{ mole_prepare }}
+{%- else -%}
 - name: "PLAYBOOK | Prepare"
   hosts: all
   become: true
@@ -50,4 +50,4 @@
         state: latest
         update_cache: true
       when: ansible_pkg_mgr == "zypper"
-{% endif %}
+{%- endif -%}
