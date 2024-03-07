@@ -1,6 +1,8 @@
 # Makefile
 # ansible-roles
 
+SHELL				:= /bin/bash
+
 # --- Variables for python virtual environment ---------------------------------
 VENV				:= .venv
 DEPS				:= collections/ansible_collections/jam82/dev
@@ -19,7 +21,7 @@ SKIP_TAGS			?=
 TAGS				?=
 
 # --- Git variables ------------------------------------------------------------
-FEATURE				?= feature/$(shell date +%Y%m%d%H%M%S)
+FEATURE				?= feature/dummy
 # --- Makefile variables -------------------------------------------------------
 BASEDIR				:= $(shell pwd)
 ROLEDIR				:= $(realpath ~/src/ansible/roles)
@@ -34,36 +36,39 @@ help:
 	@echo "Usage: make <target> [LIMIT=<hostname or group>]"
 	@echo ""
 	@echo "Targets:"
-	@echo "  help                 Show this help"
+	@echo "  help                    Show this help"
 	@echo ""
 	@echo "  # --- python virtual environment targets -------------------------"
 	@echo ""
-	@echo "  install              Install the python virtual environment"
-	@echo "  update/upgrade       Update the python virtual environment"
-	@echo "  clean                Remove the python virtual environment"
+	@echo "  install                 Install the python virtual environment"
+	@echo "  update/upgrade          Update the python virtual environment"
+	@echo "  clean                   Remove the python virtual environment"
 	@echo ""
 	@echo "  # --- ansible targets --------------------------------------------"
 	@echo ""
-	@echo "  all                  Run playbooks/all.yml"
-	@echo "  config               Run meta, pyproject, pre-commit-config"
-	@echo "  docs                 Run contributing, license, readme"
+	@echo "  all                     Run playbooks/all.yml"
+	@echo "  config                  Run meta, pyproject, pre-commit-config"
+	@echo "  docs                    Run contributing, license, readme"
 	@echo ""
-	@echo "  contributing         Generate CONTRIBUTING.md"
-	@echo "  license              Generate LICENSE.md"
-	@echo "  readme               Generate README.md"
-	@echo "  meta                 Generate meta/*.yml"
-	@echo "  molecule             Generate molecule scenarios and playbooks"
-	@echo "  pre-commit-config    Generate .pre-commit-config.yaml"
-	@echo "  pyproject            Generate pyproject.toml"
-	@echo "  remove               Remove configured files"
+	@echo "  contributing            Generate CONTRIBUTING.md"
+	@echo "  license                 Generate LICENSE.md"
+	@echo "  readme                  Generate README.md"
+	@echo "  meta                    Generate meta/*.yml"
+	@echo "  molecule                Generate molecule scenarios and playbooks"
+	@echo "  pre-commit-config       Generate .pre-commit-config.yaml"
+	@echo "  pyproject               Generate pyproject.toml"
+	@echo "  remove                  Remove configured files"
 	@echo ""
 	@echo "  # --- git targets ------------------------------------------------"
 	@echo ""
-	@echo "  checkout-dev         Checkout the dev branch"
-	@echo "  start-feature        Start a new feature branch"
-	@echo "  merge-feature-to-dev Merge a feature branch to dev"
-	@echo "  commit               Stage and commit changes to current branch"
-	@echo "  prepare-release      Prepare a release and merge dev to main"
+	@echo "  quickshot               Stage, commit and push changes of \$$LIMIT"
+	@echo "  me-checkout-dev         Checkout the dev branch"
+	@echo "  me-start-feature        Start a new feature branch"
+	@echo "  me-merge-feature-to-dev Merge a feature branch to dev"
+	@echo "  me-commit               Stage and commit changes to current branch"
+	@echo "  me-prepare-release      Prepare a release and merge dev to main"
+	@echo "  me-version              Run python-semantic-release version"
+	@echo "  me-publish              Run python-semantic-release publish"
 
 # --- prerequisites ------------------------------------------------------------
 
@@ -122,30 +127,50 @@ $(PLAYBOOKS): $(ROLEDIR)
 		$(if $(SKIP_TAGS),--skip-tags $(SKIP_TAGS)) \
 		$(if $(TAGS),--tags $(TAGS))
 
+quickshot:
+	@cd ~/src/ansible/roles/ansible-role-$(LIMIT) && \
+		pre-commit install && \
+		pre-commit install --hook-type commit-msg && \
+		pre-commit autoupdate && \
+		git add . && \
+		git commit -m "build: update configuration" && \
+		git push && \
+		git checkout main && \
+		git merge dev && \
+		git push && \
+		git checkout dev
+
 # --- git targets --------------------------------------------------------------
-.PHONY: checkout-dev commit start-feature merge-feature-to-dev prepare-release
+.PHONY: \
+	me-checkout-dev \
+	me-commit \
+	me-start-feature \
+	me-merge-feature-to-dev \
+	me-prepare-release \
+	me-version \
+	me-publish
 
 # checkout the dev branch
-checkout-dev:
+me-checkout-dev:
 	@git checkout dev
 
 # commit changes to the current branch
-commit:
+me-commit:
 	@git add .
 	@git commit
 
 # start a new feature branch
-start-feature:
+me-start-feature:
 	@git checkout -b $(FEATURE) dev
 
 # merge a feature branch to dev
-merge-feature-to-dev:
+me-merge-feature-to-dev:
 	@git checkout dev
 	@git merge $(FEATURE)
 	@git branch -d $(FEATURE)
 
 # prepare a release and merge dev to main
-prepare-release:
+me-prepare-release:
 	@git push origin dev
 	@git checkout main
 	@git merge dev
@@ -153,14 +178,14 @@ prepare-release:
 	@git checkout dev
 
 # bump the version number and update the changelog
-version:
+me-version:
 	@git checkout main
 	@semantic-release version
 	@git checkout dev
 	@git merge main
 
 # create a new Git tag and build the distribution files
-publish:
+me-publish:
 	@git checkout main
 	@semantic-release publish
 	@git push origin main --tags
