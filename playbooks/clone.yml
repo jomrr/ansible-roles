@@ -26,7 +26,7 @@
 
     - name: "Include the 'github_clone.yml' tasks for each repository found"
       vars:
-        repo_path: "{{ role_directory }}/{{ item.name }}"
+        repo_path: "{{ conf_role_dir }}/{{ item.name }}"
       ansible.builtin.include_tasks: tasks/github_clone.yml
       loop: "{{ github_response.json['items'] }}"
       loop_control:
