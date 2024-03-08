@@ -7,29 +7,40 @@
   hosts: localhost
   gather_facts: false
   vars:
-    gh_user_or_org: "{{ lookup('env', 'GH_USER', default='') }}"
-    gh_is_org: false
-    gh_name: "{{ 'org:' if gh_is_org else 'user:' }}{{ gh_user_or_org }}"
     gh_token: "{{ lookup('env', 'GH_TOKEN', default='') }}"
     gh_query: "{{ lookup('env', 'QUERY', default='ansible-role-') }}"
   tasks:
-    - name: "Lookup 'ansible-role-*' repositories on GitHub for {{ gh_user_or_org }}"
-      ansible.builtin.uri:
-        url: "https://api.github.com/search/repositories?q={{ gh_query }}+in:name+{{ gh_name }}"
-        method: GET
-        headers:
-          Accept: "application/vnd.github.v3+json"
-          Authorization: "{{ 'Bearer ' + gh_token if gh_token else omit }}"
-        return_content: true
-        validate_certs: true
-      register: github_response
+    - name: "Initialize an empty list to collect repositories"
+      ansible.builtin.set_fact:
+        all_repos: []
 
-    - name: "Include the 'github_clone.yml' tasks for each repository found"
+    - name: "Define a variable for the current page"
+      ansible.builtin.set_fact:
+        current_page: 1
+
+    - name: "Fetch repositories with pagination"
+      ansible.builtin.include_tasks: tasks/github_fetch_repos.yml
       vars:
-        repo_path: "{{ conf_role_dir }}/{{ item.name }}"
-      ansible.builtin.include_tasks: tasks/github_clone.yml
-      loop: "{{ github_response.json['items'] }}"
-      loop_control:
-        label: "{{ item.name }}"
-      # exact matching as github api returns e.g. ansible-roles for gh_query=ansible-role-
-      when: gh_query in item.name and item.owner.login == gh_user_or_org
+        page: "{{ current_page }}"
+
+    - name: "Debug to /tmp/github_fetch_repos.json"
+      ansible.builtin.copy:
+        content: "{{ all_repos | json_query(query) | to_nice_json }}"
+        dest: "/tmp/github_fetch_repos.json"
+        mode: '0644'
+      vars:
+        query: "[?starts_with(name, `{{ gh_query }}`)].{name: name, full_name: full_name, ssh_url: ssh_url}"
+
+    - name: "Set fact gh_repos"
+      ansible.builtin.set_fact:
+        gh_repos: "{{ all_repos | json_query(query) }}"
+      vars:
+        query: "[?starts_with(name, `{{ gh_query }}`)].{name: name, full_name: full_name, ssh_url: ssh_url}"
+
+    # - name: "Include the 'github_clone.yml' tasks for each repository found"
+    #   vars:
+    #     repo_path: "{{ conf_role_dir }}/{{ item.name }}"
+    #   ansible.builtin.include_tasks: tasks/github_clone.yml
+    #   loop: "{{ gh_repos }}"
+    #   loop_control:
+    #     label: "{{ item.name }}"
