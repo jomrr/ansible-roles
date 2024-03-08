@@ -37,10 +37,10 @@
       vars:
         query: "[?starts_with(name, `{{ gh_query }}`)].{name: name, full_name: full_name, ssh_url: ssh_url}"
 
-    # - name: "Include the 'github_clone.yml' tasks for each repository found"
-    #   vars:
-    #     repo_path: "{{ conf_role_dir }}/{{ item.name }}"
-    #   ansible.builtin.include_tasks: tasks/github_clone.yml
-    #   loop: "{{ gh_repos }}"
-    #   loop_control:
-    #     label: "{{ item.name }}"
+    - name: "Include the 'github_clone.yml' tasks for each repository found"
+      vars:
+        repo_path: "{{ conf_role_dir }}/{{ item.name }}"
+      ansible.builtin.include_tasks: tasks/github_clone.yml
+      loop: "{{ gh_repos }}"
+      loop_control:
+        label: "{{ item.name }}"
