@@ -1,0 +1,24 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/libvirtd.yml
+
+meta_description: 'Ansible role for setting up docker from os repositories.'
+
+meta_galaxy_tags:
+  - docker
+  - compose
+
+meta_platforms:
+  - { distribution: Alpine, os_family: Alpine, tags: ['3.18', '3.19'] }
+  - { distribution: Archlinux, os_family: Archlinux, tags: ['latest'] }
+  - { distribution: Debian, os_family: Debian, tags: ['11', '12'] }
+  - { distribution: Fedora, os_family: RedHat, tags: ['39', '40', 'rawhide'] }
+  - { distribution: OpenSuse Leap, os_family: Suse, tags: ['15'] }
+  - { distribution: OpenSuse Tumbleweed, os_family: Suse, tags: ['latest'] }
+  - { distribution: Ubuntu, os_family: Debian, tags: ['20.04', '22.04', '24.04'] }
+
+meta_year_created: '2021'
+
+read_description: |
+  Installs docker from system packages on supported systems and optionally
+  writes a docker daemon configuration file.

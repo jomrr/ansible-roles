@@ -7,11 +7,11 @@
 platforms:
 {% for platform in meta_platforms %}
 {% for tag in platform.tags %}
-  - name: {{ platform.distribution | lower }}-{{ tag }}-{{ meta_role_name }}
+  - name: {{ platform.distribution |replace(" ", "-") | lower }}-{{ tag }}-{{ meta_role_name }}
     image: "docker.io/{{ meta_namespace }}/molecule-{{ platform.distribution | lower }}:{{ tag }}"
     pre_build_image: {{ platform.pre_build_image | default('true') }}
-    entrypoint: {{ platform.entrypoint | default('~', true) }}
-    command: {{ platform.command | default('~', true) }}
+    entrypoint: {{ platform.entrypoint | default(null, true) }}
+    command: {{ platform.command | default(null, true) }}
 {% endfor %}
 {% endfor %}
 {%- endif %}
