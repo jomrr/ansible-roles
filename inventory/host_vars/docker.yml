@@ -1,6 +1,6 @@
 ---
 # name: ansible-roles
-# file: inventory/host_vars/libvirtd.yml
+# file: inventory/host_vars/docker.yml
 
 meta_description: 'Ansible role for setting up docker from os repositories.'
 

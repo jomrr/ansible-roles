@@ -1,6 +1,6 @@
 ---
 # name: ansible-roles
-# file: inventory/host_vars/libvirtd.yml
+# file: inventory/host_vars/openjdk.yml
 
 meta_description: 'Ansible role for installing openjdk.'
 

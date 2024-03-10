@@ -1,0 +1,21 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/chrony.yml
+
+meta_description: 'Ansible role for setting up chrony and chronyd.'
+
+meta_galaxy_tags:
+  - chrony
+
+meta_year_created: '2020'
+
+read_description: |
+  Install and configure chrony as client or server.
+
+read_references:
+  - "[chrony Documentation](https://chrony-project.org/documentation.html)"
+  - >-
+    [System Administrator’s Guide]
+    (https://access.redhat.com/documentation/de-de/
+    red_hat_enterprise_linux/7/html/system_administrators_guide/
+    ch-configuring_ntp_using_the_chrony_suite)
