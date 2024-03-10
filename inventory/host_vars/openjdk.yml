@@ -1,0 +1,20 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/libvirtd.yml
+
+meta_description: 'Ansible role for installing openjdk.'
+
+meta_galaxy_tags:
+  - java
+  - openjdk
+
+meta_year_created: '2021'
+
+# default requirements
+reqs_collections: []
+reqs_packages: []
+reqs_pip: []
+reqs_roles: []
+
+read_description: |
+  Installs openjdk system packages on supported systems.
