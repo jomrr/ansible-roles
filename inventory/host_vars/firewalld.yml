@@ -1,0 +1,21 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/firewalld.yml
+
+meta_description: 'Ansible role for setting up firewalld.'
+
+meta_galaxy_tags:
+  - firewalld
+  - firewall
+  - security
+  - iptables
+  - nftables
+
+meta_year_created: '2024'
+
+read_description: |-
+  Install firewalld, manage zones and interface assignments and configure rules.
+  Rich and direct rules are also supported.
+
+read_references:
+  - "[firewalld](https://firewalld.org/)"
