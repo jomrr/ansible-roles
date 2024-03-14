@@ -19,3 +19,39 @@ read_description: |-
 
 read_references:
   - "[firewalld](https://firewalld.org/)"
+
+mole_scenarios:
+  - scenario:
+      name: default
+    dependency: {
+      name: galaxy,
+      role-file: meta/requirements.yml,
+      requirements-file: meta/requirements.yml
+    }
+    driver: { name: podman }
+    lint: set -e; ansible-lint
+    provisioner: {
+      name: ansible,
+      config_options: {
+        defaults: {
+          interpreter_python: auto_silent,
+          callback_whitelist: profile_tasks, timer, yaml,
+        },
+        ssh_connection: { pipelining: true }
+      },
+      log: true,
+      playbooks: {
+        converge: ../resources/playbooks/converge.yml,
+        verify: ../resources/playbooks/verify.yml,
+      },
+    }
+    verifier: { name: ansible }
+    platforms:
+      - name: "{{ meta_role_name }}"
+        image: "docker.io/${uns:-{{ meta_namespace }}}/molecule-${img:-fedora}:${tag:-latest}"
+        pre_build_image: true
+        entrypoint: null
+        command: null
+        systemd: true
+        capabilities:
+          - NET_ADMIN

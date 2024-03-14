@@ -92,6 +92,7 @@ mole_scenarios:
         pre_build_image: true
         entrypoint: null
         command: null
+        systemd: true
 
 # default list of paths to remove from relative role path
 remove:
