@@ -1,0 +1,20 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/tftpd.yml
+
+meta_description: 'Ansible role for setting up tftpd-hpa.'
+
+meta_galaxy_tags:
+  - tftpd
+
+meta_year_created: 2021
+
+read_references:
+  - "[TFTP - Archwiki](https://wiki.archlinux.org/title/TFTP)"
+  - "[Debian man pages](https://manpages.debian.org/testing/tftpd-hpa/tftpd.8.en.html)"
+  - "[man in.tftpd(8)](https://linux.die.net/man/8/in.tftpd)"
+  - "[man tftpd_selinux(8)](https://linux.die.net/man/8/tftpd_selinux)"
+  - "[tftpd-hpa - Ubuntu manpages](https://manpages.ubuntu.com/manpages/focal/man8/tftpd.8.html)"
+
+reqs_collections:
+  - community.general
