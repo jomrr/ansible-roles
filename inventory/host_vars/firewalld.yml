@@ -20,6 +20,9 @@ read_description: |-
 read_references:
   - "[firewalld](https://firewalld.org/)"
 
+reqs_packages:
+  - python3-nftables
+
 mole_scenarios:
   - scenario:
       name: default
