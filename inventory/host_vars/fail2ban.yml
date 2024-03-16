@@ -1,0 +1,19 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/fail2ban.yml
+
+meta_description: 'Ansible role for setting up fail2ban.'
+
+meta_galaxy_tags:
+  - fail2ban
+  - security
+  - monitoring
+  - logging
+
+meta_year_created: '2024'
+
+read_description: |-
+  Manage fail2ban jails, filters and actions.
+
+read_references:
+  - "[Fail2ban with FirewallD](https://fedoraproject.org/wiki/Fail2ban_with_FirewallD)"
