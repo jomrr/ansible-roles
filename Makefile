@@ -94,7 +94,7 @@ $(VENV): $(REQS)
 install: $(VENV)
 
 # upgrade the python virtual environment
-update upgrade: $(REQS)
+upgrade: $(REQS)
 	@$(PIP) install --upgrade -r $(REQS)
 	@$(ANSIBLE_GALAXY) collection install \
 		git+https://github.com/jam82/ansible-collection-dev,main

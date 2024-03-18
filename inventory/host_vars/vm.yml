@@ -1,0 +1,14 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/vm.yml
+
+meta_description: 'Ansible role to install and manage libvirt VMs with virt-install and virt module.'
+
+meta_galaxy_tags:
+  - libvirt
+  - virt
+  - virtinstall
+  - virtualization
+  - vm
+
+meta_year_created: 2024
