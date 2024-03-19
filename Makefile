@@ -24,7 +24,7 @@ TAGS				?=
 FEATURE				?= feature/dummy
 # --- Makefile variables -------------------------------------------------------
 BASEDIR				:= $(shell pwd)
-ROLEDIR				:= $(realpath ~/src/ansible/roles)
+ROLEDIR				:= $(shell realpath ~/src/ansible/roles)
 PLAYDIR				:= $(BASEDIR)/playbooks
 PLAYBOOKS			:= $(basename $(notdir $(wildcard $(PLAYDIR)/*.yml)))
 DEFAULT_CONFIG		:= $(BASEDIR)/inventory/group_vars/all.yml
@@ -128,7 +128,7 @@ $(PLAYBOOKS): $(ROLEDIR)
 		$(if $(TAGS),--tags $(TAGS))
 
 quickshot:
-	@cd ~/src/ansible/roles/ansible-role-$(LIMIT) && \
+	@cd $(ROLEPATH)/ansible-role-$(LIMIT) && \
 		pre-commit install && \
 		pre-commit install --hook-type commit-msg && \
 		pre-commit autoupdate && \

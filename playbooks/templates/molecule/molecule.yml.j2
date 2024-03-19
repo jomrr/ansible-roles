@@ -10,8 +10,9 @@ platforms:
   - name: {{ platform.distribution |replace(" ", "-") | lower }}-{{ tag }}-{{ meta_role_name }}
     image: "docker.io/{{ meta_namespace }}/molecule-{{ platform.distribution | lower }}:{{ tag }}"
     pre_build_image: {{ platform.pre_build_image | default('true') }}
-    entrypoint: {{ platform.entrypoint | default(null, true) }}
-    command: {{ platform.command | default(null, true) }}
+    entrypoint: null
+    command: null
+    systemd: true
 {% endfor %}
 {% endfor %}
 {%- endif %}

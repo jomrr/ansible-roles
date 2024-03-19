@@ -82,7 +82,8 @@ read_references: []
 
 # default molecule scenario(s)
 mole_scenarios:
-  - name: default
+  - scenario:
+      name: default
     dependency: {
       name: galaxy,
       role-file: meta/requirements.yml,
@@ -95,7 +96,7 @@ mole_scenarios:
       config_options: {
         defaults: {
           interpreter_python: auto_silent,
-          callback_whitelist: profile_tasks, timer, yaml,
+          callback_whitelist: "profile_tasks, timer, yaml",
         },
         ssh_connection: { pipelining: true }
       },
@@ -143,5 +144,6 @@ mole_scenarios:
         pre_build_image: true
         entrypoint: null
         command: null
+        systemd: true
         networks:
           - name: certificates

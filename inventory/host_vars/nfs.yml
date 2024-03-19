@@ -1,0 +1,101 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/nfs.yml
+
+meta_description: 'Ansible role for setting up NFSv4 client and server.'
+
+meta_galaxy_tags:
+  - nfs
+  - nfs4
+  - exports
+
+meta_year_created: '2021'
+
+read_description: |
+  This role installs nfs server and/or client tools for use with version 4
+  or greater. It disables rpcbind and only enables nfsd.
+  You can set up exports and/or mount points.
+
+read_references:
+  - "[Alpine Wiki - Setting up an NFS server](https://wiki.alpinelinux.org/wiki/Setting_up_an_NFS_server)"
+  - "[Arch Wiki - NFS](https://wiki.archlinux.org/title/NFS)"
+  - "[Debian Wiki - NFS Server Setup](https://wiki.debian.org/NFSServerSetup)"
+  - "[Fedora Docs - File sharing with NFS – Installation](https://docs.fedoraproject.org/en-US/fedora-server/services/filesharing-nfs-installation)"
+
+# default molecule scenario(s)
+mole_scenarios:
+  - scenario:
+      name: default
+    dependency: {
+      name: galaxy,
+      role-file: meta/requirements.yml,
+      requirements-file: meta/requirements.yml
+    }
+    driver: { name: podman }
+    lint: set -e; ansible-lint
+    provisioner: {
+      name: ansible,
+      config_options: {
+        defaults: {
+          interpreter_python: auto_silent,
+          callback_whitelist: "profile_tasks, timer, yaml",
+        },
+        ssh_connection: { pipelining: true }
+      },
+      log: true,
+      playbooks: {
+        converge: ../resources/converge.yml,
+        verify: ../resources/verify.yml,
+      },
+      inventory: {
+        group_vars: {
+          all: {
+            nfs_client: true,
+            nfs_server: true,
+            nfs_exports: {},
+          }
+        },
+      }
+    }
+    verifier: { name: ansible }
+    platforms:
+      - name: nfs
+        image: "docker.io/${uns:-{{ meta_namespace }}}/molecule-${img:-fedora}:${tag:-latest}"
+        pre_build_image: true
+        entrypoint: null
+        command: null
+        systemd: true
+  - scenario:
+      name: all
+    dependency: {
+      name: galaxy,
+      role-file: meta/requirements.yml,
+      requirements-file: meta/requirements.yml
+    }
+    driver: { name: podman }
+    lint: set -e; ansible-lint
+    provisioner: {
+      name: ansible,
+      config_options: {
+        defaults: {
+          interpreter_python: auto_silent,
+          callback_whitelist: "profile_tasks, timer, yaml",
+        },
+        ssh_connection: { pipelining: true }
+      },
+      log: true,
+      playbooks: {
+        converge: ../resources/converge.yml,
+        verify: ../resources/verify.yml,
+      },
+      inventory: {
+        group_vars: {
+          all: {
+            nfs_client: true,
+            nfs_server: true,
+            nfs_exports: {},
+          },
+        },
+      }
+    }
+    verifier: { name: ansible }

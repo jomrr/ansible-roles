@@ -52,7 +52,7 @@ read_examples:
       # file: "playbook_{{ meta_role_name }}.yml"
 
       - name: "PLAYBOOK | {{ meta_role_name }}"
-        hosts: all
+        hosts: "{{ meta_role_name }}_hosts"
         gather_facts: true
         roles:
           - role: "{{ meta_namespace }}.{{ meta_role_name }}"
@@ -75,7 +75,7 @@ mole_scenarios:
       config_options: {
         defaults: {
           interpreter_python: auto_silent,
-          callback_whitelist: profile_tasks, timer, yaml,
+          callback_whitelist: "profile_tasks, timer, yaml",
         },
         ssh_connection: { pipelining: true }
       },
@@ -93,6 +93,32 @@ mole_scenarios:
         entrypoint: null
         command: null
         systemd: true
+  - scenario:
+      name: all
+    dependency: {
+      name: galaxy,
+      role-file: meta/requirements.yml,
+      requirements-file: meta/requirements.yml
+    }
+    driver: { name: podman }
+    lint: set -e; ansible-lint
+    provisioner: {
+      name: ansible,
+      config_options: {
+        defaults: {
+          interpreter_python: auto_silent,
+          callback_whitelist: "profile_tasks, timer, yaml",
+        },
+        ssh_connection: { pipelining: true }
+      },
+      log: true,
+      playbooks: {
+        converge: converge.yml,
+        prepare: prepare.yml,
+        verify: verify.yml,
+      },
+    }
+    verifier: { name: ansible }
 
 # default list of paths to remove from relative role path
 remove:
