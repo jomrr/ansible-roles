@@ -1,0 +1,23 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/kickstart.yml
+
+meta_description: 'Ansible role for generating kickstart files.'
+
+meta_galaxy_tags:
+  - kickstart
+  - unattended
+
+meta_platforms:
+  - { distribution: Fedora, os_family: RedHat, tags: ['latest'] }
+
+meta_year_created: '2022'
+
+read_description: |-
+  Generate kickstart files for unattended installations with IPXE or virt-install.
+
+read_references:
+  - "[Kickstart Syntax Reference](https://docs.fedoraproject.org/en-US/fedora/f36/install-guide/appendixes/Kickstart_Syntax_Reference/)"
+
+reqs_packages:
+  - pykickstart

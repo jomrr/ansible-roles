@@ -21,7 +21,7 @@ SKIP_TAGS			?=
 TAGS				?=
 
 # --- Git variables ------------------------------------------------------------
-FEATURE				?= feature/dummy
+FEATURE				?= dummy
 # --- Makefile variables -------------------------------------------------------
 BASEDIR				:= $(shell pwd)
 ROLEDIR				:= $(shell realpath ~/src/ansible/roles)
@@ -105,14 +105,14 @@ upgrade: $(REQS)
 clean:
 	@rm -rf $(VENV)
 
-# --- targets for ansible ------------------------------------------------------
+# --- targets formal ansible ------------------------------------------------------
 .PHONY: $(PLAYBOOKS)
 
 $(DEFAULT_CONFIG):
 	@echo "default config $(DEFAULT_CONFIG) not found"
 	@exit 1
 
-$(ROLEDIR): $(DEFAULT_CONFIG)
+$(ROLEDIR): | $(DEFAULT_CONFIG)
 	@echo "ansible roles directory $(ROLEDIR) not found"
 	@exit 1
 
@@ -120,7 +120,7 @@ config: meta pyproject pre-commit-config
 
 docs: contributing license readme
 
-$(PLAYBOOKS): $(ROLEDIR)
+$(PLAYBOOKS): | $(ROLEDIR)
 	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$@.yml \
 		$(if $(EXTRA_VARS),--extra-vars "$(EXTRA_VARS)") \
 		--limit=$(LIMIT) \
@@ -177,13 +177,13 @@ me-commit:
 
 # start a new feature branch
 me-start-feature:
-	@git checkout -b $(FEATURE) dev
+	@git checkout -b feature/$(FEATURE) dev
 
 # merge a feature branch to dev
 me-merge-feature-to-dev:
 	@git checkout dev
-	@git merge $(FEATURE)
-	@git branch -d $(FEATURE)
+	@git merge feature/$(FEATURE)
+	@git branch -d feature/$(FEATURE)
 
 # prepare a release and merge dev to main
 me-prepare-release:
