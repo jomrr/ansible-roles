@@ -23,10 +23,10 @@ TAGS				?=
 # --- Makefile variables -------------------------------------------------------
 BASEDIR				:= $(shell pwd)
 DEFAULT_CONFIG		:= $(BASEDIR)/inventory/group_vars/all.yml
-ROLEDIR				:= $(shell realpath ~/src/ansible/roles)
-REPOS				:= $(shell find $(ROLEDIR) -maxdepth 1 -mindepth 1 -type d)
+ROLEDIR				:= $(shell realpath ~/src/ansible/roles/)
+REPOS				:= $(shell find $(ROLEDIR) -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
 PLAYDIR				:= $(BASEDIR)/playbooks
-PLAYBOOKS			:= $(basename $(notdir $(wildcard $(PLAYDIR)/*.yml)))
+PLAYS				:= $(basename $(notdir $(wildcard $(PLAYDIR)/*.yml)))
 # --- Makefile targets ---------------------------------------------------------
 
 .PHONY: help install upgrade clean
@@ -58,44 +58,48 @@ clean:
 
 # --- targets for roles --------------------------------------------------------
 
-$(DEFAULT_CONFIG):
-	@echo "default config $(DEFAULT_CONFIG) not found"
-	@exit 1
-
-$(ROLEDIR): | $(DEFAULT_CONFIG)
-	@echo "ansible roles directory $(ROLEDIR) not found"
-	@exit 1
-
 .PHONY: config docs $(PLAYBOOKS) 
-
-config: meta pyproject pre-commit-config
-
-docs: contributing license readme
-
-$(PLAYBOOKS): | $(ROLEDIR)
-	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$@.yml \
-		$(if $(EXTRA_VARS),--extra-vars "$(EXTRA_VARS)") \
-		--limit=$(LIMIT) \
-		$(if $(SKIP_TAGS),--skip-tags $(SKIP_TAGS)) \
-		$(if $(TAGS),--tags $(TAGS))
 
 # --- configuration targets ----------------------------------------------------
 
+define gitcap
+	@cd $(ROLEDIR)/$(1) && git add .
+	@if ! git diff --cached --quiet; then \
+		codegpt commit && git push origin dev; \
+		git checkout main && git merge dev && git push origin main && git checkout dev; \
+	fi
+endef
+
 .PHONY: $(REPOS) quickshot pre-commit-autoupdate pre-commit-install
 
-$(REPOS):
-	@$(ANSIBLE_PLAYBOOK) $(BASEDIR)/playbooks/meta.yml
+# run all configuration targets for specified role
+$(REPOS): ansible-role-%:
+	@echo "Running all for $*"
+	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/all.yml --limit=$*
+	@$(call gitcap,$@)
+
+# function to generate rules for single role targets
+define generate_rules
+.PHONY: $(1)/$(2)
+$(1)/$(2):
+	@echo "Running $(2) for $(1)"
+	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$(2).yml --limit=$(subst ansible-role-,,$(1))
+	@$(call gitcap,$(1))
+endef
+
+# generate rules for single role targets
+$(foreach repo,$(REPOS),$(foreach play,$(PLAYS),$(eval $(call generate_rules,$(repo),$(play)))))
 
 # stage, commit and push changes of $LIMIT
 quickshot:
 	@bin/quickshot.sh $(ROLEDIR) $(LIMIT)
 
 # run pre-commit autoupdate for all roles
-pre-commit-autoupdate:
+all/pre-commit-autoupdate:
 	@bin/pre-commit.sh autoupdate $(ROLEDIR)
 
 # install pre-commit hooks for all roles
-pre-commit-install:
+all/pre-commit-install:
 	@bin/pre-commit.sh install $(ROLEDIR)
 
 # --- git targets --------------------------------------------------------------

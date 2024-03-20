@@ -2,4 +2,9 @@
 # name: ansible-roles
 # file: inventory/host_vars/test.yml
 
+meta_galaxy_tags:
+  - ansible
+  - roles
+  - test
+
 meta_year_created: 2019

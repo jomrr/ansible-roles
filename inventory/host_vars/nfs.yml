@@ -28,7 +28,6 @@ mole_scenarios:
       name: default
     dependency: {
       name: galaxy,
-      role-file: meta/requirements.yml,
       requirements-file: meta/requirements.yml
     }
     driver: { name: podman }
@@ -69,7 +68,6 @@ mole_scenarios:
       name: all
     dependency: {
       name: galaxy,
-      role-file: meta/requirements.yml,
       requirements-file: meta/requirements.yml
     }
     driver: { name: podman }
