@@ -20,55 +20,20 @@ EXTRA_VARS			?=
 SKIP_TAGS			?=
 TAGS				?=
 
-# --- Git variables ------------------------------------------------------------
-FEATURE				?= dummy
 # --- Makefile variables -------------------------------------------------------
 BASEDIR				:= $(shell pwd)
+DEFAULT_CONFIG		:= $(BASEDIR)/inventory/group_vars/all.yml
 ROLEDIR				:= $(shell realpath ~/src/ansible/roles)
+REPOS				:= $(shell find $(ROLEDIR) -maxdepth 1 -mindepth 1 -type d)
 PLAYDIR				:= $(BASEDIR)/playbooks
 PLAYBOOKS			:= $(basename $(notdir $(wildcard $(PLAYDIR)/*.yml)))
-DEFAULT_CONFIG		:= $(BASEDIR)/inventory/group_vars/all.yml
 # --- Makefile targets ---------------------------------------------------------
 
+.PHONY: help install upgrade clean
+
 # default target
-.PHONY: help
 help:
-	@echo "Usage: make <target> [LIMIT=<hostname or group>]"
-	@echo ""
-	@echo "Targets:"
-	@echo "  help                    Show this help"
-	@echo ""
-	@echo "  # --- python virtual environment targets -------------------------"
-	@echo ""
-	@echo "  install                 Install the python virtual environment"
-	@echo "  update/upgrade          Update the python virtual environment"
-	@echo "  clean                   Remove the python virtual environment"
-	@echo ""
-	@echo "  # --- ansible targets --------------------------------------------"
-	@echo ""
-	@echo "  all                     Run playbooks/all.yml"
-	@echo "  config                  Run meta, pyproject, pre-commit-config"
-	@echo "  docs                    Run contributing, license, readme"
-	@echo ""
-	@echo "  contributing            Generate CONTRIBUTING.md"
-	@echo "  license                 Generate LICENSE.md"
-	@echo "  readme                  Generate README.md"
-	@echo "  meta                    Generate meta/*.yml"
-	@echo "  molecule                Generate molecule scenarios and playbooks"
-	@echo "  pre-commit-config       Generate .pre-commit-config.yaml"
-	@echo "  pyproject               Generate pyproject.toml"
-	@echo "  remove                  Remove configured files"
-	@echo ""
-	@echo "  # --- git targets ------------------------------------------------"
-	@echo ""
-	@echo "  quickshot               Stage, commit and push changes of \$$LIMIT"
-	@echo "  me-checkout-dev         Checkout the dev branch"
-	@echo "  me-start-feature        Start a new feature branch"
-	@echo "  me-merge-feature-to-dev Merge a feature branch to dev"
-	@echo "  me-commit               Stage and commit changes to current branch"
-	@echo "  me-prepare-release      Prepare a release and merge dev to main"
-	@echo "  me-version              Run python-semantic-release version"
-	@echo "  me-publish              Run python-semantic-release publish"
+	@bin/help.sh
 
 # --- prerequisites ------------------------------------------------------------
 
@@ -78,35 +43,20 @@ $(REQS):
 	@exit 1
 
 # create the python virtual environment
-$(VENV): $(REQS)
-	@python3 -m venv $(VENV)
-	@$(PIP) install --upgrade pip
-	@$(PIP) install -r $(REQS)
-	@$(ANSIBLE_GALAXY) collection install \
-		git+https://github.com/jam82/ansible-collection-dev,main
-	@pre-commit install --hook-type commit-msg
-	@pre-commit install
+$(VENV) upgrade: $(REQS)
+	@bin/install-venv.sh $(VENV) $<
 
 # --- targets for the python virtual environment -------------------------------
-.PHONY: install upgrade clean
 
 # install the python virtual environment
 install: $(VENV)
 
 # upgrade the python virtual environment
-upgrade: $(REQS)
-	@$(PIP) install --upgrade -r $(REQS)
-	@$(ANSIBLE_GALAXY) collection install \
-		git+https://github.com/jam82/ansible-collection-dev,main
-	@pre-commit install --hook-type commit-msg
-	@pre-commit install
-	@pre-commit autoupdate
 
 clean:
 	@rm -rf $(VENV)
 
-# --- targets formal ansible ------------------------------------------------------
-.PHONY: $(PLAYBOOKS)
+# --- targets for roles --------------------------------------------------------
 
 $(DEFAULT_CONFIG):
 	@echo "default config $(DEFAULT_CONFIG) not found"
@@ -115,6 +65,8 @@ $(DEFAULT_CONFIG):
 $(ROLEDIR): | $(DEFAULT_CONFIG)
 	@echo "ansible roles directory $(ROLEDIR) not found"
 	@exit 1
+
+.PHONY: config docs $(PLAYBOOKS) 
 
 config: meta pyproject pre-commit-config
 
@@ -127,63 +79,33 @@ $(PLAYBOOKS): | $(ROLEDIR)
 		$(if $(SKIP_TAGS),--skip-tags $(SKIP_TAGS)) \
 		$(if $(TAGS),--tags $(TAGS))
 
-quickshot:
-	@cd $(ROLEPATH)/ansible-role-$(LIMIT) && \
-		pre-commit install && \
-		pre-commit install --hook-type commit-msg && \
-		pre-commit autoupdate && \
-		git add . && \
-		git commit -m "build: update configuration" && \
-		git push && \
-		git checkout main && \
-		git merge dev && \
-		git push && \
-		git checkout dev
+# --- configuration targets ----------------------------------------------------
 
-.PHONY: pre-commit-autoupdate
+.PHONY: $(REPOS) quickshot pre-commit-autoupdate pre-commit-install
+
+$(REPOS):
+	@$(ANSIBLE_PLAYBOOK) $(BASEDIR)/playbooks/meta.yml
+
+# stage, commit and push changes of $LIMIT
+quickshot:
+	@bin/quickshot.sh $(ROLEPATH) $(LIMIT)
+
+# run pre-commit autoupdate for all roles
 pre-commit-autoupdate:
-	@for dir in $(ROLEDIR)/*; do \
-		if [ -d $$dir ] && [ -f "$$dir/.pre-commit-config.yaml" ]; then \
-			cd $$dir; \
-			if git show-ref --verify --quiet refs/heads/dev || git ls-remote --heads --exit-code . origin dev >/dev/null; then \
-				echo "Updating .pre-commit-config.yaml in $$dir"; \
-				git checkout dev && \
-				pre-commit autoupdate && \
-				git add .pre-commit-config.yaml && \
-				git commit -m "chore: update .pre-commit-config.yaml" && \
-				git push -u origin dev; \
-			fi; \
-		fi; \
-	done
+	@bin/pre-commit.sh autoupdate $(ROLEDIR)
+
+# install pre-commit hooks for all roles
+pre-commit-install:
+	@bin/pre-commit.sh install $(ROLEDIR)
 
 # --- git targets --------------------------------------------------------------
-.PHONY: \
-	me-checkout-dev \
-	me-commit \
-	me-start-feature \
-	me-merge-feature-to-dev \
-	me-prepare-release \
-	me-version \
-	me-publish
 
-# checkout the dev branch
-me-checkout-dev:
-	@git checkout dev
+.PHONY: me-commit me-prepare-release me-version me-publish
 
-# commit changes to the current branch
 me-commit:
 	@git add .
-	@git commit
-
-# start a new feature branch
-me-start-feature:
-	@git checkout -b feature/$(FEATURE) dev
-
-# merge a feature branch to dev
-me-merge-feature-to-dev:
-	@git checkout dev
-	@git merge feature/$(FEATURE)
-	@git branch -d feature/$(FEATURE)
+	@codegpt commit
+	@git push origin dev
 
 # prepare a release and merge dev to main
 me-prepare-release:

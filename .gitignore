@@ -2,7 +2,7 @@
 dist/
 # Dependencies -----------------------------------------------------------------
 collections/*
-!collections/.gitkeep
+!collections/requirements.yml
 # IDE files and directories ----------------------------------------------------
 .idea/
 .vscode/

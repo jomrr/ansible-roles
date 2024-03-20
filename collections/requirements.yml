@@ -1,0 +1,11 @@
+---
+# name: ansible-roles
+# file: collections/requirments.yml
+
+# requirements file for ansible-semaphore:
+# collections/requirments.yml
+# roles/requirements.yml
+
+collections:
+  - name: git+https://github.com/jam82/ansible-collection-dev.git
+    version: main
