@@ -140,6 +140,21 @@ quickshot:
 		git push && \
 		git checkout dev
 
+.PHONY: pre-commit-autoupdate
+pre-commit-autoupdate:
+	@for dir in $(ROLEDIR)/*; do \
+		if [ -d $$dir ] && [ -f "$$dir/.pre-commit-config.yaml" ]; then \
+			cd $$dir; \
+			if git show-ref --verify --quiet refs/heads/dev || git ls-remote --heads --exit-code . origin dev >/dev/null; then \
+				git checkout dev && \
+				pre-commit autoupdate && \
+				git add .pre-commit-config.yaml && \
+				git commit -m "chore: update .pre-commit-config.yaml" && \
+				git push -u origin dev; \
+			fi; \
+		fi; \
+	done
+
 # --- git targets --------------------------------------------------------------
 .PHONY: \
 	me-checkout-dev \
