@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Usage: ./quickshot.sh <ROLEPATH> <LIMIT>
+# Usage: ./quickshot.sh <ROLEDIR> <LIMIT>
 
 if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <ROLEPATH> <LIMIT>"
+    echo "Usage: $0 <ROLEDIR> <LIMIT>"
     exit 1
 fi
 
-ROLEPATH=$1
+ROLEDIR=$1
 LIMIT=$2
 
-cd "$ROLEPATH/ansible-role-$LIMIT" || exit 1
+cd "$ROLEDIR/ansible-role-$LIMIT" || exit 1
 git checkout dev
 pre-commit install
 pre-commit install --hook-type commit-msg

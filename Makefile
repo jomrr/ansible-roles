@@ -88,7 +88,7 @@ $(REPOS):
 
 # stage, commit and push changes of $LIMIT
 quickshot:
-	@bin/quickshot.sh $(ROLEPATH) $(LIMIT)
+	@bin/quickshot.sh $(ROLEDIR) $(LIMIT)
 
 # run pre-commit autoupdate for all roles
 pre-commit-autoupdate:
