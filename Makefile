@@ -56,10 +56,6 @@ install: $(VENV)
 clean:
 	@rm -rf $(VENV)
 
-# --- targets for roles --------------------------------------------------------
-
-.PHONY: config docs $(PLAYBOOKS) 
-
 # --- configuration targets ----------------------------------------------------
 
 define gitcap
@@ -70,7 +66,7 @@ define gitcap
 	fi
 endef
 
-.PHONY: $(REPOS) quickshot pre-commit-autoupdate pre-commit-install
+.PHONY: $(REPOS)
 
 # run all configuration targets for specified role
 $(REPOS): ansible-role-%:
@@ -90,17 +86,39 @@ endef
 # generate rules for single role targets
 $(foreach repo,$(REPOS),$(foreach play,$(PLAYS),$(eval $(call generate_rules,$(repo),$(play)))))
 
+.PHONY: all git-pull pre-commit-autoupdate pre-commit-install quickshot
+
+# run all configuration targets for all roles
+all: $(REPOS)
+
+# pull changes for all roles
+git-pull:
+	@for repo in $(REPOS); do \
+		cd $(ROLEDIR)/$$repo && echo "# $$repo" && git pull; \
+	done
+
+# run pre-commit autoupdate for all roles
+pre-commit-autoupdate:
+	@for repo in $(REPOS); do \
+		cd $(ROLEDIR)/$$repo && echo "# $$repo" && pre-commit autoupdate; \
+	done
+
+# install pre-commit hooks for all roles
+pre-commit-install:
+	@for repo in $(REPOS); do \
+		cd $(ROLEDIR)/$$repo && echo "# $$repo" && rm -rf .git/hooks && \
+		pre-commit install && pre-commit install --hook-type commit-msg; \
+	done
+
+# run pre-commit for all roles
+pre-commit-run:
+	@for repo in $(REPOS); do \
+		cd $(ROLEDIR)/$$repo && echo "# $$repo" && pre-commit run --all-files; \
+	done
+
 # stage, commit and push changes of $LIMIT
 quickshot:
 	@bin/quickshot.sh $(ROLEDIR) $(LIMIT)
-
-# run pre-commit autoupdate for all roles
-all/pre-commit-autoupdate:
-	@bin/pre-commit.sh autoupdate $(ROLEDIR)
-
-# install pre-commit hooks for all roles
-all/pre-commit-install:
-	@bin/pre-commit.sh install $(ROLEDIR)
 
 # --- git targets --------------------------------------------------------------
 
