@@ -3,7 +3,7 @@
 # file: molecule/resources/playbooks/verify.yml
 
 {% if mole_verify | default([]) | length > 0 -%}
-{{ mole_verify | to_nice_yaml(sort_keys=False, indent=2) }}
+{{ mole_verify | jam82.dev.to_lintable_yaml }}
 {%- else -%}
 - name: "PLAYBOOK | Verify"
   hosts: all
