@@ -3,7 +3,7 @@
 # file: molecule/resources/playbooks/converge.yml
 
 {% if mole_converge | default([]) | length > 0 -%}
-{{ mole_converge }}
+{{ mole_converge | to_nice_yaml(sort_keys=False, indent=2) }}
 {%- else -%}
 {% raw -%}
 - name: "PLAYBOOK | Converge"

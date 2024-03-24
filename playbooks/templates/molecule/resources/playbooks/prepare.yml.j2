@@ -3,7 +3,7 @@
 # file: molecule/resources/playbooks/prepare.yml
 
 {% if mole_prepare | default([]) | length > 0 -%}
-{{ mole_prepare }}
+{{ mole_prepare | to_nice_yaml(sort_keys=False, indent=2) }}
 {%- else -%}
 - name: "PLAYBOOK | Prepare"
   hosts: all

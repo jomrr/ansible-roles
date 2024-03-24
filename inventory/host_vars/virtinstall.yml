@@ -64,7 +64,7 @@ mole_scenarios:
       options:
         requirements-file: requirements.yml
     driver:
-      name: delegated
+      name: default
       options:
         managed: false
         ansible_connection_options:
