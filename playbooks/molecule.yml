@@ -7,12 +7,7 @@
   become: false
   gather_facts: false
   tasks:
-    # - name: "Remove molecule directory"
-    #   ansible.builtin.file:
-    #     path: "{{ ansible_host }}/molecule"
-    #     state: absent
-
-    - name: "Ensure molecule directories exist"
+    - name: "Ensure molecule scenario directories exist"
       ansible.builtin.file:
         path: "{{ ansible_host }}/molecule/{{ item.scenario.name }}"
         state: directory
@@ -21,22 +16,18 @@
 
     - name: "Ensure molecule resource directories exist"
       ansible.builtin.file:
-        path: "{{ ansible_host }}/{{ item }}"
+        path: "{{ ansible_host }}/molecule/{{ item.name | dirname }}"
         state: directory
         mode: "0755"
-      loop:
-        - molecule/resources/playbooks
+      loop: "{{ mole_playbooks }}"
 
     - name: "Generate molecule ressources"
       ansible.builtin.template:
-        src: "{{ item }}.yml.j2"
-        dest: "{{ ansible_host }}/{{ item }}.yml"
+        src: "molecule/playbook.yml.j2"
+        dest: "{{ ansible_host }}/molecule/{{ item.name }}"
         mode: "0644"
         validate: "ansible-lint %s"
-      loop:
-        - molecule/resources/playbooks/prepare
-        - molecule/resources/playbooks/converge
-        - molecule/resources/playbooks/verify
+      loop: "{{ mole_playbooks }}"
 
     - name: "Generate molecule scenarios"
       ansible.builtin.template:

@@ -77,30 +77,32 @@ mole_scenarios:
       name: ansible
       log: true
       playbooks:
-        prepare: ../resources/playbooks/prepare.yml
         converge: ../resources/playbooks/converge.yml
         verify: ../resources/playbooks/verify.yml
     verifier:
       name: ansible
 
-mole_prepare:
-  - name: "PLAYBOOK | Prepare"
-    hosts: all
-    become: false
-    gather_facts: false
-    tasks: []
-
-mole_verify:
-  - name: "PLAYBOOK | Verify"
-    hosts: all
-    become: false
-    gather_facts: false
-    tasks:
-      - name: "Check virt-install version"
-        ansible.builtin.command:
-          cmd: "virt-install --version"
-        register: _virtinstall_version
-        changed_when: false
-      - name: "Check virt-install --version return code"
-        ansible.builtin.assert:
-          that: _virtinstall_version.rc == 0
+mole_playbooks:
+  - name: resources/playbooks/converge.yml
+    content: |-
+      - name: "PLAYBOOK | Converge"
+        hosts: all
+        become: true
+        gather_facts: true
+        roles:
+          - role: "{{ '{% raw %}{{' }} lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') {{ '}}{% endraw %}' }}"
+  - name: resources/playbooks/verify.yml
+    content: |-
+      - name: "PLAYBOOK | Verify"
+        hosts: all
+        become: false
+        gather_facts: false
+        tasks:
+          - name: "Check virt-install version"
+            ansible.builtin.command:
+              cmd: "virt-install --version"
+            register: _virtinstall_version
+            changed_when: false
+          - name: "Check virt-install --version return code"
+            ansible.builtin.assert:
+              that: _virtinstall_version.rc == 0
