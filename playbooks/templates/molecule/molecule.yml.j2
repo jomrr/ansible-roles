@@ -6,9 +6,9 @@
 {%- if item.platforms | default([]) | length == 0 %}
 platforms:
 {% for platform in meta_platforms %}
-{% for tag in platform.tags %}
-  - name: {{ platform.distribution |replace(" ", "-") | lower }}-{{ tag }}-{{ meta_role_name }}
-    image: "docker.io/{{ meta_namespace }}/molecule-{{ platform.distribution | lower }}:{{ tag }}"
+{% for tag in platform.tags %}{% set platform_image = platform.distribution | lower | replace(' ','-') %}
+  - name: {{ platform_image }}-{{ tag }}-{{ meta_role_name }}
+    image: "docker.io/{{ meta_namespace }}/molecule-{{ platform_image }}:{{ tag }}"
     pre_build_image: {{ platform.pre_build_image | default('true') }}
     entrypoint: null
     command: null

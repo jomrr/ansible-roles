@@ -13,8 +13,32 @@ meta_platforms:
   - { distribution: Archlinux, os_family: Archlinux, tags: ['latest'] }
   - { distribution: Debian, os_family: Debian, tags: ['latest'] }
   - { distribution: Fedora, os_family: RedHat, tags: ['latest'] }
-  - { distribution: OpenSuse Leap, os_family: Suse, tags: ['latest'] }
+  - { distribution: openSUSE Leap, os_family: Suse, tags: ['latest'] }
   - { distribution: Ubuntu, os_family: Debian, tags: ['latest'] }
 
 reqs_collections:
   - community.general
+
+mole_playbooks:
+  - name: resources/playbooks/verify.yml
+    content: |-
+      - name: "PLAYBOOK | Verify"
+        hosts: all
+        become: false
+        gather_facts: false
+        tasks:
+          - name: "Check if systemd-resolved is running"
+            ansible.builtin.systemd:
+              name: systemd-resolved
+              state: started
+            check_mode: true
+            register: result
+            failed_when: result is changed or result is failed
+
+          - name: "Check if systemd-resolved is enabled"
+            ansible.builtin.systemd:
+              name: systemd-resolved
+              enabled: true
+            check_mode: true
+            register: result
+            failed_when: result is changed or result is failed

@@ -98,6 +98,10 @@ $(foreach repo,$(REPOS),$(repo)/pre-commit-autoupdate): %/pre-commit-autoupdate:
 $(foreach repo,$(REPOS),$(repo)/pre-commit-install): %/pre-commit-install:
 	@cd $(ROLEDIR)/$* && rm -rf .git/hooks && pre-commit install && pre-commit install --hook-type commit-msg
 
+# pre-commit run for single role
+$(foreach repo,$(REPOS),$(repo)/pre-commit-run): %/pre-commit-run:
+	@cd $(ROLEDIR)/$* && pre-commit run --all-files
+
 # merge dev to main for single role
 $(foreach repo,$(REPOS),$(repo)/prepare-release): %/prepare-release:
 	@cd $(ROLEDIR)/$* && git push origin dev && git checkout main && git merge dev && git push origin main && git checkout dev
