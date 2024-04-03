@@ -16,6 +16,9 @@ meta_platforms:
   - { distribution: openSUSE Leap, os_family: Suse, tags: ['latest'] }
   - { distribution: Ubuntu, os_family: Debian, tags: ['latest'] }
 
+read_description: |
+  This role installs and configures systemd-resolved on the targeted host(s).
+
 reqs_collections:
   - community.general
 
