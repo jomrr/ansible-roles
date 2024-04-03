@@ -1,0 +1,9 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/resolved.yml
+
+meta_description: 'Ansible role for setting up systemd-resolved.'
+meta_galaxy_tags:
+  - systemd
+  - resolved
+meta_year_created: 2024
