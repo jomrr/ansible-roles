@@ -86,6 +86,14 @@ endef
 # generate rules for single role targets
 $(foreach repo,$(REPOS),$(foreach play,$(PLAYS),$(eval $(call generate_rules,$(repo),$(play)))))
 
+# commit changes for single role
+$(foreach repo,$(REPOS),$(repo)/commit): %/commit:
+	cd $(ROLEDIR)/$* && git add . && codegpt commit && git push origin dev
+
+# merge dev to main for single role
+$(foreach repo,$(REPOS),$(repo)/prepare-release): %/prepare-release:
+	@cd $(ROLEDIR)/$* && git push origin dev && git checkout main && git merge dev && git push origin main && git checkout dev
+
 new: CFG=inventory/host_vars/$(ROLE).yml
 new: REPO=ansible-role-$(ROLE)
 new:
