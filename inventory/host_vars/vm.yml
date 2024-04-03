@@ -2,7 +2,7 @@
 # name: ansible-roles
 # file: inventory/host_vars/vm.yml
 
-meta_description: 'Ansible role to manage libvirt guests with community.libvirt.virt module.'
+meta_description: 'Ansible role to manage libvirt guests.'
 
 meta_galaxy_tags:
   - libvirt

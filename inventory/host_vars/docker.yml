@@ -2,7 +2,7 @@
 # name: ansible-roles
 # file: inventory/host_vars/docker.yml
 
-meta_description: 'Ansible role for setting up docker from os repositories.'
+meta_description: 'Ansible role for setting up docker-ce from os repositories.'
 
 meta_galaxy_tags:
   - docker
