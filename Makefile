@@ -88,7 +88,15 @@ $(foreach repo,$(REPOS),$(foreach play,$(PLAYS),$(eval $(call generate_rules,$(r
 
 # commit changes for single role
 $(foreach repo,$(REPOS),$(repo)/commit): %/commit:
-	cd $(ROLEDIR)/$* && git add . && codegpt commit && git push origin dev
+	@cd $(ROLEDIR)/$* && git add . && codegpt commit && git push origin dev
+
+# pre-commit autoupdate for single role
+$(foreach repo,$(REPOS),$(repo)/pre-commit-autoupdate): %/pre-commit-autoupdate:
+	@cd $(ROLEDIR)/$* && pre-commit autoupdate
+
+# pre-commit install for single role
+$(foreach repo,$(REPOS),$(repo)/pre-commit-install): %/pre-commit-install:
+	@cd $(ROLEDIR)/$* && rm -rf .git/hooks && pre-commit install && pre-commit install --hook-type commit-msg
 
 # merge dev to main for single role
 $(foreach repo,$(REPOS),$(repo)/prepare-release): %/prepare-release:
