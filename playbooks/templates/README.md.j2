@@ -1,6 +1,6 @@
 # Ansible role {{ meta_role_name | default(inventory_hostname) }}
 
-![GitHub](https://img.shields.io/github/license/{{ meta_namespace | default('jam82') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ meta_namespace | default('jam82') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ meta_namespace | default('jam82') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }})
+![GitHub](https://img.shields.io/github/license/{{ meta_namespace | default('jomrr') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ meta_namespace | default('jomrr') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ meta_namespace | default('jomrr') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }})
 
 {% if meta_description is defined -%}
 **{{ meta_description }}**
@@ -73,9 +73,9 @@ This role has no dependencies.
 {% for tag in platform.tags %}
 {% if loop.first %}
 {% set platform_image = platform.distribution | lower | replace(' ','-') %}
-| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ meta_namespace | default('jam82') }}/molecule-{{ platform_image }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace | default('jam82') }}/molecule-{{ platform_image }} ) |
+| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ meta_namespace | default('jomrr') }}/molecule-{{ platform_image }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace | default('jomrr') }}/molecule-{{ platform_image }} ) |
 {% else -%}
-| | | {{ tag }} | [{{ meta_namespace | default('jam82') }}/molecule-{{ platform_image }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace | default('jam82') }}/molecule-{{ platform_image }} ) |
+| | | {{ tag }} | [{{ meta_namespace | default('jomrr') }}/molecule-{{ platform_image }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace | default('jomrr') }}/molecule-{{ platform_image }} ) |
 {% endif %}
 {% endfor %}
 {% endfor %}
@@ -110,7 +110,7 @@ Example playbooks(s) that show how to use this role.
 
 ## Author(s) and License
 
-- :octocat:                 Author::    [{{ meta_namespace | default('jam82') }}](https://github.com/{{ meta_namespace | default('jam82') }})
+- :octocat:                 Author::    [{{ meta_namespace | default('jomrr') }}](https://github.com/{{ meta_namespace | default('jomrr') }})
 - :triangular_flag_on_post: Copyright:: {{ meta_year_created }}, {{ meta_author }}
 - :page_with_curl:          License::   [{{ meta_license | default('MIT') }}](LICENSE)
 

@@ -1,15 +1,15 @@
 ---
-# name: {{ meta_namespace | default('jam82') }}.{{ meta_role_name | default(inventory_hostname) }}
+# name: {{ meta_namespace | default('jomrr') }}.{{ meta_role_name | default(inventory_hostname) }}
 # file: meta/main.yml
 
 galaxy_info:
-  namespace: {{ meta_namespace | default('jam82') }}
+  namespace: {{ meta_namespace | default('jomrr') }}
   role_name: {{ meta_role_name | default(inventory_hostname) }}
   author: {{ meta_author | default('Jonas Mauer') }}
   company: {{ meta_company | default('') }}
   description: {{ meta_description | default("Ansible role for setting up" + inventory_hostname) }}
   license: {{ meta_license | default('MIT') }}
-  issue_tracker_url: {{ meta_issue_tracker_url | default("https://github.com/jam82/ansible-role-" + inventory_hostname) }}
+  issue_tracker_url: {{ meta_issue_tracker_url | default("https://github.com/jomrr/ansible-role-" + inventory_hostname) }}
   min_ansible_version: "{{ meta_min_ansible_version | default('2.15') }}"
   {% if meta_galaxy_tags | default([]) | length == 0 %}galaxy_tags: []{% endif %}
 {% if meta_galaxy_tags | default([]) | length > 0 %}

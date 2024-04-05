@@ -7,5 +7,5 @@
 # roles/requirements.yml
 
 collections:
-  - name: git+https://github.com/jam82/ansible-collection-dev.git
+  - name: git+https://github.com/jomrr/ansible-collection-dev.git
     version: main

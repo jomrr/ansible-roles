@@ -5,7 +5,7 @@ SHELL				:= /bin/bash
 
 # --- Variables for python virtual environment ---------------------------------
 VENV				:= .venv
-DEPS				:= collections/ansible_collections/jam82/dev
+DEPS				:= collections/ansible_collections/jomrr/dev
 REQS				:= requirements.txt
 PIP					:= $(VENV)/bin/pip
 # --- Ansible variables --------------------------------------------------------

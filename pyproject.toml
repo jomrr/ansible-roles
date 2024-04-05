@@ -5,7 +5,7 @@ description = "Ansible roles database and development playbooks."
 authors = ["Jonas Mauer"]
 license = "MIT"
 keywords = ["ansible", "molecule", "roles"]
-repository = "https://github.com/jam82/ansible-roles"
+repository = "https://github.com/jomrr/ansible-roles"
 
 [tool.commitizen]
 name = "cz_conventional_commits"

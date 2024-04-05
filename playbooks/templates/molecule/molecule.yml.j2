@@ -1,8 +1,8 @@
 ---
-# name: {{ meta_namespace | default('jam82') }}.{{ meta_repo_name }}
+# name: {{ meta_namespace | default('jomrr') }}.{{ meta_repo_name }}
 # file: molecule/{{ item.scenario.name | default('default') }}/molecule.yml
 
-{{ item | jam82.dev.to_lintable_yaml(indent=2) }}
+{{ item | jomrr.dev.to_lintable_yaml(indent=2) }}
 {%- if item.platforms | default([]) | length == 0 %}
 platforms:
 {% for platform in meta_platforms %}

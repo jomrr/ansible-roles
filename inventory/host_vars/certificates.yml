@@ -63,7 +63,7 @@ read_examples:
               dest: "{{ certificates_tls_dir }}/private/fritzbox.key"
               mode: "0600"
         roles:
-          - role: "jam82.certificates"
+          - role: "jomrr.certificates"
 
       - name: "PLAYBOOK | certificates | cleanup controller"
         hosts: localhost

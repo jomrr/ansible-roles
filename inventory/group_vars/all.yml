@@ -18,7 +18,7 @@ meta_galaxy_tags: []
 meta_issue_tracker_url: "{{ meta_repo_url }}/issues"
 meta_license: MIT
 meta_min_ansible_version: "2.15"
-meta_namespace: jam82
+meta_namespace: jomrr
 meta_platforms:
   - { distribution: AlmaLinux, os_family: RedHat, tags: ['8', '9'] }
   - { distribution: Alpine, os_family: Alpine, tags: ['3.18', '3.19'] }

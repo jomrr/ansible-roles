@@ -1,4 +1,4 @@
 ---
-plugin: jam82.dev.ansible_role_inventory
+plugin: jomrr.dev.ansible_role_inventory
 base_path: "~/src/ansible/roles/"
 search_prefix: ansible-role-
