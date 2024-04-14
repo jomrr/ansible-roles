@@ -122,7 +122,7 @@ mole_scenarios:
 mole_playbooks:
   - name: resources/playbooks/prepare.yml
     content: |-
-      - name: "PLAYBOOK | Prepare"
+      - name: "PLAYBOOK | Prepare | {{ meta_role_name }}"
         hosts: all
         become: true
         gather_facts: true
@@ -164,7 +164,7 @@ mole_playbooks:
             when: ansible_pkg_mgr == "zypper"
   - name: resources/playbooks/converge.yml
     content: |-
-      - name: "PLAYBOOK | Converge"
+      - name: "PLAYBOOK | Converge | {{ meta_role_name }}"
         hosts: all
         become: true
         gather_facts: true
@@ -172,7 +172,7 @@ mole_playbooks:
           - role: "{{ '{% raw %}{{' }} lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') {{ '}}{% endraw %}' }}"
   - name: resources/playbooks/verify.yml
     content: |-
-      - name: "PLAYBOOK | Verify"
+      - name: "PLAYBOOK | Verify | {{ meta_role_name }}"
         hosts: all
         gather_facts: false
         tasks:

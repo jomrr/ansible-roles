@@ -1,0 +1,54 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/logindefs.yml
+
+meta_description: 'Ansible role for configuring /etc/login.defs.'
+meta_year_created: 2024
+
+meta_platforms:
+  - { distribution: AlmaLinux, os_family: RedHat, tags: ['latest'] }
+  - { distribution: Archlinux, os_family: Archlinux, tags: ['latest'] }
+  - { distribution: Debian, os_family: Debian, tags: ['latest'] }
+  - { distribution: Fedora, os_family: RedHat, tags: ['latest'] }
+  - { distribution: OpenSuse Leap, os_family: Suse, tags: ['latest'] }
+  - { distribution: Ubuntu, os_family: Debian, tags: ['latest'] }
+
+mole_playbooks:
+  - name: resources/playbooks/verify.yml
+    content: |-
+      - name: "PLAYBOOK | Verify | {{ meta_role_name }}"
+        hosts: all
+        gather_facts: true
+        become: true
+        tasks:
+          - name: "Try to create a test user with short password"
+            ansible.builtin.user:
+              name: "testuser"
+              state: present
+              shell: "/bin/bash"
+              password: "$y$j9T$NE4HzXJ6pFkSZJA4BFWNd1$ly3H6dicgCEt14NzhEEpI5meSJ2G7cXn9bLazipKHx8"   # Test123
+            register: _testfail
+            failed_when: _testfail.rc = 0
+
+          - name: "Create a test user with strong password"
+            ansible.builtin.user:
+              name: "testuser"
+              state: present
+              shell: "/bin/bash"
+              password: "$y$j9T$WpcLOxuNOGKfLFUf13yI6/$7PKeO66Zj2UT8ykbcta39RPoI9O75trN7ego9njccY5"   # Strunz3noed:0815?
+
+          - name: "Check home directory permissions"
+            ansible.builtin.stat:
+              path: "/home/testuser"
+            register: home_stat
+
+          - name: "Verify home directory permissions"
+            ansible.builtin.assert:
+              that: home_stat.stat.mode == 0700
+              fail_msg: "Home directory permissions are not 0700"
+              success_msg: "Home directory permissions are 0700"
+
+          - name: "Clean up test user"
+            ansible.builtin.user:
+              name: "testuser"
+              state: absent
