@@ -70,12 +70,12 @@ This role has no dependencies.
 | OS Family | Distribution | Version | Container Image |
 |-----------|--------------|---------|-----------------|
 {% for platform in meta_platforms %}
+{% set platform_image = platform.distribution | lower | replace(' ','-') %}
 {% for tag in platform.tags %}
 {% if loop.first %}
-{% set platform_image = platform.distribution | lower | replace(' ','-') %}
-| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ meta_namespace | default('jomrr') }}/molecule-{{ platform_image }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace | default('jomrr') }}/molecule-{{ platform_image }} ) |
+| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ meta_namespace }}/molecule-{{ platform_image  }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace }}/molecule-{{ platform_image }} ) |
 {% else -%}
-| | | {{ tag }} | [{{ meta_namespace | default('jomrr') }}/molecule-{{ platform_image }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace | default('jomrr') }}/molecule-{{ platform_image }} ) |
+| | | {{ tag }} | [{{ meta_namespace }}/molecule-{{ platform_image }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace }}/molecule-{{ platform_image }} ) |
 {% endif %}
 {% endfor %}
 {% endfor %}
