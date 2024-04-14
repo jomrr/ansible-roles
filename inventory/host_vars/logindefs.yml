@@ -21,21 +21,17 @@ mole_playbooks:
         gather_facts: true
         become: true
         tasks:
-          - name: "Try to create a test user with short password"
-            ansible.builtin.user:
-              name: "testuser"
-              state: present
-              shell: "/bin/bash"
-              password: "$y$j9T$NE4HzXJ6pFkSZJA4BFWNd1$ly3H6dicgCEt14NzhEEpI5meSJ2G7cXn9bLazipKHx8"   # Test123
-            register: _testfail
-            failed_when: _testfail.rc = 0
+          - name: "Ensure util-linux is installed"
+            ansible.builtin.package:
+              name: "util-linux"
+              state: "present"
 
-          - name: "Create a test user with strong password"
-            ansible.builtin.user:
-              name: "testuser"
-              state: present
-              shell: "/bin/bash"
-              password: "$y$j9T$WpcLOxuNOGKfLFUf13yI6/$7PKeO66Zj2UT8ykbcta39RPoI9O75trN7ego9njccY5"   # Strunz3noed:0815?
+          - name: "Create testuser with useradd"
+            ansible.builtin.command:
+              cmd: "useradd -m -s /bin/bash testuser"
+            register: _useradd
+            changed_when: false
+            failed_when: _useradd.rc > 0 and not "already exists" in _useradd.stderr
 
           - name: "Check home directory permissions"
             ansible.builtin.stat:
@@ -44,11 +40,31 @@ mole_playbooks:
 
           - name: "Verify home directory permissions"
             ansible.builtin.assert:
-              that: home_stat.stat.mode == 0700
+              that: home_stat.stat.mode == '0700'
               fail_msg: "Home directory permissions are not 0700"
               success_msg: "Home directory permissions are 0700"
 
+          - name: "Set password for testuser"
+            become: true
+            become_user: testuser
+            ansible.builtin.command:
+              cmd: "echo 'testuser:Test123blabla,0815' | chpasswd"
+            changed_when: false
+
+          - name: "Check if testuser can login"
+            ansible.builtin.command:
+              cmd: "su - testuser -c 'whoami'"
+            register: _login
+            changed_when: false
+
+          - name: "Check if testuser can login"
+            ansible.builtin.command:
+              cmd: "chage -l testuser"
+            register: _chage
+            changed_when: false
+            failed_when: not '384' in _chage.stdout
+
           - name: "Clean up test user"
-            ansible.builtin.user:
-              name: "testuser"
-              state: absent
+            ansible.builtin.command:
+              cmd: "userdel -r testuser"
+            changed_when: false
