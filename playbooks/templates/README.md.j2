@@ -22,7 +22,7 @@ Install and configure {{ inventory_hostname }} with Ansible.
 
 ### System packages (Fedora)
 
-- `python3` (Python 3.8 or later)
+- `python3` (>= 3.9)
 {% if reqs_packages is defined -%}
 {% for package in reqs_packages %}
 - `{{ package }}`
