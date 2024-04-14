@@ -13,6 +13,9 @@ meta_platforms:
   - { distribution: OpenSuse Leap, os_family: Suse, tags: ['latest'] }
   - { distribution: Ubuntu, os_family: Debian, tags: ['latest'] }
 
+read_description: |-
+  This Ansible role configures /etc/login.defs on supported platforms.
+
 mole_playbooks:
   - name: resources/playbooks/verify.yml
     content: |-
