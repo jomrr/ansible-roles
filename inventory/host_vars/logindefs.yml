@@ -3,6 +3,16 @@
 # file: inventory/host_vars/logindefs.yml
 
 meta_description: 'Ansible role for configuring /etc/login.defs.'
+
+meta_galaxy_tags:
+  - login
+  - logindefs
+  - shadow
+  - user
+  - useradd
+  - userdel
+  - usermod
+
 meta_year_created: 2024
 
 meta_platforms:

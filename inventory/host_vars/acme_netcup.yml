@@ -29,30 +29,32 @@ reqs_collections:
   - community.general
   - containers.podman
 
-mole_verify: |-
-  {% raw -%}
-  - name: "PLAYBOOK | Verify | acme_netcup"
-    hosts: all
-    gather_facts: true
-    tasks:
-      - name: "Find certificates"
-        ansible.builtin.find:
-          paths: "/etc/acme-staging/certs/"
-          patterns: "*[A-Za-z0-9].pem"
-        register: _find
+mole_playbooks:
+  - name: resources/playbooks/verify.yml
+    content: |-
+      {% raw -%}
+      - name: "PLAYBOOK | Verify | acme_netcup"
+        hosts: all
+        gather_facts: true
+        tasks:
+          - name: "Find certificates"
+            ansible.builtin.find:
+              paths: "/etc/acme-staging/certs/"
+              patterns: "*[A-Za-z0-9].pem"
+            register: _find
 
-      - name: "Get certificate information including chain"
-        community.crypto.x509_certificate_info:
-          path: "{{ _find.files[0].path }}"
-        register: cert_info
-        when: _find.files | length > 0
+          - name: "Get certificate information including chain"
+            community.crypto.x509_certificate_info:
+              path: "{{ _find.files[0].path }}"
+            register: cert_info
+            when: _find.files | length > 0
 
-      - name: "Assert certificate is currently valid"
-        ansible.builtin.assert:
-          that:
-            - cert_info.not_before | to_datetime('%Y%m%d%H%M%SZ') <= ansible_date_time.iso8601_basic_short | to_datetime('%Y%m%dT%H%M%S')
-            - cert_info.not_after | to_datetime('%Y%m%d%H%M%SZ') >= ansible_date_time.iso8601_basic_short | to_datetime('%Y%m%dT%H%M%S')
-          fail_msg: "Certificate is not currently valid."
-          success_msg: "Certificate is currently valid."
-        when: _find.files | length > 0
-  {% endraw -%}
+          - name: "Assert certificate is currently valid"
+            ansible.builtin.assert:
+              that:
+                - cert_info.not_before | to_datetime('%Y%m%d%H%M%SZ') <= ansible_date_time.iso8601_basic_short | to_datetime('%Y%m%dT%H%M%S')
+                - cert_info.not_after | to_datetime('%Y%m%d%H%M%SZ') >= ansible_date_time.iso8601_basic_short | to_datetime('%Y%m%dT%H%M%S')
+              fail_msg: "Certificate is not currently valid."
+              success_msg: "Certificate is currently valid."
+            when: _find.files | length > 0
+      {% endraw -%}
