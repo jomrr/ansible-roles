@@ -1,0 +1,25 @@
+---
+
+meta_description: 'Ansible role for setting up apache httpd.'
+
+meta_galaxy_tags:
+  - apache
+  - httpd
+  - proxy
+  - vhost
+  - webserver
+
+meta_year_created: 2024
+
+read_description: |-
+  This role installs and configures the apache web server.
+  It supports the configuration of:
+    - modules
+    - reverse proxy settings
+    - SSL/TLS settings
+    - virtual hosts
+
+read_references:
+  - "[Apache HTTP Server Documentation](https://httpd.apache.org/docs/)"
+  - "[ArchWiki - Apache HTTP Server](https://wiki.archlinux.org/title/Apache_HTTP_Server)"
+  - "[Fedora Quick Docs - Getting started with Apache HTTP Server](https://docs.fedoraproject.org/en-US/quick-docs/getting-started-with-apache-http-server/)"
