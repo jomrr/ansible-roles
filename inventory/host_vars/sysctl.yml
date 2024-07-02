@@ -1,0 +1,20 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/sysctl.yml
+
+meta_description: 'Ansible role for configuring sysctl settings.'
+
+meta_galaxy_tags:
+  - kernel
+  - procps
+  - sysctl
+
+meta_platforms:
+  - { distribution: AlmaLinux, os_family: RedHat, tags: ['latest'] }
+  - { distribution: Archlinux, os_family: Archlinux, tags: ['latest'] }
+  - { distribution: Debian, os_family: Debian, tags: ['latest'] }
+  - { distribution: Fedora, os_family: RedHat, tags: ['latest'] }
+  - { distribution: OpenSuse Leap, os_family: Suse, tags: ['latest'] }
+  - { distribution: Ubuntu, os_family: Debian, tags: ['latest'] }
+
+meta_year_created: 2024
