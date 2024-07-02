@@ -13,14 +13,12 @@
         state: directory
         mode: "0755"
       loop: "{{ mole_scenarios }}"
-
     - name: "Ensure molecule resource directories exist"
       ansible.builtin.file:
         path: "{{ ansible_host }}/molecule/{{ item.name | dirname }}"
         state: directory
         mode: "0755"
       loop: "{{ mole_playbooks }}"
-
     - name: "Generate molecule ressources"
       ansible.builtin.template:
         src: "molecule/playbook.yml.j2"
@@ -28,7 +26,6 @@
         mode: "0644"
         validate: "ansible-lint %s"
       loop: "{{ mole_playbooks }}"
-
     - name: "Generate molecule scenarios"
       ansible.builtin.template:
         src: "molecule/molecule.yml.j2"
