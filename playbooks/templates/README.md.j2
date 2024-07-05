@@ -45,16 +45,15 @@ Install and configure {{ inventory_hostname }} with Ansible.
 {% if reqs_collections | default([]) | length > 0 -%}
 collections:
 {% for collection in reqs_collections %}
-  - {{ collection }}
+  - {{ collection | jomrr.dev.to_lintable_yaml }}
 {% endfor %}
 {% else -%}
 collections: []
 {% endif %}
-
 {% if reqs_roles | default([]) | length > 0 -%}
 roles:
 {% for role in reqs_roles %}
-  - {{ role }}
+  - {{ role | jomrr.dev.to_lintable_yaml  }}
 {% endfor %}
 {% else -%}
 roles: []
