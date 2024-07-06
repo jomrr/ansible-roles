@@ -1,0 +1,16 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/packer_provision.yml
+
+meta_description: 'Ansible role for provisioning packer builds.'
+
+meta_galaxy_tags:
+  - ansible
+  - build
+  - packer
+  - provision
+
+meta_year_created: '2019'
+
+read_description: |
+  Provision packer builds via ansible.
