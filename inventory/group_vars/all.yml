@@ -188,3 +188,4 @@ remove:
   - requirements.yml
   - tasks.yml
   - tox.ini
+  - meta/requirements.yml

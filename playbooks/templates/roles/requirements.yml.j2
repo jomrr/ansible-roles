@@ -1,0 +1,8 @@
+---
+# name: {{ meta_namespace | default('jomrr') }}.{{ meta_role_name | default('inventory_hostname') }}
+# file: roles/requirements.yml
+
+roles:
+{% for role in reqs_roles %}
+- {{ role }}
+{% endfor %}
