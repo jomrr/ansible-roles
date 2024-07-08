@@ -127,10 +127,26 @@ new:
 	@cd $(ROLEDIR)/$(REPO) && git checkout dev
 	@echo "Created new role $(ROLE) with $(CFG)"
 
-.PHONY: all git-pull pre-commit-autoupdate pre-commit-install quickshot
+.PHONY: $(PLAYS) all commit git-pull 
+.PHONY: pre-commit-autoupdate pre-commit-install 
+.PHONY: prepare-release quickshot
+
+# run play for all roles limited by $LIMIT
+$(PLAYS):
+	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/$@.yml --limit=$(LIMIT)
 
 # run all configuration targets for all roles
 all: $(REPOS)
+
+# commit all repos using $MSG as commit message
+commit:
+	@for repo in $(REPOS); do \
+		echo "# $$repo"; \
+		cd $(ROLEDIR)/$$repo && \
+		git add . && \
+		git commit -m "$(MSG)" && \
+		git push -u origin dev; \
+	done
 
 # pull changes for all roles
 git-pull:
@@ -155,6 +171,16 @@ pre-commit-install:
 pre-commit-run:
 	@for repo in $(REPOS); do \
 		cd $(ROLEDIR)/$$repo && echo "# $$repo" && pre-commit run --all-files; \
+	done
+
+prepare-release:
+	@for repo in $(REPOS); do \
+		echo "# $$repo"; \
+		cd $(ROLEDIR)/$$repo && \
+		git checkout main && \
+		git merge dev && \
+		git push -u origin main && \
+		git checkout dev; \
 	done
 
 # stage, commit and push changes of $LIMIT

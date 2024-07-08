@@ -24,10 +24,10 @@ read_references:
   - "[Community.Crypto](https://docs.ansible.com/ansible/latest/collections/community/crypto/index.html)"
 
 reqs_collections:
-  - ansible.posix
-  - community.crypto
-  - community.general
-  - containers.podman
+  - name: ansible.posix
+  - name: community.crypto
+  - name: community.general
+  - name: containers.podman
 
 mole_playbooks:
   - name: resources/playbooks/verify.yml

@@ -17,7 +17,7 @@ read_references:
   - "[man virt-install(1)](https://manpages.org/virt-install)"
 
 reqs_collections:
-  - community.libvirt
+  - name: community.libvirt
   - name: git+https://github.com/jomrr/ansible-collection-general
     version: main
 

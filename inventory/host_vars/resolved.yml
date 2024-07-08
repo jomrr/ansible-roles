@@ -19,9 +19,6 @@ meta_platforms:
 read_description: |
   This role installs and configures systemd-resolved on the targeted host(s).
 
-reqs_collections:
-  - community.general
-
 mole_playbooks:
   - name: resources/playbooks/verify.yml
     content: |-

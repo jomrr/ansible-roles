@@ -1,5 +1,5 @@
 ---
-# name: {{ meta_role_name }}
+# name: localhost
 # file: .pre-commit-config.yaml
 
 repos:
