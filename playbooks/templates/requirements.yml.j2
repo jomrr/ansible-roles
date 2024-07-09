@@ -14,7 +14,7 @@ collections: []
 {% if reqs_roles | default([]) | length > 0 %}
 roles:
 {% for role in reqs_roles %}
-  - {{ role }}
+  - {{ role }} 
 {% endfor %}
 {% else %}
 roles: []

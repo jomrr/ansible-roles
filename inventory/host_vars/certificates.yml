@@ -16,12 +16,6 @@ meta_galaxy_tags:
 
 meta_year_created: '2024'
 
-# default requirements
-reqs_collections: []
-reqs_packages: []
-reqs_pip: []
-reqs_roles: []
-
 # default readme settings
 read_description: |
   This role deploys CA certificates from a remote or web server to configured

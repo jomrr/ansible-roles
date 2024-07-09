@@ -21,22 +21,25 @@
             dest: "{{ ansible_host }}/meta/requirements.yml"
             mode: "0644"
             validate: "ansible-lint %s"
+
     - name: "Generate requirements.yml"
       ansible.builtin.template:
-        src: "meta/requirements.yml.j2"
-        dest: "{{ ansible_host }}/meta/requirements.yml"
+        src: "requirements.yml.j2"
+        dest: "{{ ansible_host }}/requirements.yml"
         mode: "0644"
         validate: "ansible-lint %s"
       when: reqs_collections | length > 0
         or reqs_roles | length > 0
+
     - name: "Remove meta/requirements.yml when no role dependencies"
       ansible.builtin.file:
         path: "{{ ansible_host }}/meta/requirements.yml"
         state: absent
-      when: reqs_roles | length = 0
+      when: reqs_roles | length == 0
+
     - name: "Remove requirements.yml when no dependencies"
       ansible.builtin.file:
         path: "{{ ansible_host }}/requirements.yml"
         state: absent
-      when: reqs_collections | length = 0
-        and reqs_roles | length = 0
+      when: reqs_collections | length == 0
+        and reqs_roles | length == 0
