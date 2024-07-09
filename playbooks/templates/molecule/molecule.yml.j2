@@ -1,5 +1,5 @@
 ---
-# name: {{ meta_namespace | default('jomrr') }}.{{ meta_repo_name }}
+# role: {{ meta_namespace | default('jomrr') }}.{{ meta_repo_name }}
 # file: molecule/{{ item.scenario.name | default('default') }}/molecule.yml
 
 {{ item | jomrr.dev.to_lintable_yaml(indent=2) }}

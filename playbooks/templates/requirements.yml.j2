@@ -1,0 +1,21 @@
+---
+# role: {{ meta_namespace | default('jomrr') }}.{{ meta_role_name | default('inventory_hostname') }}
+# file: meta/requirements.yml
+
+{% if reqs_collections | default([]) | length > 0 %}
+collections:
+{% for collection in reqs_collections %}
+  - {{ collection }}
+{% endfor %}
+{% else %}
+collections: []
+{% endif %}
+
+{% if reqs_roles | default([]) | length > 0 %}
+roles:
+{% for role in reqs_roles %}
+  - {{ role }}
+{% endfor %}
+{% else %}
+roles: []
+{% endif %}

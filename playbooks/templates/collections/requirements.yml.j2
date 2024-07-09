@@ -1,7 +1,0 @@
----
-# name: {{ meta_namespace | default('jomrr') }}.{{ meta_role_name | default('inventory_hostname') }}
-# file: collections/requirements.yml
-
-{% for collection in reqs_collections %}
-- {{ collection }}
-{% endfor %}

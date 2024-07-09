@@ -185,7 +185,5 @@ remove:
   - .yamllint.yml
   - Makefile
   - requirements.txt
-  - requirements.yml
   - tasks.yml
   - tox.ini
-  - meta/requirements.yml
