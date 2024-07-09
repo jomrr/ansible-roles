@@ -104,7 +104,7 @@ $(foreach repo,$(REPOS),$(repo)/pre-commit-run): %/pre-commit-run:
 
 # merge dev to main for single role
 $(foreach repo,$(REPOS),$(repo)/prepare-release): %/prepare-release:
-	@cd $(ROLEDIR)/$* && git push origin dev && git checkout main && git merge dev && git push origin main && git checkout dev
+	@cd $(ROLEDIR)/$* && git push -u origin dev && git checkout main && git merge dev && git push -u origin main && git checkout dev
 
 new: CFG=inventory/host_vars/$(ROLE).yml
 new: REPO=ansible-role-$(ROLE)
@@ -198,10 +198,10 @@ me-commit:
 
 # prepare a release and merge dev to main
 me-prepare-release:
-	@git push origin dev
+	@git push -u origin dev
 	@git checkout main
 	@git merge dev
-	@git push origin main
+	@git push -u origin main
 	@git checkout dev
 
 # bump the version number and update the changelog
@@ -215,5 +215,5 @@ me-version:
 me-publish:
 	@git checkout main
 	@semantic-release publish
-	@git push origin main --tags
+	@git push -u origin main --tags
 	@git checkout dev
