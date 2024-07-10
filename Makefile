@@ -119,11 +119,11 @@ new:
 	@echo "meta_year_created: $(shell date +%Y)" >> $(CFG)
 	@gh repo create $(REPO) --description "$(DESC)" --public
 	@gh repo clone $(REPO) $(ROLEDIR)/$(REPO)
-	@cd $(ROLEDIR)/$(REPO) && echo "# $(REPO)" > README.md && git add README.md && codegpt commit && git push origin main
+	@cd $(ROLEDIR)/$(REPO) && echo "# $(REPO)" > README.md && git add README.md && codegpt commit && git push -u origin main
 	@cd $(ROLEDIR)/$(REPO) && git checkout -b dev
 	@$(ANSIBLE_PLAYBOOK) $(PLAYDIR)/all.yml --limit=$(ROLE)
-	@cd $(ROLEDIR)/$(REPO) && git add . && codegpt commit && git push origin dev
-	@cd $(ROLEDIR)/$(REPO) && git checkout -b main && git merge dev && git push origin main
+	@cd $(ROLEDIR)/$(REPO) && git add . && codegpt commit && git push -u origin dev
+	@cd $(ROLEDIR)/$(REPO) && git checkout main && git merge dev && git push -u origin main
 	@cd $(ROLEDIR)/$(REPO) && git checkout dev
 	@echo "Created new role $(ROLE) with $(CFG)"
 
@@ -179,7 +179,7 @@ prepare-release:
 		cd $(ROLEDIR)/$$repo && \
 		git checkout main && \
 		git merge dev && \
-		git push origin main && \
+		git push -u origin main && \
 		git checkout dev; \
 	done
 
