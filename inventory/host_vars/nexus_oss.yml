@@ -1,0 +1,6 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/nexus_oss.yml
+
+meta_description: 'Ansible role to set up Sonatype Nexus Repository OSS.'
+meta_year_created: 2024
