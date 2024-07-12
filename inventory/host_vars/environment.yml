@@ -1,0 +1,6 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/environment.yml
+
+meta_description: 'Ansible role for setting up /etc/environment(.d).'
+meta_year_created: 2024
