@@ -1,0 +1,15 @@
+---
+# name: ansible-roles
+# file: playbooks/molecule.yml
+
+- name: "PLAYBOOK | Molecule"
+  hosts: "{{ target | default('all') }}"
+  gather_facts: false
+  tasks:
+    - name: "Include tasks for new role"
+      ansible.builtin.include_tasks: "tasks/new.yml"
+      loop:
+        - defaults/main.yml
+        - handlers/main.yml
+        - tasks/main.yml
+        - vars/main.yml

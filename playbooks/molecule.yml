@@ -4,7 +4,6 @@
 
 - name: "PLAYBOOK | Molecule"
   hosts: "{{ target | default('all') }}"
-  become: false
   gather_facts: false
   tasks:
     - name: "Ensure molecule scenario directories exist"

@@ -4,7 +4,6 @@
 
 - name: "PLAYBOOK | Contributing"
   hosts: "{{ target | default('all') }}"
-  become: false
   gather_facts: false
   tasks:
     - name: "Generate CONTRIBUTING.md"

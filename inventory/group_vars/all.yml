@@ -174,15 +174,3 @@ mole_playbooks:
             ansible.builtin.assert:
               that: "true"
               fail_msg: "This should never fail"
-
-# default list of paths to remove from relative role path
-remove:
-  - .ansible-lint.yml
-  - .github
-  - .travis.yml
-  - .travis.build.yml
-  - .yamllint.yml
-  - Makefile
-  - requirements.txt
-  - tasks.yml
-  - tox.ini

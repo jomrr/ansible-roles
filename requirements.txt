@@ -1,6 +1,10 @@
-ansible>=2.15.0
-ansible-lint>=24.2.0
-commitizen>=3.15.0
-jmespath>=1.0.0
-pre-commit>=3.6.0
-python-semantic-release>=9.0.0
+ansible
+ansible-lint
+commitizen
+jmespath
+keyring
+molecule
+molecule-plugins[podman]
+molecule-plugins[vagrant]
+pre-commit
+python-semantic-release

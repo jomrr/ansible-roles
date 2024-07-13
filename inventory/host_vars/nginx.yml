@@ -1,0 +1,13 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/nginx.yml
+
+meta_description: 'Ansible role to set up NGINX.'
+
+meta_galaxy_tags:
+  - nginx
+  - loadbalancer
+  - proxy
+  - webserver
+
+meta_year_created: 2024

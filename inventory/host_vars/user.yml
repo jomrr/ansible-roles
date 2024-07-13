@@ -1,0 +1,6 @@
+---
+# name: ansible-roles
+# file: inventory/host_vars/user.yml
+
+meta_description: 'Ansible role for managing local user accounts.'
+meta_year_created: 2024

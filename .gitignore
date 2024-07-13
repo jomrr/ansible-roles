@@ -1,11 +1,8 @@
-# Release artifacts ------------------------------------------------------------
 dist/
-# Dependencies -----------------------------------------------------------------
+cache/
 collections/*
-!collections/requirements.yml
-# IDE files and directories ----------------------------------------------------
+!.gitkeep
 .idea/
 .vscode/
-# Python files and directories -------------------------------------------------
 .venv/
 __pycache__/

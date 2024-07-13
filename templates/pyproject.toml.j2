@@ -1,6 +1,6 @@
 [project]
 name = "{{ meta_role_name }}"
-version = "{{ meta_release_version | default('0.0.0') }}"
+version = "{{ lookup('jomrr.dev.github_version', lookup('ansible.builtin.env', 'GH_TOKEN'), meta_namespace, meta_repo_name) | default('0.0.0') }}"
 description = "{{ meta_description }}"
 authors = ["{{ meta_author }}"]
 license = "{{ meta_license }}"

@@ -4,7 +4,6 @@
 
 - name: "PLAYBOOK | License"
   hosts: "{{ target | default('all') }}"
-  become: false
   gather_facts: false
   tasks:
     - name: "Generate LICENSE file"

@@ -4,7 +4,6 @@
 
 - name: "PLAYBOOK | Meta"
   hosts: "{{ target | default('all') }}"
-  become: false
   gather_facts: false
   tasks:
     - name: "Ensure that path exists"
