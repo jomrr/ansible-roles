@@ -31,6 +31,11 @@ CACHE_DIR			:= cache
 CACHE_GH_COLLECTIONS:= $(CACHE_DIR)/collections.github
 CACHE_GH_ROLES		:= $(CACHE_DIR)/roles.github
 
+# --- Ansible variables --------------------------------------------------------
+ANSIBLE 			:= ansible
+ANSIBLE_I			:= $(ANSIBLE) -i inventory/roles.yml
+AM_TEMPLATE			:= $(ANSIBLE_I) -m template
+
 # --- Makefile variables -------------------------------------------------------
 DIR_CWD				:= $(shell pwd)
 CFG_DEFAULT			:= $(DIR_CWD)/inventory/group_vars/all.yml
@@ -49,6 +54,10 @@ REMOVE 				:= .ansible-lint.yml .github .yamllint.yml requirements.txt
 REMOVE				+= CONTRIBUTING.md
 
 .DEFAULT_GOAL		:= help
+
+define cname
+	$(notdir $(patsubst %/,%,$(dir $1)))
+endef
 
 .PRECIOUS: \
 	$(DIR_LIST_COLLECTIONS) \
@@ -234,26 +243,28 @@ collections/update: $(GIT_DIR_COLLECTIONS) | $(CACHE_GH_COLLECTIONS)
 roles/update: $(GIT_DIR_ROLES) | $(CACHE_GH_ROLES)
 
 ################################################################################
-# checkout dev
+# meta
 ################################################################################
 
-# checkout dev branch for all collections
-.PHONY: collections/dev
-collections/dev: | $(CACHE_GH_COLLECTIONS)
-	@xargs -P $(XARGS_P) -a $(CACHE_GH_COLLECTIONS) -I{} bash -c \
-		"echo "######## CHECKOUT DEV FOR {}"; cd $(DIR_COLLECTIONS)/{} \
-		&& git checkout dev"
+META_DIR_ROLES := $(foreach d,$(DIR_LIST_ROLES),$(d)/meta)
+T_MMAIN  := src=templates/meta/main.yml.j2 dest
+T_MREQS  := src=templates/meta/requirements.yml.j2 dest
 
+$(META_DIR_ROLES):
+	@mkdir -p $@
+	@$(AM_TEMPLATE) -a "$(T_MMAIN)=$@/main.yml" $(call cname,$@)
+	@$(AM_TEMPLATE) -a "$(T_MREQS)=$@/requirements.yml" $(call cname,$@)
 ################################################################################
 # pyproject.toml
 ################################################################################
 
 # absolute paths for all pyproject.toml files
 PYPROJECT_PATHS := $(foreach d,$(DIR_LIST_ROLES),$(d)/pyproject.toml)
+T_PYPROJ  := src=templates/pyproject.toml.j2 dest
 
 # create all missing pyproject.toml or use make -B (--always-make) to update all
 $(PYPROJECT_PATHS):
-	@ansible -i inventory/roles.yml -m template -a "src=templates/pyproject.toml.j2 dest=$@" $(notdir $(patsubst %/,%,$(dir $@)))
+	@$(ANSIBLE_M_TEMPLATE) -a "$(T_PYPROJ)=$@" $(call cname,$@)
 
 .PHONY: pyproject
 pyproject: $(PYPROJECT_PATHS)
@@ -267,7 +278,7 @@ REQUIREMENTS_YML := $(foreach d,$(DIR_LIST_ROLES),$(d)/requirements.yml)
 
 # create all missing requirements.yml or use make -B (--always-make) to update all
 $(REQUIREMENTS_YML):
-	@ansible -i inventory/roles.yml -m template -a "src=templates/requirements.yml.j2 dest=$@" $(notdir $(patsubst %/,%,$(dir $@)))
+	@$(ANSIBLE_M_TEMPLATE) -a "src=templates/requirements.yml.j2 dest=$@" $(notdir $(patsubst %/,%,$(dir $@)))
 
 requirements: $(REQUIREMENTS_YML)
 
