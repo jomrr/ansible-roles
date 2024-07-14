@@ -128,33 +128,29 @@ mole_playbooks:
         become: true
         gather_facts: true
         tasks:
-          - name: "Update apk cache and installed packages"
+          - name: "Update apk cache"
             community.general.apk:
-              available: true
               update_cache: true
-              upgrade: true
             when: ansible_pkg_mgr == "apk"
-          - name: "Update apt cache and installed packages"  # noqa: package-latest
+
+          - name: "Update apt cache"
             ansible.builtin.apt:
-              force_apt_get: true
-              state: latest
               update_cache: true
             when: ansible_pkg_mgr == "apt"
-          - name: "Update dnf cache and installed packages"  # noqa: package-latest
+
+          - name: "Update dnf cache"
             ansible.builtin.dnf:
-              name: "*"
-              state: latest
               update_cache: true
             when: ansible_pkg_mgr == "dnf"
-          - name: "Update pacman cache and installed packages"
+
+          - name: "Update pacman cache"
             community.general.pacman:
               update_cache: true
-              upgrade: true
             when: ansible_pkg_mgr == "pacman"
-          - name: "Update zypper cache and installed packages"  # noqa: package-latest
+
+          - name: "Update zypper cache"
             community.general.zypper:
-              name: "*"
-              state: latest
+              name: sudo
               update_cache: true
             when: ansible_pkg_mgr == "zypper"
   - name: resources/playbooks/converge.yml
