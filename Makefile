@@ -249,8 +249,14 @@ roles/update: $(GIT_DIR_ROLES) | $(CACHE_GH_ROLES)
 # LICENSE
 ################################################################################
 
-LICENSE_DIR_ROLES := $(addsuffix /LICENSE,$(DIR_LIST_ROLES))
+LICENSE_PATHS := $(addsuffix /LICENSE,$(DIR_LIST_ROLES))
 
+$(LICENSE_PATHS):
+	@$(AM_TEMPLATE) -a "src=templates/LICENSE.j2 dest=$@" \
+		$(call cname,$(DIR_ROLES)/,$@)
+
+.PHONY: LICENSE
+LICENSE: $(LICENSE_PATHS)
 
 ################################################################################
 # meta
@@ -319,6 +325,19 @@ $(PYPROJECT_PATHS):
 
 .PHONY: pyproject
 pyproject: $(PYPROJECT_PATHS)
+
+################################################################################
+# README.md
+################################################################################
+
+README_PATHS := $(addsuffix /README.md,$(DIR_LIST_ROLES))
+
+$(README_PATHS):
+	@$(AM_TEMPLATE) -a "src=templates/README.md.j2 dest=$@" \
+		$(call cname,$(DIR_ROLES)/,$@)
+
+.PHONY: README
+README: $(README_PATHS)
 
 ################################################################################
 # requirements.yml
