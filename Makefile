@@ -58,6 +58,14 @@ REMOVE				+= CONTRIBUTING.md .git/hooks/*
 
 .DEFAULT_GOAL		:= help
 
+MSG ?=
+
+ifdef MSG
+COMMIT_CMD			:= git commit -m "$(MSG)"
+else
+COMMIT_CND			:= codegpt commit
+endif
+
 # --- Functions ----------------------------------------------------------------
 
 # cname, get the role or collection name from a path
@@ -273,14 +281,15 @@ checkout/dev: $(DEV_BRANCHES)
 # commit
 ################################################################################
 
-COMMIT_PATHS := $(addsuffix /commit,$(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES))
+COMMIT_PATHS := $(addsuffix /commit,$(DIR_LIST_ROLES))
 
 .PHONY: $(COMMIT_PATHS)
-$(COMMIT_PATHS):
-	@cd $(dir $@) && \
+$(COMMIT_PATHS): %/commit:
+	@cd $* && \
 		git pull && \
 		git add . && \
-		codegpt commit && \
+		$(COMMIT_CMD) || true && \
+		git pull && \
 		git push -qu origin dev
 
 # commit all collections and roles
@@ -467,7 +476,7 @@ PC_RUN := $(addsuffix /pre-commit-run,$(DIR_LIST_ROLES))
 
 # pre-commit run targets for all roles
 .PHONY: $(PC_RUN)
-$(PC_RUN): %/pre-commit-run: %/pre-commit-install %/pre-commit-autoupdate
+$(PC_RUN): %/pre-commit-run: %/pre-commit-autoupdate
 	@cd $(dir $@) && \
 	pre-commit run --all-files --hook-stage manual
 
@@ -576,7 +585,7 @@ me-pc-run:
 # commit changes to dev branch and push to origin
 me-commit:
 	@git add .
-	@codegpt commit
+	@$(COMMIT_CMD)
 	@git push origin dev
 
 # prepare a release and merge dev to main
