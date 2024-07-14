@@ -1,0 +1,60 @@
+---
+# role: jomrr.{{ meta_role_name }}
+# file: {{ ansible_host }}.yml
+
+# default meta data
+meta_author: Jonas Mauer
+meta_allow_duplicates: false
+meta_company: none
+meta_description: 'Ansible role for setting up {{ meta_role_name }}.'
+meta_galaxy_tags: []
+meta_issue_tracker_url: "{{ meta_repo_url }}/issues"
+meta_license: MIT
+meta_min_ansible_version: "2.17"
+meta_namespace: jomrr
+meta_role_name: "{{ inventory_hostname }}"
+meta_repo_name: "ansible-role-{{ meta_role_name }}"
+meta_repo_url: "https://github.com/{{ meta_namespace }}/{{ meta_repo_name }}"
+meta_year_created: "{{ ansible_date_time.year }}"
+
+# default platforms
+meta_platforms:
+  - { distribution: AlmaLinux, os_family: RedHat, tags: ['latest'] }
+  - { distribution: Alpine, os_family: Alpine, tags: ['latest'] }
+  - { distribution: Archlinux, os_family: Archlinux, tags: ['latest'] }
+  - { distribution: Debian, os_family: Debian, tags: ['oldstable', 'stable', 'testing'] }
+  - { distribution: Fedora, os_family: RedHat, tags: ['latest', 'rawhide'] }
+  - { distribution: OpenSuse Leap, os_family: Suse, tags: ['15'] }
+  - { distribution: Ubuntu, os_family: Debian, tags: ['latest'] }
+
+# default requirements
+reqs_collections: []
+reqs_packages: []
+reqs_pip: []
+reqs_roles: []
+
+# default readme settings
+read_description: |-
+  This Ansible role installs and configures {{ meta_role_name }} on supported platforms.
+
+# role default variables from meta/argument_specs.yml
+read_variables: []
+
+# Example playbooks
+read_examples:
+  - name: Simple example playbook
+    description: |-
+      A simple default example playbook for using {{ meta_namespace }}.{{ meta_role_name }}.
+    code: |-
+      ---
+      # name: "{{ meta_namespace }}.{{ meta_role_name }}"
+      # file: "playbook_{{ meta_role_name }}.yml"
+
+      - name: "PLAYBOOK | {{ meta_role_name }}"
+        hosts: "{{ meta_role_name }}_hosts"
+        gather_facts: true
+        roles:
+          - role: "{{ meta_namespace }}.{{ meta_role_name }}"
+
+# references as single line in markdown
+read_references: []

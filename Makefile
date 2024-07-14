@@ -586,6 +586,27 @@ $(ALL_TARGETS): %/all: \
 .PHONY: all
 all: $(ALL_TARGETS)
 
+################################################################################
+# inventory
+################################################################################
+
+# create inventory/host_vars/{{ role_name }}.yml
+HV_PATHS := $(addsuffix /host_vars,$(DIR_LIST_ROLES))
+
+HV_SRC := src=$(ANSIBLE_TPL_DIR)/host_vars.yml.j2 dest
+
+HV_TARGETS := $(addprefix inventory/host_vars/,$(ROLES))
+HV_TARGETS := $(addsuffix .yml,$(HV_TARGETS))
+
+$(HV_TARGETS): inventory/host_vars/%.yml:
+	@$(AM_TEMPLATE) -a "$(HV_SRC)=$@" $*
+
+.PHONY: $(HV_PATHS)
+$(HV_PATHS): $(DIR_ROLES)/%/host_vars: inventory/host_vars/%.yml
+
+.PHONY: host_vars
+host_vars: $(HV_PATHS)
+
 # --- admin targets ------------------------------------------------------------
 
 .PHONY: me-pc-install me-pc-autoupdate me-pc-run \

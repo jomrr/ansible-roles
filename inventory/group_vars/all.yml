@@ -33,8 +33,7 @@ meta_repo_url: "https://github.com/{{ meta_namespace }}/{{ meta_repo_name }}"
 meta_year_created: "{{ ansible_date_time.year }}"
 
 # default requirements
-reqs_collections:
-  - name: community.general
+reqs_collections: []
 reqs_packages: []
 reqs_pip: []
 reqs_roles: []
