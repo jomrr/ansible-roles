@@ -34,6 +34,8 @@ CACHE_GH_ROLES		:= $(CACHE_DIR)/roles.github
 # --- Ansible variables --------------------------------------------------------
 ANSIBLE 			:= ansible
 ANSIBLE_I			:= $(ANSIBLE) -i inventory/roles.yml
+ANSIBLE_PLAYBOOK	:= ansible-playbook -i inventory/roles.yml
+ANSIBLE_TPL_DIR		:= playbooks/templates
 AM_TEMPLATE			:= $(ANSIBLE_I) -m template
 
 # --- Makefile variables -------------------------------------------------------
@@ -55,6 +57,9 @@ REMOVE				+= CONTRIBUTING.md
 
 .DEFAULT_GOAL		:= help
 
+# --- Functions ----------------------------------------------------------------
+
+# cname, get the role or collection name from a path
 define cname
 	$(firstword $(subst /, ,$(subst $1,,$2)))
 endef
@@ -64,13 +69,13 @@ endef
 	$(DIR_LIST_ROLES) \
 	$(GIT_DIR_COLLECTIONS) \
 	$(GIT_DIR_ROLES) \
-	$(META_DIR_ROLES) \
-	$(MMAIN_DIR_ROLES) \
-	$(MREQS_DIR_ROLES) \
+	$(META_PATHS) \
+	$(MMAIN_PATHS) \
+	$(MREQS_PATHS) \
 	$(PYPROJECT_PATHS) \
 	$(REQ_GALAXY) \
 	$(REQ_PYTHON) \
-	$(REQUIREMENTS_YML) \
+	$(REQUIREMENTS_PATHS) \
 	$(VENV)
 
 # --- Internal targets ---------------------------------------------------------
@@ -251,9 +256,10 @@ roles/update: $(GIT_DIR_ROLES) | $(CACHE_GH_ROLES)
 
 LICENSE_PATHS := $(addsuffix /LICENSE,$(DIR_LIST_ROLES))
 
+T_LICENSE := src=$(ANSIBLE_TPL_DIR)/LICENSE.j2 dest
+
 $(LICENSE_PATHS):
-	@$(AM_TEMPLATE) -a "src=templates/LICENSE.j2 dest=$@" \
-		$(call cname,$(DIR_ROLES)/,$@)
+	@$(AM_TEMPLATE) -a "$(T_LICENSE)=$@" $(call cname,$(DIR_ROLES)/,$@)
 
 .PHONY: LICENSE
 LICENSE: $(LICENSE_PATHS)
@@ -263,38 +269,54 @@ LICENSE: $(LICENSE_PATHS)
 ################################################################################
 
 # e.g. $HOME/src/ansible/roles/test/meta
-META_DIR_ROLES := $(addsuffix /meta,$(DIR_LIST_ROLES))
+META_PATHS := $(addsuffix /meta,$(DIR_LIST_ROLES))
 # e.g. $HOME/src/ansible/roles/test/meta/main.yml
-MMAIN_DIR_ROLES := $(addsuffix /main.yml,$(META_DIR_ROLES))
+MMAIN_PATHS := $(addsuffix /main.yml,$(META_PATHS))
 # e.g. $HOME/src/ansible/roles/test/meta/requirements.yml
-MREQS_DIR_ROLES := $(addsuffix /requirements.yml,$(META_DIR_ROLES))
+MREQS_PATHS := $(addsuffix /requirements.yml,$(META_PATHS))
 
-T_MMAIN  := src=templates/meta/main.yml.j2 dest
-T_MREQS  := src=templates/meta/requirements.yml.j2 dest
+T_MMAIN  := src=$(ANSIBLE_TPL_DIR)/meta/main.yml.j2 dest
+T_MREQS  := src=$(ANSIBLE_TPL_DIR)/meta/requirements.yml.j2 dest
 
 # meta dir target for all roles
-$(META_DIR_ROLES):
+$(META_PATHS):
 	@mkdir -p $@
 
 # general meta target for all roles
 .PHONY: meta
-meta: $(META_DIR_ROLES)
+meta: $(META_PATHS)
 
 # meta/main.yml for all roles
-$(MMAIN_DIR_ROLES): | $(META_DIR_ROLES)
+$(MMAIN_PATHS): | $(META_PATHS)
 	@$(AM_TEMPLATE) -a "$(T_MMAIN)=$@" $(call cname,$(DIR_ROLES)/,$@)
 
 # meta/requirements.yml for all roles
-$(MREQS_DIR_ROLES): | $(META_DIR_ROLES)
+$(MREQS_PATHS): | $(META_PATHS)
 	@$(AM_TEMPLATE) -a "$(T_MREQS)=$@" $(call cname,$(DIR_ROLES)/,$@)
 
 # create all missing meta/main.yml or use make -B (--always-make) to update all
 .PHONY: meta/main.yml
-meta/main.yml: $(MMAIN_DIR_ROLES)
+meta/main.yml: $(MMAIN_PATHS)
 
 # create all missing meta/requirements.yml or use make -B to update all
 .PHONY: meta/requirements.yml
-meta/requirements.yml: $(MREQS_DIR_ROLES)
+meta/requirements.yml: $(MREQS_PATHS)
+
+################################################################################
+# molecule
+################################################################################
+
+# e.g. $HOME/src/ansible/roles/test/molecule
+MOLECULE_PATHS := $(addsuffix /molecule,$(DIR_LIST_ROLES))
+
+MOLECULE_PLAY := playbooks/molecule.yml
+
+# molecule target for all roles
+$(MOLECULE_PATHS):
+	@$(ANSIBLE_PLAYBOOK) $(MOLECULE_PLAY) --limit $(call cname,$(DIR_ROLES)/,$@)
+
+.PHONY: molecule
+molecule: $(MOLECULE_PATHS)
 
 ################################################################################
 # pre-commit-config.yaml
@@ -302,10 +324,10 @@ meta/requirements.yml: $(MREQS_DIR_ROLES)
 
 PRECOMMIT_PATHS := $(addsuffix /pre-commit-config.yaml,$(DIR_LIST_ROLES))
 
+T_PRECOMMIT := src=$(ANSIBLE_TPL_DIR)/pre-commit-config.yaml.j2 dest
 
 $(PRECOMMIT_PATHS):
-	@$(AM_TEMPLATE) -a "src=templates/pre-commit-config.yaml.j2 dest=$@" \
-		$(call cname,$(DIR_ROLES)/,$@)
+	@$(AM_TEMPLATE) -a "$(T_PRECOMMIT)=$@" $(call cname,$(DIR_ROLES)/,$@)
 
 # create all missing pre-commit-config.yaml or use make -B to update all
 .PHONY: pre-commit-config
@@ -317,7 +339,8 @@ pre-commit-config: $(PRECOMMIT_PATHS)
 
 # absolute paths for all pyproject.toml files
 PYPROJECT_PATHS := $(addsuffix /pyproject.toml,$(DIR_LIST_ROLES))
-T_PYPROJ  := src=templates/pyproject.toml.j2 dest
+
+T_PYPROJ  := src=$(ANSIBLE_TPL_DIR)/pyproject.toml.j2 dest
 
 # create all missing pyproject.toml or use make -B (--always-make) to update all
 $(PYPROJECT_PATHS):
@@ -332,9 +355,10 @@ pyproject: $(PYPROJECT_PATHS)
 
 README_PATHS := $(addsuffix /README.md,$(DIR_LIST_ROLES))
 
+T_README  := src=$(ANSIBLE_TPL_DIR)/README.md.j2 dest
+
 $(README_PATHS):
-	@$(AM_TEMPLATE) -a "src=templates/README.md.j2 dest=$@" \
-		$(call cname,$(DIR_ROLES)/,$@)
+	@$(AM_TEMPLATE) -a "$(T_README) dest=$@" $(call cname,$(DIR_ROLES)/,$@)
 
 .PHONY: README
 README: $(README_PATHS)
@@ -344,14 +368,15 @@ README: $(README_PATHS)
 ################################################################################
 
 # absolute paths for all $REPO/requirements.yml files
-REQUIREMENTS_YML := $(foreach d,$(DIR_LIST_ROLES),$(d)/requirements.yml)
+REQUIREMENTS_PATHS := $(foreach d,$(DIR_LIST_ROLES),$(d)/requirements.yml)
 
-$(REQUIREMENTS_YML):
-	@$(AM_TEMPLATE) -a "src=templates/requirements.yml.j2 dest=$@" \
-		$(notdir $(patsubst %/,%,$(dir $@)))
+T_REQS := src=$(ANSIBLE_TPL_DIR)/requirements.yml.j2 dest
+
+$(REQUIREMENTS_PATHS):
+	@$(AM_TEMPLATE) -a "$(T_REQS)=$@" $(notdir $(patsubst %/,%,$(dir $@)))
 
 # create missing requirements.yml or use make -B (--always-make) to update all
-requirements: $(REQUIREMENTS_YML)
+requirements: $(REQUIREMENTS_PATHS)
 
 ################################################################################
 # remove
