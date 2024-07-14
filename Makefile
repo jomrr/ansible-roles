@@ -288,6 +288,28 @@ $(COMMIT_PATHS):
 commit: $(COMMIT_PATHS)
 
 ################################################################################
+# push
+################################################################################
+
+PUSH_COLLECTIONS_PATHS := $(addsuffix /push,$(DIR_LIST_COLLECTIONS))
+
+# push all collection repositories
+.PHONY: $(PUSH_COLLECTIONS_PATHS)
+$(PUSH_COLLECTIONS_PATHS):
+	@cd $(dir $@) && git push -u origin dev
+
+PUSH_ROLES_PATHS := $(addsuffix /push,$(DIR_LIST_ROLES))
+
+# push all roles repositories
+.PHONY: $(PUSH_ROLES_PATHS)
+$(PUSH_ROLES_PATHS):
+	@cd $(dir $@) && git push -u origin dev
+
+# push all collections and roles
+.PHONY: push
+push: $(PUSH_COLLECTIONS_PATHS) $(PUSH_ROLES_PATHS)
+
+################################################################################
 # pull
 ################################################################################
 
@@ -296,14 +318,14 @@ PULL_COLLECTIONS_PATHS := $(addsuffix /pull,$(DIR_LIST_COLLECTIONS))
 # pull all collection repositories
 .PHONY: $(PULL_COLLECTIONS_PATHS)
 $(PULL_COLLECTIONS_PATHS):
-	@cd $(dir $@) && git pull -q
+	@cd $(dir $@) && git pull
 
 PULL_ROLES_PATHS := $(addsuffix /pull,$(DIR_LIST_ROLES))
 
 # pull all roles repositories
 .PHONY: $(PULL_ROLES_PATHS)
 $(PULL_ROLES_PATHS):
-	@cd $(dir $@) && git pull -q
+	@cd $(dir $@) && git pull
 
 # pull all collections and roles
 .PHONY: pull
