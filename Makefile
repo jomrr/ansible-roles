@@ -403,9 +403,9 @@ molecule: $(MOLECULE_PATHS)
 # pre-commit-config.yaml
 ################################################################################
 
-PRECOMMIT_PATHS := $(addsuffix /pre-commit-config.yaml,$(DIR_LIST_ROLES))
+PRECOMMIT_PATHS := $(addsuffix /.pre-commit-config.yaml,$(DIR_LIST_ROLES))
 
-T_PRECOMMIT := src=$(ANSIBLE_TPL_DIR)/pre-commit-config.yaml.j2 dest
+T_PRECOMMIT := src=$(ANSIBLE_TPL_DIR)/.pre-commit-config.yaml.j2 dest
 
 $(PRECOMMIT_PATHS):
 	@$(AM_TEMPLATE) -a "$(T_PRECOMMIT)=$@" $(call cname,$(DIR_ROLES)/,$@)
@@ -423,12 +423,12 @@ PC_PRECOMMIT := $(addsuffix /.git/hooks/pre-commit,$(DIR_LIST_ROLES))
 PC_COMMITMSG := $(addsuffix /.git/hooks/commit-msg,$(DIR_LIST_ROLES))
 
 # pre-commit .git/hooks/pre-commit target for all roles
-$(PC_PRECOMMIT):
+$(PC_PRECOMMIT): %/.git/hooks/pre-commit: %/.pre-commit-config.yaml
 	@cd $(dir $@)../.. && \
 	pre-commit install --hook-type pre-commit
 
 # pre-commit .git/hooks/commit-msg target for all roles
-$(PC_COMMITMSG):
+$(PC_COMMITMSG): %/.git/hooks/commit-msg: %/.pre-commit-config.yaml
 	@cd $(dir $@)../.. && \
 	pre-commit install --hook-type commit-msg
 
@@ -445,7 +445,7 @@ PC_RUN := $(addsuffix /pre-commit-run,$(DIR_LIST_ROLES))
 
 # pre-commit run targets for all roles
 .PHONY: $(PC_RUN)
-$(PC_RUN):
+$(PC_RUN): %/pre-commit-run: %/pre-commit-install %/pre-commit-autoupdate
 	@cd $(dir $@) && \
 	pre-commit run --all-files --hook-stage manual
 
@@ -458,7 +458,7 @@ PC_AUTOUPDATE := $(addsuffix /pre-commit-autoupdate,$(DIR_LIST_ROLES))
 
 # pre-commit autoupdate targets for all roles
 .PHONY: $(PC_AUTOUPDATE)
-$(PC_AUTOUPDATE):
+$(PC_AUTOUPDATE): %/pre-commit-autoupdate: %/.pre-commit-config.yaml
 	@cd $(dir $@) && \
 	pre-commit autoupdate
 
