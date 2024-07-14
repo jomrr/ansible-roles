@@ -208,8 +208,25 @@ NAME ?= test
 
 .PHONY: new-role
 new-role:
+	@gh repo create $(GH_RPFX)$(NAME) \
+		--description "Ansible role for setting up $(NAME)" \
+		--disable-wiki \
+		--public
 	@cd $(DIR_ROLES) && \
-		ansible-galaxy role init --role-skeleton=$(ROLE_SKELETON) $(NAME)
+		ansible-galaxy role init --role-skeleton=$(ROLE_SKELETON) $(NAME) && \
+		cd $(NAME) && \
+		git init -qb main && git add . && \
+		git remote add origin git@github.com:$(GH_USER)/$(GH_RPFX)$(NAME) && \
+		git commit -m "feat: Initial commit" && \
+		git push -qu origin main && \
+		git checkout -qb dev && \
+		git push -qu origin dev
+
+################################################################################
+# purge
+################################################################################
+purge-role:
+	@rm -rf $(DIR_ROLES)/$(NAME)
 
 ################################################################################
 # clone
@@ -242,11 +259,34 @@ $(DEV_BRANCHES): $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
 		git pull     -q && \
 		git checkout -qb $(notdir $@) || \
 		git checkout -q	 $(notdir $@) && \
+		git pull     -q && \
 		git push     -qu origin $(notdir $@)
 
 # create dev branch for all repositories
 .PHONY: checkout/dev
 checkout/dev: $(DEV_BRANCHES)
+
+################################################################################
+# pull
+################################################################################
+
+PULL_COLLECTIONS_PATHS := $(addsuffix /pull,$(DIR_LIST_COLLECTIONS))
+
+# pull all collection repositories
+.PHONY: $(PULL_COLLECTIONS_PATHS)
+$(PULL_COLLECTIONS_PATHS):
+	@cd $(dir $@) && git pull -q
+
+PULL_ROLES_PATHS := $(addsuffix /pull,$(DIR_LIST_ROLES))
+
+# pull all roles repositories
+.PHONY: $(PULL_ROLES_PATHS)
+$(PULL_ROLES_PATHS):
+	@cd $(dir $@) && git pull -q
+
+# pull all collections and roles
+.PHONY: pull
+pull: $(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS)
 
 ################################################################################
 # update
