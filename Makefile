@@ -58,7 +58,7 @@ REMOVE				+= CONTRIBUTING.md .git/hooks/*
 
 .DEFAULT_GOAL		:= help
 
-MSG ?=
+MSG 				?=
 
 ifdef MSG
 COMMIT_CMD			:= git commit -m "$(MSG)"
