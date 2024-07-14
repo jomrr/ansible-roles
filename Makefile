@@ -36,7 +36,7 @@ ANSIBLE 			:= ansible
 ANSIBLE_I			:= $(ANSIBLE) -i inventory/
 ANSIBLE_PLAYBOOK	:= ansible-playbook -i inventory/
 ANSIBLE_TPL_DIR		:= playbooks/templates
-AM_TEMPLATE			:= $(ANSIBLE_I) -m template
+AM_TEMPLATE			:= $(ANSIBLE_I) -vvv -m ansible.builtin.template
 ROLE_SKELETON		:= $(HOME)/src/ansible/skeleton-ansible-role
 
 # --- Makefile variables -------------------------------------------------------
@@ -522,7 +522,7 @@ README_PATHS := $(addsuffix /README.md,$(DIR_LIST_ROLES))
 T_README  := src=$(ANSIBLE_TPL_DIR)/README.md.j2 dest
 
 $(README_PATHS):
-	@$(AM_TEMPLATE) -a "$(T_README) dest=$@" $(call cname,$(DIR_ROLES)/,$@)
+	@$(AM_TEMPLATE) -a "$(T_README)=$@" $(call cname,$(DIR_ROLES)/,$@)
 
 .PHONY: README
 README: $(README_PATHS)
