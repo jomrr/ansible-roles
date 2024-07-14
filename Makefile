@@ -114,33 +114,33 @@ $(REQ_GALAXY):
 	@exit 1
 
 # install dnf packages
-.PHONY: --req-dnf
---req-dnf:
+.PHONY: .req-dnf
+.req-dnf:
 	@sudo dnf install -qy $(REQ_DNF)
 
 # install ansible with pipx
-.PHONY: --req-pipx-ansible
---req-pipx-ansible: --req-dnf
+.PHONY: .req-pipx-ansible
+.req-pipx-ansible: .req-dnf
 	@pipx -q install ansible
 
 # install tools to ansible virtual environment
-.PHONY: --req-pipx-inject
---req-pipx-inject: $(REQ_PYTHON) --req-pipx-ansible
+.PHONY: .req-pipx-inject
+.req-pipx-inject: $(REQ_PYTHON) .req-pipx-ansible
 	@pipx -q inject --include-deps -r $< ansible
 
 # ensure ansible and tools are in PATH
-.PHONY: --req-pipx
---req-pipx: --req-pipx-inject
+.PHONY: .req-pipx
+.req-pipx: .req-pipx-inject
 	@pipx -q ensurepath
 
 # configure gh to use ssh
 .PHONY: --config-gh
---config-gh: --req-dnf
+--config-gh: .req-dnf
 	@grep "col: ssh" $(HOME)/.config/gh/config.yml &>/dev/null || \
 		gh config set git_protocol ssh
 
 # check and create python virtual environment
-$(VENV): --req-pipx
+$(VENV): .req-pipx
 
 # create cache directory
 $(CACHE_DIR):
@@ -224,8 +224,8 @@ checkout/dev: $(DEV_BRANCHES)
 # update
 ################################################################################
 
-GIT_DIR_COLLECTIONS	:= $(foreach d,$(DIR_LIST_COLLECTIONS),$(d)/.git)
-GIT_DIR_ROLES 		:= $(foreach d,$(DIR_LIST_ROLES),$(d)/.git)
+GIT_DIR_COLLECTIONS	:= $(addsuffix /.git,$(DIR_LIST_COLLECTIONS))
+GIT_DIR_ROLES 		:= $(addsuffix /.git,$(DIR_LIST_ROLES),$(d))
 
 # targets for .git repository directories to update (pull and push)
 .PHONY: $(GIT_DIR_COLLECTIONS) $(GIT_DIR_ROLES)
@@ -243,10 +243,16 @@ collections/update: $(GIT_DIR_COLLECTIONS) | $(CACHE_GH_COLLECTIONS)
 roles/update: $(GIT_DIR_ROLES) | $(CACHE_GH_ROLES)
 
 ################################################################################
+# LICENSE
+################################################################################
+
+LICENSE_DIR_ROLES := $(addsuffix /LICENSE,$(DIR_LIST_ROLES))
+
+################################################################################
 # meta
 ################################################################################
 
-META_DIR_ROLES := $(foreach d,$(DIR_LIST_ROLES),$(d)/meta)
+META_DIR_ROLES := $(addsuffix /meta,$(DIR_LIST_ROLES))
 T_MMAIN  := src=templates/meta/main.yml.j2 dest
 T_MREQS  := src=templates/meta/requirements.yml.j2 dest
 
@@ -254,6 +260,7 @@ $(META_DIR_ROLES):
 	@mkdir -p $@
 	@$(AM_TEMPLATE) -a "$(T_MMAIN)=$@/main.yml" $(call cname,$@)
 	@$(AM_TEMPLATE) -a "$(T_MREQS)=$@/requirements.yml" $(call cname,$@)
+
 ################################################################################
 # pyproject.toml
 ################################################################################
