@@ -1,20 +1,20 @@
 ---
-# role: jomrr.{{ meta_role_name }}
-# file: inventory/host_vars/{{ meta_role_name }}.yml
+# role: jomrr.baseline
+# file: inventory/host_vars/baseline.yml
 
 # default meta data
 meta_author: Jonas Mauer
 meta_allow_duplicates: false
 meta_company: none
-meta_description: 'Ansible role for setting up {{ meta_role_name }}.'
+meta_description: 'Ansible role for setting up baseline.'
 meta_galaxy_tags: []
-meta_issue_tracker_url: "{{ meta_repo_url }}/issues"
+meta_issue_tracker_url: "https://github.com/jomrr/ansible-role-baseline/issues"
 meta_license: MIT
 meta_min_ansible_version: "2.17"
 meta_namespace: jomrr
-meta_role_name: "{{ inventory_hostname }}"
-meta_repo_name: "ansible-role-{{ meta_role_name }}"
-meta_repo_url: "https://github.com/{{ meta_namespace }}/{{ meta_repo_name }}"
+meta_role_name: "baseline"
+meta_repo_name: "ansible-role-baseline"
+meta_repo_url: "https://github.com/jomrr/ansible-role-baseline"
 meta_year_created: "2024"
 
 # default platforms
@@ -35,7 +35,7 @@ reqs_roles: []
 
 # default readme settings
 read_description: |-
-  This Ansible role installs and configures {{ meta_role_name }} on supported platforms.
+  This Ansible role installs and configures baseline on supported platforms.
 
 # role default variables from meta/argument_specs.yml
 read_variables: []
@@ -44,17 +44,17 @@ read_variables: []
 read_examples:
   - name: Simple example playbook
     description: |-
-      A simple default example playbook for using {{ meta_namespace }}.{{ meta_role_name }}.
+      A simple default example playbook for using jomrr.baseline.
     code: |-
       ---
-      # name: "{{ meta_namespace }}.{{ meta_role_name }}"
-      # file: "playbook_{{ meta_role_name }}.yml"
+      # name: "jomrr.baseline"
+      # file: "playbook_baseline.yml"
 
-      - name: "PLAYBOOK | {{ meta_role_name }}"
-        hosts: "{{ meta_role_name }}_hosts"
+      - name: "PLAYBOOK | baseline"
+        hosts: "baseline_hosts"
         gather_facts: true
         roles:
-          - role: "{{ meta_namespace }}.{{ meta_role_name }}"
+          - role: "jomrr.baseline"
 
 # references as single line in markdown
 read_references: []

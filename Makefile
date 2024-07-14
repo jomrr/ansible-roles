@@ -590,16 +590,16 @@ all: $(ALL_TARGETS)
 # inventory
 ################################################################################
 
-# create inventory/host_vars/{{ role_name }}.yml
-HV_PATHS := $(addsuffix /host_vars,$(DIR_LIST_ROLES))
-
-HV_SRC := src=$(ANSIBLE_TPL_DIR)/host_vars.yml.j2 dest
-
 HV_TARGETS := $(addprefix inventory/host_vars/,$(ROLES))
 HV_TARGETS := $(addsuffix .yml,$(HV_TARGETS))
 
+HV_SRC := src=$(ANSIBLE_TPL_DIR)/host_vars.yml.j2 dest
+
 $(HV_TARGETS): inventory/host_vars/%.yml:
-	@$(AM_TEMPLATE) -a "$(HV_SRC)=$@" $*
+	@$(AM_TEMPLATE) -a "$(HV_SRC)=$(DIR_CWD)/$@" $*
+
+# create inventory/host_vars/{{ role_name }}.yml
+HV_PATHS := $(addsuffix /host_vars,$(DIR_LIST_ROLES))
 
 .PHONY: $(HV_PATHS)
 $(HV_PATHS): $(DIR_ROLES)/%/host_vars: inventory/host_vars/%.yml
