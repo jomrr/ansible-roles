@@ -70,7 +70,7 @@ endif
 
 # cname, get the role or collection name from a path
 define cname
-	$(firstword $(subst /, ,$(subst $1,,$2)))
+$(firstword $(subst /, ,$(subst $1,,$2)))
 endef
 
 .PRECIOUS: \
@@ -399,11 +399,11 @@ $(META_PATHS):
 meta: $(META_PATHS)
 
 # meta/main.yml for all roles
-$(MMAIN_PATHS): | $(META_PATHS)
+$(MMAIN_PATHS): %/meta/main.yml: | %/meta
 	@$(AM_TEMPLATE) -a "$(T_MMAIN)=$@" $(call cname,$(DIR_ROLES)/,$@)
 
 # meta/requirements.yml for all roles
-$(MREQS_PATHS): | $(META_PATHS)
+$(MREQS_PATHS): %/meta/requirements.yml: | %/meta
 	@$(AM_TEMPLATE) -a "$(T_MREQS)=$@" $(call cname,$(DIR_ROLES)/,$@)
 
 # create all missing meta/main.yml or use make -B (--always-make) to update all
@@ -508,7 +508,7 @@ T_PYPROJ  := src=$(ANSIBLE_TPL_DIR)/pyproject.toml.j2 dest
 
 # create all missing pyproject.toml or use make -B (--always-make) to update all
 $(PYPROJECT_PATHS):
-	@$(AM_TEMPLATE) -a "$(T_PYPROJ)=$@" $(call cname,$@)
+	@$(AM_TEMPLATE) -a "$(T_PYPROJ)=$@" $(call cname,$(DIR_ROLES)/,$@)
 
 .PHONY: pyproject
 pyproject: $(PYPROJECT_PATHS)
@@ -563,6 +563,28 @@ $(REMOVE_TARGETS): %: $(foreach d,$(REMOVE),$(addsuffix /$d,%))
 # remove all paths from REMOVE
 .PHONY: remove
 remove: $(REMOVE_TARGETS)
+
+################################################################################
+# all
+################################################################################
+
+ALL_TARGETS := $(addsuffix /all,$(DIR_LIST_ROLES))
+
+# create /all targets for all roles
+.PHONY: $(ALL_TARGETS)
+$(ALL_TARGETS): %/all: \
+	%/meta/main.yml \
+	%/meta/requirements.yml \
+	%/molecule \
+	%/LICENSE \
+	%/README.md \
+	%/.pre-commit-config.yaml \
+	%/pyproject.toml \
+	%/requirements.yml
+
+# run all targets for all roles
+.PHONY: all
+all: $(ALL_TARGETS)
 
 # --- admin targets ------------------------------------------------------------
 
