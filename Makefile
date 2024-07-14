@@ -37,6 +37,7 @@ ANSIBLE_I			:= $(ANSIBLE) -i inventory/
 ANSIBLE_PLAYBOOK	:= ansible-playbook -i inventory/
 ANSIBLE_TPL_DIR		:= playbooks/templates
 AM_TEMPLATE			:= $(ANSIBLE_I) -m template
+ROLE_SKELETON		:= $(HOME)/src/ansible/skeleton-ansible-role
 
 # --- Makefile variables -------------------------------------------------------
 DIR_CWD				:= $(shell pwd)
@@ -195,9 +196,12 @@ unpip:
 # new
 ################################################################################
 
-.PHONY: new-role new-collection
-new-role new-collection:
-	@$(ANSIBLE_PLAYBOOK) playbooks/$@.yml --limit localhost
+NAME ?= test
+
+.PHONY: new-role
+new-role:
+	@cd $(DIR_ROLES) && \
+		ansible-galaxy role init --role-skeleton=$(ROLE_SKELETON) $(NAME)
 
 ################################################################################
 # clone
