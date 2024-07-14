@@ -488,6 +488,18 @@ $(PC_AUTOUPDATE): %/pre-commit-autoupdate: %/.pre-commit-config.yaml
 .PHONY: pre-commit-autoupdate
 pre-commit-autoupdate: $(PC_AUTOUPDATE)
 
+# pre-commit git hook purge targets list for all roles
+PC_PURGE := $(addsuffix /purge-git-hooks,$(DIR_LIST_ROLES))
+
+# purge git hooks for all roles
+.PHONY: $(PC_PURGE)
+$(PC_PURGE):
+	@rm -f $(dir $@)/.git/hooks/*
+
+# purge git hooks for all roles
+.PHONY: purge-git-hooks
+pre-commit-purge: $(PC_PURGE)
+
 ################################################################################
 # pyproject.toml
 ################################################################################
