@@ -33,8 +33,8 @@ CACHE_GH_ROLES		:= $(CACHE_DIR)/roles.github
 
 # --- Ansible variables --------------------------------------------------------
 ANSIBLE 			:= ansible
-ANSIBLE_I			:= $(ANSIBLE) -i inventory/roles.yml
-ANSIBLE_PLAYBOOK	:= ansible-playbook -i inventory/roles.yml
+ANSIBLE_I			:= $(ANSIBLE) -i inventory/
+ANSIBLE_PLAYBOOK	:= ansible-playbook -i inventory/
 ANSIBLE_TPL_DIR		:= playbooks/templates
 AM_TEMPLATE			:= $(ANSIBLE_I) -m template
 
@@ -190,6 +190,14 @@ unpip:
 		cut -d'@' -f1 | cut -d'=' -f1 | xargs -P $(XARGS_P) -r pip uninstall -y
 
 # --- Development targets ------------------------------------------------------
+
+################################################################################
+# new
+################################################################################
+
+.PHONY: new-role new-collection
+new-role new-collection:
+	@$(ANSIBLE_PLAYBOOK) playbooks/$@.yml --limit localhost
 
 ################################################################################
 # clone
