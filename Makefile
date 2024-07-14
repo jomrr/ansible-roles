@@ -96,6 +96,7 @@ help:
 	@echo "  cacheclean         Empty the cache"
 	@echo "  clean              Delete the virtual environment"
 	@echo "  unpip              Remove all pip user packages"
+	@echo "  new-role           Create a new role skeleton"
 	@echo "  collections/clone  Clone all collections from github"
 	@echo "  collections/update Update all collections from github"
 	@echo "  collections/dev    Checkout dev branch for all collections"
@@ -104,6 +105,13 @@ help:
 	@echo "  pyproject          Create or update all pyproject.toml files"
 	@echo "  requirements       Create or update all requirements.yml files"
 	@echo "  remove             Remove all files defined in REMOVE"
+	@echo "  LICENSE            Create or update all LICENSE files"
+	@echo "  meta               Create or update all meta directories"
+	@echo "  meta/main.yml      Create or update all meta/main.yml files"
+	@echo "  meta/requirements.yml Generate all meta/requirements.yml files"
+	@echo "  molecule           Create molecule/ for all roles"
+	@echo "  pre-commit-config  Create or update all pre-commit-config.yaml files"
+	@echo "  README             Create or update all README.md files"
 	@echo "  me-pc-install      Install pre-commit hooks"
 	@echo "  me-pc-autoupdate   Update pre-commit hooks"
 	@echo "  me-pc-run          Run pre-commit checks"
@@ -411,7 +419,7 @@ remove: $(PATHS_TO_REMOVE)
 # --- admin targets ------------------------------------------------------------
 
 .PHONY: me-pc-install me-pc-autoupdate me-pc-run \
-	me-commit me-prepare me-version me-publish
+	me-commit me-prepare-release me-version me-publish
 
 # install pre-commit hooks
 me-pc-install:
