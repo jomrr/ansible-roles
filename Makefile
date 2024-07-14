@@ -256,42 +256,66 @@ LICENSE_DIR_ROLES := $(addsuffix /LICENSE,$(DIR_LIST_ROLES))
 # meta
 ################################################################################
 
+# e.g. $HOME/src/ansible/roles/test/meta
 META_DIR_ROLES := $(addsuffix /meta,$(DIR_LIST_ROLES))
+# e.g. $HOME/src/ansible/roles/test/meta/main.yml
 MMAIN_DIR_ROLES := $(addsuffix /main.yml,$(META_DIR_ROLES))
+# e.g. $HOME/src/ansible/roles/test/meta/requirements.yml
 MREQS_DIR_ROLES := $(addsuffix /requirements.yml,$(META_DIR_ROLES))
 
 T_MMAIN  := src=templates/meta/main.yml.j2 dest
 T_MREQS  := src=templates/meta/requirements.yml.j2 dest
 
+# meta dir target for all roles
 $(META_DIR_ROLES):
 	@mkdir -p $@
 
+# general meta target for all roles
 .PHONY: meta
 meta: $(META_DIR_ROLES)
 
+# meta/main.yml for all roles
 $(MMAIN_DIR_ROLES): | $(META_DIR_ROLES)
 	@$(AM_TEMPLATE) -a "$(T_MMAIN)=$@" $(call cname,$(DIR_ROLES)/,$@)
 
+# meta/requirements.yml for all roles
 $(MREQS_DIR_ROLES): | $(META_DIR_ROLES)
 	@$(AM_TEMPLATE) -a "$(T_MREQS)=$@" $(call cname,$(DIR_ROLES)/,$@)
 
+# create all missing meta/main.yml or use make -B (--always-make) to update all
 .PHONY: meta/main.yml
 meta/main.yml: $(MMAIN_DIR_ROLES)
 
+# create all missing meta/requirements.yml or use make -B to update all
 .PHONY: meta/requirements.yml
 meta/requirements.yml: $(MREQS_DIR_ROLES)
+
+################################################################################
+# pre-commit-config.yaml
+################################################################################
+
+PRECOMMIT_PATHS := $(addsuffix /pre-commit-config.yaml,$(DIR_LIST_ROLES))
+
+
+$(PRECOMMIT_PATHS):
+	@$(AM_TEMPLATE) -a "src=templates/pre-commit-config.yaml.j2 dest=$@" \
+		$(call cname,$(DIR_ROLES)/,$@)
+
+# create all missing pre-commit-config.yaml or use make -B to update all
+.PHONY: pre-commit-config
+pre-commit-config: $(PRECOMMIT_PATHS)
 
 ################################################################################
 # pyproject.toml
 ################################################################################
 
 # absolute paths for all pyproject.toml files
-PYPROJECT_PATHS := $(foreach d,$(DIR_LIST_ROLES),$(d)/pyproject.toml)
+PYPROJECT_PATHS := $(addsuffix /pyproject.toml,$(DIR_LIST_ROLES))
 T_PYPROJ  := src=templates/pyproject.toml.j2 dest
 
 # create all missing pyproject.toml or use make -B (--always-make) to update all
 $(PYPROJECT_PATHS):
-	@$(ANSIBLE_M_TEMPLATE) -a "$(T_PYPROJ)=$@" $(call cname,$@)
+	@$(AM_TEMPLATE) -a "$(T_PYPROJ)=$@" $(call cname,$@)
 
 .PHONY: pyproject
 pyproject: $(PYPROJECT_PATHS)
@@ -303,10 +327,11 @@ pyproject: $(PYPROJECT_PATHS)
 # absolute paths for all $REPO/requirements.yml files
 REQUIREMENTS_YML := $(foreach d,$(DIR_LIST_ROLES),$(d)/requirements.yml)
 
-# create all missing requirements.yml or use make -B (--always-make) to update all
 $(REQUIREMENTS_YML):
-	@$(ANSIBLE_M_TEMPLATE) -a "src=templates/requirements.yml.j2 dest=$@" $(notdir $(patsubst %/,%,$(dir $@)))
+	@$(AM_TEMPLATE) -a "src=templates/requirements.yml.j2 dest=$@" \
+		$(notdir $(patsubst %/,%,$(dir $@)))
 
+# create missing requirements.yml or use make -B (--always-make) to update all
 requirements: $(REQUIREMENTS_YML)
 
 ################################################################################
@@ -315,7 +340,8 @@ requirements: $(REQUIREMENTS_YML)
 
 # list of absolute paths to remove defined via REMOVE
 # e.g. $HOME/src/ansible/roles/test/.ansible-lint.yml
-PATHS_TO_REMOVE	:= $(foreach d,$(DIR_LIST_ROLES),$(foreach r,$(REMOVE),$(d)/$(r)))
+PATHS_TO_REMOVE	:= $(foreach d,$(DIR_LIST_ROLES), \
+	$(foreach r,$(REMOVE),$(d)/$(r)))
 
 # recursively remove paths defined in REMOVE
 .PHONY: $(PATHS_TO_REMOVE)
