@@ -54,7 +54,7 @@ DIR_LIST_ROLES	 	:= $(addprefix $(DIR_ROLES)/,$(ROLES))
 COMBINED_REPO_LIST	:= $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
 
 REMOVE 				:= .ansible-lint.yml .github .yamllint.yml requirements.txt
-REMOVE				+= CONTRIBUTING.md
+REMOVE				+= CONTRIBUTING.md .git/hooks/*
 
 .DEFAULT_GOAL		:= help
 
@@ -488,18 +488,6 @@ $(PC_AUTOUPDATE): %/pre-commit-autoupdate: %/.pre-commit-config.yaml
 .PHONY: pre-commit-autoupdate
 pre-commit-autoupdate: $(PC_AUTOUPDATE)
 
-# pre-commit git hook purge targets list for all roles
-PC_PURGE := $(addsuffix /purge-git-hooks,$(DIR_LIST_ROLES))
-
-# purge git hooks for all roles
-.PHONY: $(PC_PURGE)
-$(PC_PURGE):
-	@rm -f $(dir $@)/.git/hooks/*
-
-# purge git hooks for all roles
-.PHONY: purge-git-hooks
-pre-commit-purge: $(PC_PURGE)
-
 ################################################################################
 # pyproject.toml
 ################################################################################
@@ -551,17 +539,21 @@ requirements: $(REQUIREMENTS_PATHS)
 
 # list of absolute paths to remove defined via REMOVE
 # e.g. $HOME/src/ansible/roles/test/.ansible-lint.yml
-PATHS_TO_REMOVE	:= $(foreach d,$(DIR_LIST_ROLES), \
-	$(foreach r,$(REMOVE),$(d)/$(r)))
+REMOVE_TARGETS	:= $(addsuffix /remove,$(DIR_LIST_ROLES))
+
+REMOVE_FILE_LIST := $(foreach d,$(REMOVE),$(addsuffix /$d,$(REMOVE_TARGETS)))
+
+$(REMOVE_FILE_LIST):
+	@rm -rf $(subst /remove/,/,$@)
 
 # recursively remove paths defined in REMOVE
-.PHONY: $(PATHS_TO_REMOVE)
-$(PATHS_TO_REMOVE):
-	@rm -rf $@
+.PHONY: $(REMOVE_TARGETS)
+# e.g. $HOME/src/ansible/roles/test/remove/.travis.yml
+$(REMOVE_TARGETS): %: $(foreach d,$(REMOVE),$(addsuffix /$d,%))
 
 # remove all paths from REMOVE
 .PHONY: remove
-remove: $(PATHS_TO_REMOVE)
+remove: $(REMOVE_TARGETS)
 
 # --- admin targets ------------------------------------------------------------
 
