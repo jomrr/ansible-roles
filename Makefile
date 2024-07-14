@@ -110,14 +110,14 @@ help:
 	@echo "  meta/main.yml      Create or update all meta/main.yml files"
 	@echo "  meta/requirements.yml Generate all meta/requirements.yml files"
 	@echo "  molecule           Create molecule/ for all roles"
-	@echo "  pre-commit-config  Create or update all pre-commit-config.yaml files"
+	@echo "  pre-commit-config  Generate all pre-commit-config.yaml files"
 	@echo "  README             Create or update all README.md files"
 	@echo "  me-pc-install      Install pre-commit hooks"
 	@echo "  me-pc-autoupdate   Update pre-commit hooks"
 	@echo "  me-pc-run          Run pre-commit checks"
 	@echo "  me-commit          Commit changes to dev branch and push to origin"
 	@echo "  me-prepare-release Prepare a release and merge dev to main"
-	@echo "  me-version         Bump the version number and update the changelog"
+	@echo "  me-version         Bump the version number and update changelog"
 	@echo "  me-publish         Create a new git tag, build and publish release"
 
 # check for requirements.txt
@@ -233,7 +233,8 @@ purge-role:
 # clone
 ################################################################################
 
-# e.g. git clone git@github.com:jomrr/ansible-collection-test $HOME/src/ansible/collections/jomrr/test
+# e.g. git clone git@github.com:jomrr/ansible-collection-test \
+	$HOME/src/ansible/collections/jomrr/test
 $(DIR_LIST_COLLECTIONS):
 	@git clone git@github.com:$(GH_USER)/$(GH_CPFX)$(notdir $@) $@
 
@@ -241,7 +242,8 @@ $(DIR_LIST_COLLECTIONS):
 .PHONY: collections/clone
 collections/clone: $(DIR_LIST_COLLECTIONS) | $(CACHE_GH_COLLECTIONS)
 
-# e.g. git clone git@github.com:jomrr/ansible-role-test $HOME/src/ansible/roles/test
+# e.g. git clone git@github.com:jomrr/ansible-role-test \
+	$HOME/src/ansible/roles/test
 $(DIR_LIST_ROLES):
 	@git clone git@github.com:$(GH_USER)/$(GH_RPFX)$(notdir $@) $@
 
@@ -266,6 +268,24 @@ $(DEV_BRANCHES): $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
 # create dev branch for all repositories
 .PHONY: checkout/dev
 checkout/dev: $(DEV_BRANCHES)
+
+################################################################################
+# commit
+################################################################################
+
+COMMIT_PATHS := $(addsuffix /commit,$(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES))
+
+.PHONY: $(COMMIT_PATHS)
+$(COMMIT_PATHS):
+	@cd $(dir $@) && \
+		git pull && \
+		git add . && \
+		codegpt commit && \
+		git push -qu origin dev
+
+# commit all collections and roles
+.PHONY: commit
+commit: $(COMMIT_PATHS)
 
 ################################################################################
 # pull
@@ -393,6 +413,58 @@ $(PRECOMMIT_PATHS):
 # create all missing pre-commit-config.yaml or use make -B to update all
 .PHONY: pre-commit-config
 pre-commit-config: $(PRECOMMIT_PATHS)
+
+################################################################################
+# pre-commit
+################################################################################
+
+PC_INSTALL := $(addsuffix /pre-commit-install,$(DIR_LIST_ROLES))
+PC_PRECOMMIT := $(addsuffix /.git/hooks/pre-commit,$(DIR_LIST_ROLES))
+PC_COMMITMSG := $(addsuffix /.git/hooks/commit-msg,$(DIR_LIST_ROLES))
+
+# pre-commit .git/hooks/pre-commit target for all roles
+$(PC_PRECOMMIT):
+	@cd $(dir $@)../.. && \
+	pre-commit install --hook-type pre-commit
+
+# pre-commit .git/hooks/commit-msg target for all roles
+$(PC_COMMITMSG):
+	@cd $(dir $@)../.. && \
+	pre-commit install --hook-type commit-msg
+
+# pre-commit install target for all roles
+.PHONY: $(PC_INSTALL)
+$(PC_INSTALL): %/pre-commit-install: \
+	%/.git/hooks/pre-commit %/.git/hooks/commit-msg
+
+.PHONY: pre-commit-install
+pre-commit-install: $(PC_INSTALL)
+
+# pre-commit run targets list for all roles
+PC_RUN := $(addsuffix /pre-commit-run,$(DIR_LIST_ROLES))
+
+# pre-commit run targets for all roles
+.PHONY: $(PC_RUN)
+$(PC_RUN):
+	@cd $(dir $@) && \
+	pre-commit run --all-files --hook-stage manual
+
+# run pre-commit install for all roles
+.PHONY: pre-commit-run
+pre-commit-run: $(PC_RUN)
+
+# pre-commit autoupdate targets list for all roles
+PC_AUTOUPDATE := $(addsuffix /pre-commit-autoupdate,$(DIR_LIST_ROLES))
+
+# pre-commit autoupdate targets for all roles
+.PHONY: $(PC_AUTOUPDATE)
+$(PC_AUTOUPDATE):
+	@cd $(dir $@) && \
+	pre-commit autoupdate
+
+# run pre-commit autoupdate for all roles
+.PHONY: pre-commit-autoupdate
+pre-commit-autoupdate: $(PC_AUTOUPDATE)
 
 ################################################################################
 # pyproject.toml
