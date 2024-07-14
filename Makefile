@@ -56,7 +56,7 @@ REMOVE				+= CONTRIBUTING.md
 .DEFAULT_GOAL		:= help
 
 define cname
-	$(notdir $(patsubst %/,%,$(dir $1)))
+	$(firstword $(subst /, ,$(subst $1,,$2)))
 endef
 
 .PRECIOUS: \
@@ -64,6 +64,9 @@ endef
 	$(DIR_LIST_ROLES) \
 	$(GIT_DIR_COLLECTIONS) \
 	$(GIT_DIR_ROLES) \
+	$(META_DIR_ROLES) \
+	$(MMAIN_DIR_ROLES) \
+	$(MREQS_DIR_ROLES) \
 	$(PYPROJECT_PATHS) \
 	$(REQ_GALAXY) \
 	$(REQ_PYTHON) \
@@ -225,7 +228,7 @@ checkout/dev: $(DEV_BRANCHES)
 ################################################################################
 
 GIT_DIR_COLLECTIONS	:= $(addsuffix /.git,$(DIR_LIST_COLLECTIONS))
-GIT_DIR_ROLES 		:= $(addsuffix /.git,$(DIR_LIST_ROLES),$(d))
+GIT_DIR_ROLES 		:= $(addsuffix /.git,$(DIR_LIST_ROLES))
 
 # targets for .git repository directories to update (pull and push)
 .PHONY: $(GIT_DIR_COLLECTIONS) $(GIT_DIR_ROLES)
@@ -248,18 +251,35 @@ roles/update: $(GIT_DIR_ROLES) | $(CACHE_GH_ROLES)
 
 LICENSE_DIR_ROLES := $(addsuffix /LICENSE,$(DIR_LIST_ROLES))
 
+
 ################################################################################
 # meta
 ################################################################################
 
 META_DIR_ROLES := $(addsuffix /meta,$(DIR_LIST_ROLES))
+MMAIN_DIR_ROLES := $(addsuffix /main.yml,$(META_DIR_ROLES))
+MREQS_DIR_ROLES := $(addsuffix /requirements.yml,$(META_DIR_ROLES))
+
 T_MMAIN  := src=templates/meta/main.yml.j2 dest
 T_MREQS  := src=templates/meta/requirements.yml.j2 dest
 
 $(META_DIR_ROLES):
 	@mkdir -p $@
-	@$(AM_TEMPLATE) -a "$(T_MMAIN)=$@/main.yml" $(call cname,$@)
-	@$(AM_TEMPLATE) -a "$(T_MREQS)=$@/requirements.yml" $(call cname,$@)
+
+.PHONY: meta
+meta: $(META_DIR_ROLES)
+
+$(MMAIN_DIR_ROLES): | $(META_DIR_ROLES)
+	@$(AM_TEMPLATE) -a "$(T_MMAIN)=$@" $(call cname,$(DIR_ROLES)/,$@)
+
+$(MREQS_DIR_ROLES): | $(META_DIR_ROLES)
+	@$(AM_TEMPLATE) -a "$(T_MREQS)=$@" $(call cname,$(DIR_ROLES)/,$@)
+
+.PHONY: meta/main.yml
+meta/main.yml: $(MMAIN_DIR_ROLES)
+
+.PHONY: meta/requirements.yml
+meta/requirements.yml: $(MREQS_DIR_ROLES)
 
 ################################################################################
 # pyproject.toml
