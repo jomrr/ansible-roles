@@ -212,7 +212,7 @@ roles/clone: $(DIR_LIST_ROLES) | $(CACHE_GH_ROLES)
 
 DEV_BRANCHES := $(foreach d,$(COMBINED_REPO_LIST),$(d)/.git/refs/heads/dev)
 
-$(DEV_BRANCHES):
+$(DEV_BRANCHES): $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
 	@cd $(dir $@)../../.. && \
 		git pull     -q && \
 		git checkout -qb $(notdir $@) || \
