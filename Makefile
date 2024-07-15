@@ -346,18 +346,18 @@ push: $(PUSH_COLLECTIONS_PATHS) $(PUSH_ROLES_PATHS)
 ################################################################################
 
 PULL_COLLECTIONS_PATHS := $(addsuffix /pull,$(DIR_LIST_COLLECTIONS))
+PULL_ROLES_PATHS := $(addsuffix /pull,$(DIR_LIST_ROLES))
 
 # pull all collection repositories
 .PHONY: $(PULL_COLLECTIONS_PATHS)
-$(PULL_COLLECTIONS_PATHS):
-	@cd $(dir $@) && git pull
+$(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS): %/pull:
+	@cd $* && git pull
 
-PULL_ROLES_PATHS := $(addsuffix /pull,$(DIR_LIST_ROLES))
+.PHONY: collections/pull
+collections/pull: $(PULL_COLLECTIONS_PATHS)
 
-# pull all roles repositories
-.PHONY: $(PULL_ROLES_PATHS)
-$(PULL_ROLES_PATHS):
-	@cd $(dir $@) && git pull
+.PHONY: roles/pull
+roles/pull: $(PULL_ROLES_PATHS)
 
 # pull all collections and roles
 .PHONY: pull
