@@ -275,7 +275,7 @@ $(DEV_BRANCHES): %/.git/refs/heads/dev: $(DIR_LIST_ALL)
 		git branch set-upstream-to=origin/dev dev && \
 		git branch set-upstream-to=origin/main main && \
 		git pull -q && \
-		git push -qu origin $(notdir $@)
+		git push -u origin $(notdir $@)
 
 # create dev branch for all repositories
 .PHONY: checkout/dev
@@ -294,7 +294,7 @@ $(COMMIT_PATHS): %/commit:
 		git add . && \
 		$(COMMIT_CMD) || true && \
 		git pull && \
-		git push -qu origin dev
+		git push -u origin dev
 
 # commit all collections and roles
 .PHONY: commit
