@@ -12,10 +12,10 @@ galaxy_info:
   issue_tracker_url: {{ meta_issue_tracker_url | default("https://github.com/jomrr/ansible-role-" + inventory_hostname) }}
   min_ansible_version: "{{ meta_min_ansible_version | default('2.17') }}"
 {% if meta_galaxy_tags | default([]) | length > 0 %}
-galaxy_tags:
+  galaxy_tags:
 {% for tag in meta_galaxy_tags %}
     - {{ tag }}
 {% endfor %}
 {% else %}
-galaxy_tags: []
+  galaxy_tags: []
 {% endif %}
