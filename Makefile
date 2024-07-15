@@ -270,11 +270,11 @@ DEV_BRANCHES := $(foreach d,$(COMBINED_REPO_LIST),$(d)/.git/refs/heads/dev)
 $(DEV_BRANCHES): %/.git/refs/heads/dev: $(DIR_LIST_ALL)
 	@cd $* && \
 		git pull -q && \
-		git checkout -qb $(notdir $@) || \
-		git checkout -q	 $(notdir $@) && \
+		git checkout -b $(notdir $@) || \
+		git checkout $(notdir $@) && \
 		git branch set-upstream-to=origin/dev dev && \
 		git branch set-upstream-to=origin/main main && \
-		git pull -q && \
+		git pull && \
 		git push -u origin $(notdir $@)
 
 # create dev branch for all repositories
