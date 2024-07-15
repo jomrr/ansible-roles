@@ -28,7 +28,6 @@ GH_ROLES			:= $(GH_JSON) --jq '.[] | $(SELECT_ROL) |= $(SUB_ROL)'
 
 # --- Cache variables ----------------------------------------------------------
 CACHE_DIR			:= cache
-
 CACHE_GH_COLLECTIONS:= $(CACHE_DIR)/collections.github
 CACHE_GH_ROLES		:= $(CACHE_DIR)/roles.github
 
@@ -48,9 +47,6 @@ DIR_COLLECTIONS		:= $(HOME)/src/ansible/collections/$(GH_USER)
 DIR_ROLES			:= $(HOME)/src/ansible/roles
 DIR_ALL				:= $(DIR_COLLECTIONS) $(DIR_ROLES)
 
-COLLECTIONS			:= $(shell cat $(CACHE_GH_COLLECTIONS))
-ROLES				:= $(shell cat $(CACHE_GH_ROLES))
-
 DIR_LIST_COLLECTIONS:= $(addprefix $(DIR_COLLECTIONS)/,$(COLLECTIONS))
 DIR_LIST_ROLES	 	:= $(addprefix $(DIR_ROLES)/,$(ROLES))
 DIR_LIST_ALL		:= $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
@@ -60,6 +56,30 @@ REMOVE 				:= .ansible-lint.yml .github .yamllint.yml requirements.txt
 REMOVE				+= CONTRIBUTING.md .git/hooks/*
 
 .DEFAULT_GOAL		:= help
+
+ifeq ("$(wildcard $(CACHE_DIR))","")
+$(shell mkdir -p $(CACHE_DIR))
+endif
+
+ifeq ("$(wildcard $(DIR_COLLECTIONS))","")
+$(shell mkdir -p $(DIR_COLLECTIONS))
+endif
+
+ifeq ("$(wildcard $(DIR_ROLES))","")
+$(shell mkdir -p $(DIR_ROLES))
+endif
+
+ifeq ("$(wildcard $(CACHE_GH_COLLECTIONS))","")
+$(shell $(GH_COLLECTIONS) > $(CACHE_GH_COLLECTIONS))
+endif
+
+COLLECTIONS			:= $(shell cat $(CACHE_GH_COLLECTIONS))
+
+ifeq ("$(wildcard $(CACHE_GH_ROLES))","")
+$(shell $(GH_ROLES) > $(CACHE_GH_ROLES))
+endif
+
+ROLES				:= $(shell cat $(CACHE_GH_ROLES))
 
 ifdef MSG
 COMMIT_CMD			:= git commit -m "$(MSG)"
@@ -170,7 +190,7 @@ $(VENV): .req-pipx
 
 # create cache directory
 $(CACHE_DIR):
-	@mkdir -p cache
+	@mkdir -p $(CACHE_DIR)
 
 # get all collections from github
 $(CACHE_GH_COLLECTIONS): | $(CACHE_DIR)
@@ -243,23 +263,33 @@ purge-role:
 # clone
 ################################################################################
 
+# create collections directory
+$(DIR_COLLECTIONS):
+	@mkdir -p $@
+
+# create roles directory
+$(DIR_ROLES):
+	@mkdir -p $@
+
 # e.g. git clone git@github.com:jomrr/ansible-collection-test \
 	$HOME/src/ansible/collections/jomrr/test
-$(DIR_LIST_COLLECTIONS):
+$(DIR_LIST_COLLECTIONS): $(CACHE_GH_COLLECTIONS) | $(DIR_COLLECTIONS)
 	@git clone git@github.com:$(GH_USER)/$(GH_CPFX)$(notdir $@) $@
+
+# e.g. git clone git@github.com:jomrr/ansible-role-test \
+	$HOME/src/ansible/roles/test
+$(DIR_LIST_ROLES): $(CACHE_GH_ROLES) | $(DIR_ROLES)
+	@git clone git@github.com:$(GH_USER)/$(GH_RPFX)$(notdir $@) $@
 
 # clone all collections from github
 .PHONY: collections/clone
 collections/clone: $(DIR_LIST_COLLECTIONS) | $(CACHE_GH_COLLECTIONS)
 
-# e.g. git clone git@github.com:jomrr/ansible-role-test \
-	$HOME/src/ansible/roles/test
-$(DIR_LIST_ROLES):
-	@git clone git@github.com:$(GH_USER)/$(GH_RPFX)$(notdir $@) $@
-
 # clone all roles from github
 .PHONY: roles/clone
 roles/clone: $(DIR_LIST_ROLES) | $(CACHE_GH_ROLES)
+
+clone: collections/clone roles/clone
 
 ################################################################################
 # checkout or create dev branch
@@ -415,7 +445,7 @@ T_MREQS  := src=$(ANSIBLE_TPL_DIR)/meta/requirements.yml.j2 dest
 
 # meta dir target for all roles
 $(META_PATHS):
-	@mkdir -p $@
+#	@mkdir -p $@
 
 # general meta target for all roles
 .PHONY: meta
