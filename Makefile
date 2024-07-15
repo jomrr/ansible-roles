@@ -324,18 +324,18 @@ prepare-release: $(PREPARE_RELEASE_PATHS)
 ################################################################################
 
 PUSH_COLLECTIONS_PATHS := $(addsuffix /push,$(DIR_LIST_COLLECTIONS))
-
-# push all collection repositories
-.PHONY: $(PUSH_COLLECTIONS_PATHS)
-$(PUSH_COLLECTIONS_PATHS):
-	@cd $(dir $@) && git push -u origin dev
-
 PUSH_ROLES_PATHS := $(addsuffix /push,$(DIR_LIST_ROLES))
 
-# push all roles repositories
-.PHONY: $(PUSH_ROLES_PATHS)
-$(PUSH_ROLES_PATHS):
-	@cd $(dir $@) && git push -u origin dev
+# push all collection and role repositories
+.PHONY: $(PUSH_ROLES_PATHS) $(PUSH_COLLECTIONS_PATHS)
+$(PUSH_ROLES_PATHS) $(PUSH_COLLECTIONS_PATHS): %/push:
+	@cd $* && git push -u origin dev
+
+.PHONY: collections/push
+collections/push: $(PUSH_COLLECTIONS_PATHS)
+
+.PHONY: roles/push
+roles/push: $(PUSH_ROLES_PATHS)
 
 # push all collections and roles
 .PHONY: push
