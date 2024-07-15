@@ -46,12 +46,14 @@ CFG_DEFAULT			:= $(DIR_CWD)/inventory/group_vars/all.yml
 
 DIR_COLLECTIONS		:= $(HOME)/src/ansible/collections/$(GH_USER)
 DIR_ROLES			:= $(HOME)/src/ansible/roles
+DIR_ALL				:= $(DIR_COLLECTIONS) $(DIR_ROLES)
 
 COLLECTIONS			:= $(shell cat $(CACHE_GH_COLLECTIONS))
 ROLES				:= $(shell cat $(CACHE_GH_ROLES))
 
 DIR_LIST_COLLECTIONS:= $(addprefix $(DIR_COLLECTIONS)/,$(COLLECTIONS))
 DIR_LIST_ROLES	 	:= $(addprefix $(DIR_ROLES)/,$(ROLES))
+DIR_LIST_ALL		:= $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
 COMBINED_REPO_LIST	:= $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
 
 REMOVE 				:= .ansible-lint.yml .github .yamllint.yml requirements.txt
@@ -264,11 +266,13 @@ roles/clone: $(DIR_LIST_ROLES) | $(CACHE_GH_ROLES)
 
 DEV_BRANCHES := $(foreach d,$(COMBINED_REPO_LIST),$(d)/.git/refs/heads/dev)
 
-$(DEV_BRANCHES): $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
-	@cd $(dir $@)../../.. && \
+$(DEV_BRANCHES): %/.git/refs/heads/dev: $(DIR_LIST_ALL)
+	@cd $* && \
 		git pull     -q && \
 		git checkout -qb $(notdir $@) || \
 		git checkout -q	 $(notdir $@) && \
+		git branch  --set-upstream-to=origin/dev dev && \
+		git branch  --set-upstream-to=origin/main main && \
 		git pull     -q && \
 		git push     -qu origin $(notdir $@)
 
