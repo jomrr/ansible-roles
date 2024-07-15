@@ -296,6 +296,25 @@ $(COMMIT_PATHS): %/commit:
 commit: $(COMMIT_PATHS)
 
 ################################################################################
+# prepare-release
+################################################################################
+
+PREPARE_RELEASE_PATHS := $(addsuffix /prepare-release,$(DIR_LIST_ROLES))
+
+.PHONY: $(PREPARE_RELEASE_PATHS)
+$(PREPARE_RELEASE_PATHS): %/prepare-release:
+	@cd $* && \
+		git push -u origin dev && \
+		git checkout main && \
+		git merge dev && \
+		git push -u origin main && \
+		git checkout dev
+
+# prepare a release for all collections and roles
+.PHONY: prepare-release
+prepare-release: $(PREPARE_RELEASE_PATHS)
+
+################################################################################
 # push
 ################################################################################
 
