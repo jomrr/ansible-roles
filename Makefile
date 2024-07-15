@@ -255,9 +255,18 @@ new-role:
 ################################################################################
 # purge
 ################################################################################
+
+.PHONY: purge-collection
+purge-collection:
+	@rm -rf $(DIR_COLLECTIONS)/$(NAME)
+	@gh repo delete $(GH_CPFX)$(NAME)
+	@sed -i "/$(NAME)/d" $(CACHE_GH_COLLECTIONS)
+
+.PHONY: purge-role
 purge-role:
 	@rm -rf $(DIR_ROLES)/$(NAME)
 	@gh repo delete $(GH_RPFX)$(NAME)
+	@sed -i "/$(NAME)/d" $(CACHE_GH_ROLES)
 
 ################################################################################
 # clone
