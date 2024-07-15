@@ -229,6 +229,7 @@ new-role:
 		git commit -m "feat: Initial commit" && \
 		git push -qu origin main && \
 		git checkout -qb dev && \
+		git branch --set-upstream-to=origin/dev dev && \
 		git push -qu origin dev
 
 ################################################################################
@@ -268,13 +269,13 @@ DEV_BRANCHES := $(foreach d,$(COMBINED_REPO_LIST),$(d)/.git/refs/heads/dev)
 
 $(DEV_BRANCHES): %/.git/refs/heads/dev: $(DIR_LIST_ALL)
 	@cd $* && \
-		git pull     -q && \
+		git pull -q && \
 		git checkout -qb $(notdir $@) || \
 		git checkout -q	 $(notdir $@) && \
-		git branch  --set-upstream-to=origin/dev dev && \
-		git branch  --set-upstream-to=origin/main main && \
-		git pull     -q && \
-		git push     -qu origin $(notdir $@)
+		git branch set-upstream-to=origin/dev dev && \
+		git branch set-upstream-to=origin/main main && \
+		git pull -q && \
+		git push -qu origin $(notdir $@)
 
 # create dev branch for all repositories
 .PHONY: checkout/dev
