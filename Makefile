@@ -2,6 +2,7 @@
 # ansible-roles
 
 SHELL				:= /bin/bash
+DEBUG				?=
 
 # --- Requirements and virtual env ---------------------------------------------
 REQ_DNF				:= findutils git gh pipx
@@ -32,11 +33,11 @@ CACHE_GH_COLLECTIONS:= $(CACHE_DIR)/collections.github
 CACHE_GH_ROLES		:= $(CACHE_DIR)/roles.github
 
 # --- Ansible variables --------------------------------------------------------
-ANSIBLE 			:= ansible
+ANSIBLE 			:= ansible $(DEBUG)
 ANSIBLE_I			:= $(ANSIBLE) -i inventory/
-ANSIBLE_PLAYBOOK	:= ansible-playbook -i inventory/
+ANSIBLE_PLAYBOOK	:= ansible-playbook $(DEBUG) -i inventory/
 ANSIBLE_TPL_DIR		:= playbooks/templates
-AM_TEMPLATE			:= $(ANSIBLE_I) -vvv -m ansible.builtin.template
+AM_TEMPLATE			:= $(ANSIBLE_I) -m ansible.builtin.template
 ROLE_SKELETON		:= $(HOME)/src/ansible/skeleton-ansible-role
 
 # --- Makefile variables -------------------------------------------------------

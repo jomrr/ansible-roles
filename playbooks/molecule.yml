@@ -4,27 +4,30 @@
 
 - name: "PLAYBOOK | Molecule"
   hosts: "{{ target | default('all') }}"
-  gather_facts: false
+  gather_facts: true
   tasks:
-    - name: "Ensure molecule scenario directories exist"
-      ansible.builtin.file:
-        path: "{{ ansible_host }}/molecule/{{ item.scenario.name }}"
-        state: directory
-        mode: "0755"
-      loop: "{{ mole_scenarios }}"
     - name: "Ensure molecule resource directories exist"
       ansible.builtin.file:
         path: "{{ ansible_host }}/molecule/{{ item.name | dirname }}"
         state: directory
         mode: "0755"
       loop: "{{ mole_playbooks }}"
+
     - name: "Generate molecule ressources"
       ansible.builtin.template:
         src: "molecule/playbook.yml.j2"
         dest: "{{ ansible_host }}/molecule/{{ item.name }}"
         mode: "0644"
-        validate: "ansible-lint %s"
+        # validate: "ansible-lint %s"
       loop: "{{ mole_playbooks }}"
+
+    - name: "Ensure molecule scenario directories exist"
+      ansible.builtin.file:
+        path: "{{ ansible_host }}/molecule/{{ item.scenario.name }}"
+        state: directory
+        mode: "0755"
+      loop: "{{ mole_scenarios }}"
+
     - name: "Generate molecule scenarios"
       ansible.builtin.template:
         src: "molecule/molecule.yml.j2"

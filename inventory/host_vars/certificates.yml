@@ -18,9 +18,9 @@ meta_year_created: '2024'
 
 # default readme settings
 read_description: |
-  This role deploys CA certificates from a remote or web server to configured
-  destinations and updates the ca trust store on the OS. Furthermore it deploys
-  TLS certificates and keys to the operating systems default location.
+  This role deploys CA certificates from the controller or a remote or web server
+  to configured destinations and updates the ca trust store on the target.
+  Furthermore it deploys TLS certificates and keys to the operating systems default location.
 
 # Example playbooks
 read_examples:
@@ -39,22 +39,22 @@ read_examples:
           certificates_host: "certificates_ca_host"
           certificates_ca_certs:
             - src: "/etc/ssl/ca/example/pub/root-ca.pem"
-              dest: "{{ certificates_ca_trust_dir }}/example-root-ca.crt"
+              dest: "{% raw %}{{ certificates_ca_trust_dir }}{% endraw %}/example-root-ca.crt"
             - src: "/etc/ssl/ca/example/pub/intermediate-ca.pem"
-              dest: "{{ certificates_ca_trust_dir }}/example-intermediate-ca.crt"
+              dest: "{% raw %}{{ certificates_ca_trust_dir }}{% endraw %}/example-intermediate-ca.crt"
             - src: "/etc/ssl/ca/example/pub/component-ca.pem"
-              dest: "{{ certificates_ca_trust_dir }}/example-component-ca.crt"
+              dest: "{% raw %}{{ certificates_ca_trust_dir }}{% endraw %}/example-component-ca.crt"
             - src: "/etc/ssl/ca/example/pub/identity-ca.pem"
-              dest: "{{ certificates_ca_trust_dir }}/example-identity-ca.crt"
+              dest: "{% raw %}{{ certificates_ca_trust_dir }}{% endraw %}/example-identity-ca.crt"
           certificates_certs:
             - src: "/etc/ssl/ca/example/dist/fritzbox.pem"
-              dest: "{{ certificates_tls_dir }}/certs/fritzbox.pem"
+              dest: "{% raw %}{{ certificates_tls_dir }}{% endraw %}/certs/fritzbox.pem"
               mode: "0644"
             - src: "/etc/ssl/ca/example/dist/fritzbox-fullchain.pem"
-              dest: "{{ certificates_tls_dir }}/certs/fritzbox-fullchain.pem"
+              dest: "{% raw %}{{ certificates_tls_dir }}{% endraw %}/certs/fritzbox-fullchain.pem"
               mode: "0644"
             - src: "/etc/ssl/ca/example/dist/fritzbox.key"
-              dest: "{{ certificates_tls_dir }}/private/fritzbox.key"
+              dest: "{% raw %}{{ certificates_tls_dir }}{% endraw %}/private/fritzbox.key"
               mode: "0600"
         roles:
           - role: "jomrr.certificates"
@@ -67,12 +67,89 @@ read_examples:
         tasks:
           - name: "TASK | certificates | Remove /tmp files"
             ansible.builtin.file:
-              path: "/tmp/{{ item | ansible.builtin.basename }}"
+              path: "/tmp/{% raw %}{{ item | ansible.builtin.basename }}{% endraw %}"
               state: absent
-            loop: "{{ certificates_ca_certs | map(attribute='dest') | list + certificates_certs | map(attribute='dest') | list }}"
+            loop: "{% raw %}{{ certificates_ca_certs | map(attribute='dest') | list + certificates_certs | map(attribute='dest') | list }}{% endraw %}"
 
 # references as single line in markdown
 read_references: []
+
+mole_playbooks:
+  - name: "resources/playbooks/prepare.yml"
+    content: |-
+      - name: "PLAYBOOK | Prepare"
+        hosts: certificates_ca_host
+        become: true
+        gather_facts: true
+        vars: # using alpine image here
+          certificates_tls_dir: "/etc/ssl"
+          certificates_ca_dir: "{{ """{% raw %}{{ certificates_tls_dir }}{% endraw %}""" }}/ca/example"
+          apache_package_name: "apache2"
+          apache_service_name: "apache2"
+          apache_web_root_dir: "/var/www/localhost/htdocs"
+        tasks:
+          - name: "Install packages"
+            ansible.builtin.package:
+              name:
+                - "{{ """{% raw %}{{ apache_package_name }}{% endraw %}""" }}"
+                - git
+                - make
+                - openssl
+              state: present
+          - name: "Ensure CA directory exists"
+            ansible.builtin.file:
+              path: "{{ """{% raw %}{{ certificates_ca_dir }}{% endraw %}""" }}"
+              state: directory
+              mode: "0755"
+          - name: "Clone make-ca repository"
+            ansible.builtin.git:
+              repo: "https://github.com/jomrr/make-ca.git"
+              dest: "{{ """{% raw %}{{ certificates_ca_dir }}{% endraw %}""" }}"
+              version: main
+          - name: "Run CA 'init' target"
+            community.general.make:
+              chdir: "{{ """{% raw %}{{ certificates_ca_dir }}{% endraw %}""" }}"
+              target: init
+          - name: "Run 'fritzbox' target"
+            community.general.make:
+              chdir: "{{ """{% raw %}{{ certificates_ca_dir }}{% endraw %}""" }}"
+              target: certs/component-ca/server/fritzbox
+          - name: "{{ """{% raw %}Copy certificates to {{ apache_web_root_dir }}{% endraw %}""" }}"
+            ansible.builtin.copy:
+              src: "{{ """{% raw %}{{ certificates_ca_dir }}/pub/{% endraw %}""" }}"
+              dest: "{{ """{% raw %}{{ apache_web_root_dir }}/{% endraw %}""" }}"
+              mode: "0644"
+              remote_src: true
+          - name: "Start webserver"
+            ansible.builtin.service:
+              name: "{{ """{% raw %}{{ apache_service_name }}{% endraw %}""" }}"
+              state: started
+              enabled: true
+  - name: "resources/playbooks/verify.yml"
+    content: |-
+      - name: "PLAYBOOK | Verify"
+        hosts: all
+        gather_facts: true
+        tasks:
+          - name: "Install openssl"
+            ansible.builtin.package:
+              name: openssl
+              state: present
+
+          - name: "Fetch trust list"
+            ansible.builtin.shell: set -o pipefail && trust list ||
+              openssl crl2pkcs7 -nocrl -certfile /etc/ssl/certs/ca-certificates.crt |
+              openssl pkcs7 -print_certs -noout | grep "Example Root CA"
+            args:
+              executable: /bin/bash
+            changed_when: false
+            register: _trust_list
+
+          - name: "Assert true"
+            ansible.builtin.assert:
+              that: "'Example Root CA' in _trust_list.stdout"
+              fail_msg: "Oh-no! Example Root CA not in trust list :("
+              success_msg: "Yee-ha! Example Root CA in trust list :)"
 
 # default molecule scenario(s)
 mole_scenarios:
@@ -95,29 +172,80 @@ mole_scenarios:
       },
       log: true,
       playbooks: {
-        converge: converge.yml,
-        prepare: prepare.yml,
-        verify: verify.yml,
+        converge: ../resources/playbooks/converge.yml,
+        prepare: ../resources/playbooks/prepare.yml,
+        verify: ../resources/playbooks/verify.yml,
       },
       inventory: {
         group_vars: {
           all: {
             certificates_run_once: true,
             certificates_host: "certificates_ca_host",
+            certificates_fetch: [
+              {
+                src: "/etc/ssl/ca/example/pub/root-ca.pem",
+                dest: "/tmp/root-ca.pem"
+              },
+              {
+                src: "/etc/ssl/ca/example/pub/intermediate-ca.pem",
+                dest: "/tmp/intermediate-ca.pem"
+              },
+              {
+                src: "/etc/ssl/ca/example/pub/component-ca.pem",
+                dest: "/tmp/component-ca.pem"
+              },
+              {
+                src: "/etc/ssl/ca/example/pub/identity-ca.pem",
+                dest: "/tmp/identity-ca.pem"
+              },
+              {
+                src: "/etc/ssl/ca/example/dist/fritzbox.pem",
+                dest: "/tmp/fritzbox.pem"
+              },
+              {
+                src: "/etc/ssl/ca/example/dist/fritzbox-fullchain.pem",
+                dest: "/tmp/fritzbox-fullchain.pem"
+              },
+              {
+                src: "/etc/ssl/ca/example/dist/fritzbox.key",
+                dest: "/tmp/fritzbox.key"
+              },
+            ],
             certificates_ca_certs: [
-              { src: "/etc/ssl/ca/example/pub/root-ca.pem", dest: "{{ certificates_ca_trust_dir }}/example-root-ca.crt" },
-              { src: "/etc/ssl/ca/example/pub/intermediate-ca.pem", dest: "{{ certificates_ca_trust_dir }}/example-intermediate-ca.crt" },
-              { src: "/etc/ssl/ca/example/pub/component-ca.pem", dest: "{{ certificates_ca_trust_dir }}/example-component-ca.crt" },
-              { src: "/etc/ssl/ca/example/pub/identity-ca.pem", dest: "{{ certificates_ca_trust_dir }}/example-identity-ca.crt" },
+              {
+                src: "/tmp/root-ca.pem",
+                dest: "{{ \"{% raw %}{{ certificates_ca_trust_dir }}{% endraw %}\" }}/example-root-ca.crt"
+              },
+              {
+                src: "/tmp/intermediate-ca.pem",
+                dest: "{{ \"{% raw %}{{ certificates_ca_trust_dir }}{% endraw %}\" }}/example-intermediate-ca.crt"
+              },
+              {
+                src: "/tmp/component-ca.pem",
+                dest: "{{ \"{% raw %}{{ certificates_ca_trust_dir }}{% endraw %}\" }}/example-component-ca.crt"
+              },
+              {
+                src: "/tmp/identity-ca.pem",
+                dest: "{{ \"{% raw %}{{ certificates_ca_trust_dir }}{% endraw %}\" }}/example-identity-ca.crt"
+              },
             ],
           }
         },
         host_vars: {
           certificates: {
             certificates_certs: [
-              { src: "/etc/ssl/ca/example/dist/fritzbox.pem", dest: "{{ certificates_tls_dir }}/certs/fritzbox.pem", mode: "0644" },
-              { src: "/etc/ssl/ca/example/dist/fritzbox-fullchain.pem", dest: "{{ certificates_tls_dir }}/certs/fritzbox-fullchain.pem", mode: "0644" },
-              { src: "/etc/ssl/ca/example/dist/fritzbox.key", dest: "{{ certificates_tls_dir }}/private/fritzbox.key", mode: "0600" },
+              {
+                src: "/tmp/fritzbox.pem",
+                dest: "{{ \"{% raw %}{{ certificates_tls_dir }}{% endraw %}\" }}/certs/fritzbox.pem",
+              },
+              {
+                src: "/tmp/fritzbox-fullchain.pem",
+                dest: "{{ \"{% raw %}{{ certificates_tls_dir }}{% endraw %}\" }}/certs/fritzbox-fullchain.pem",
+              },
+              {
+                src: "/tmp/fritzbox.key",
+                dest: "{{ \"{% raw %}{{ certificates_tls_dir }}{% endraw %}\" }}/private/fritzbox.key",
+              },
             ]
           }
         }
@@ -126,7 +254,7 @@ mole_scenarios:
     verifier: { name: ansible }
     platforms:
       - name: certificates_ca_host
-        image: "docker.io/{{ meta_namespace }}/molecule-alpine:latest"
+        image: "docker.io/{{ meta_namespace }}/molecule-alpine:3.19"
         pre_build_image: true
         entrypoint: null
         command: null
