@@ -59,12 +59,10 @@ REMOVE				+= CONTRIBUTING.md .git/hooks/*
 
 .DEFAULT_GOAL		:= help
 
-MSG 				?=
-
 ifdef MSG
 COMMIT_CMD			:= git commit -m "$(MSG)"
 else
-COMMIT_CND			:= codegpt commit
+COMMIT_CMD			:= codegpt commit
 endif
 
 # --- Functions ----------------------------------------------------------------
