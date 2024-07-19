@@ -238,22 +238,26 @@ unpip:
 
 NAME ?= test
 
-.PHONY: new-role
-new-role:
-	@gh repo create $(GH_RPFX)$(NAME) \
-		--description "Ansible role for setting up $(NAME)" \
-		--disable-wiki \
-		--public
+$(DIR_ROLES)/$(NAME):
 	@cd $(DIR_ROLES) && \
-		ansible-galaxy role init --role-skeleton=$(ROLE_SKELETON) $(NAME) && \
-		cd $(NAME) && \
-		git init -qb main && git add . && \
+		ansible-galaxy role init --role-skeleton=$(ROLE_SKELETON) $(NAME)
+
+$(DIR_ROLES)/$(NAME)/.git: | $(DIR_ROLES)/$(NAME)
+	@cd $(DIR_ROLES)/$(NAME) && git init -qb main && \
 		git remote add origin git@github.com:$(GH_USER)/$(GH_RPFX)$(NAME) && \
-		git commit -m "feat: Initial commit" && \
 		git push -qu origin main && \
 		git checkout -qb dev && \
-		git branch --set-upstream-to=origin/dev dev && \
-		git push -qu origin dev
+		git push -qu origin dev && \
+		git branch --set-upstream-to=origin/dev dev
+
+.PHONY: new-role
+new-role: | $(DIR_ROLES)/$(NAME)/.git
+	@grep -qxF '$(NAME)' $(CACHE_GH_ROLES) || \
+		gh repo create $(GH_RPFX)$(NAME) \
+			--description "Ansible role for setting up $(NAME)" \
+			--disable-wiki \
+			--public && \
+		echo "$(NAME)" >> $(CACHE_GH_ROLES)
 
 ################################################################################
 # purge
