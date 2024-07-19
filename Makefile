@@ -408,28 +408,6 @@ roles/pull: $(PULL_ROLES_PATHS)
 pull: $(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS)
 
 ################################################################################
-# update
-################################################################################
-
-GIT_DIR_COLLECTIONS	:= $(addsuffix /.git,$(DIR_LIST_COLLECTIONS))
-GIT_DIR_ROLES 		:= $(addsuffix /.git,$(DIR_LIST_ROLES))
-
-# targets for .git repository directories to update (pull and push)
-.PHONY: $(GIT_DIR_COLLECTIONS) $(GIT_DIR_ROLES)
-$(GIT_DIR_ROLES) $(GIT_DIR_COLLECTIONS):
-	@cd $(dir $@) && \
-		git pull -q origin dev && \
-		git push -qu origin dev
-
-# update all collections from github
-.PHONY: collections/update
-collections/update: $(GIT_DIR_COLLECTIONS) | $(CACHE_GH_COLLECTIONS)
-
-# update all roles from github
-.PHONY: roles/update
-roles/update: $(GIT_DIR_ROLES) | $(CACHE_GH_ROLES)
-
-################################################################################
 # LICENSE
 ################################################################################
 
