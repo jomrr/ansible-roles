@@ -697,7 +697,7 @@ me-pc-run:
 # commit changes to dev branch and push to origin
 me-commit:
 	@git add .
-	@[ -n "$(git diff --cached --name-only)" ] || $(COMMIT_CMD) && exit 0
+	@$(COMMIT_CMD)
 	@git push origin dev
 
 # prepare a release and merge dev to main
