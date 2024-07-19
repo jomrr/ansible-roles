@@ -47,8 +47,6 @@ DIR_COLLECTIONS		:= $(HOME)/src/ansible/collections/$(GH_USER)
 DIR_ROLES			:= $(HOME)/src/ansible/roles
 DIR_ALL				:= $(DIR_COLLECTIONS) $(DIR_ROLES)
 
-DIR_LIST_COLLECTIONS:= $(addprefix $(DIR_COLLECTIONS)/,$(COLLECTIONS))
-DIR_LIST_ROLES	 	:= $(addprefix $(DIR_ROLES)/,$(ROLES))
 DIR_LIST_ALL		:= $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
 COMBINED_REPO_LIST	:= $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
 
@@ -70,16 +68,21 @@ $(shell mkdir -p $(DIR_ROLES))
 endif
 
 ifeq ("$(wildcard $(CACHE_GH_COLLECTIONS))","")
+$(shell echo "### UPDATING COLLECTIONS CACHE ###")
 $(shell $(GH_COLLECTIONS) > $(CACHE_GH_COLLECTIONS))
 endif
 
 COLLECTIONS			:= $(shell cat $(CACHE_GH_COLLECTIONS))
 
 ifeq ("$(wildcard $(CACHE_GH_ROLES))","")
+$(shell echo "### UPDATING ROLES CACHE ###")
 $(shell $(GH_ROLES) > $(CACHE_GH_ROLES))
 endif
 
 ROLES				:= $(shell cat $(CACHE_GH_ROLES))
+
+DIR_LIST_COLLECTIONS:= $(addprefix $(DIR_COLLECTIONS)/,$(COLLECTIONS))
+DIR_LIST_ROLES	 	:= $(addprefix $(DIR_ROLES)/,$(ROLES))
 
 ifdef MSG
 COMMIT_CMD			:= git commit -m "$(MSG)"
@@ -388,8 +391,8 @@ PULL_COLLECTIONS_PATHS := $(addsuffix /pull,$(DIR_LIST_COLLECTIONS))
 PULL_ROLES_PATHS := $(addsuffix /pull,$(DIR_LIST_ROLES))
 
 # pull all collection repositories
-.PHONY: $(PULL_COLLECTIONS_PATHS)
-$(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS): %/pull:
+.PHONY: $(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS)
+$(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS): %/pull: | $(DIR_LIST_ALL)
 	@cd $* && git pull
 
 .PHONY: collections/pull
