@@ -2,7 +2,7 @@
 # name: ansible-roles
 # file: inventory/host_vars/vm.yml
 
-meta_description: 'Ansible role to manage libvirt guests.'
+meta_description: 'Ansible role to manage libvirt domains, networks and pools.'
 
 meta_galaxy_tags:
   - libvirt
@@ -12,3 +12,40 @@ meta_galaxy_tags:
   - vm
 
 meta_year_created: 2024
+
+reqs_collections:
+  - name: community.libvirt
+
+# default molecule scenario(s)
+mole_scenarios:
+  - scenario:
+      name: default
+    dependency: {
+      name: galaxy,
+      requirements-file: meta/requirements.yml
+    }
+    driver: { name: podman }
+    lint: set -e; ansible-lint
+    provisioner: {
+      name: ansible,
+      config_options: {
+        defaults: {
+          interpreter_python: auto_silent,
+          callback_whitelist: "profile_tasks, timer, yaml",
+        },
+        ssh_connection: { pipelining: true }
+      },
+      log: true,
+      playbooks: {
+        converge: ../resources/playbooks/converge.yml,
+        verify: ../resources/playbooks/verify.yml,
+      },
+    }
+    verifier: { name: ansible }
+    platforms:
+      - name: "{{ meta_role_name }}"
+        image: "docker.io/${uns:-{{ meta_namespace }}}/molecule-${img:-fedora}:${tag:-latest}"
+        pre_build_image: true
+        entrypoint: null
+        command: null
+        systemd: true
