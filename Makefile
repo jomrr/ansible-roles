@@ -133,7 +133,8 @@ help:
 	@echo "  collections/update Update all collections from github"
 	@echo "  collections/dev    Checkout dev branch for all collections"
 	@echo "  roles/clone        Clone all roles from github"
-	@echo "  roles/update       Update all roles from github"
+	@echo "  roles/pull         Pull all roles from github"
+	@echo "  roles/push	        Push all roles to github"
 	@echo "  pyproject          Create or update all pyproject.toml files"
 	@echo "  requirements       Create or update all requirements.yml files"
 	@echo "  remove             Remove all files defined in REMOVE"
@@ -237,25 +238,44 @@ unpip:
 ################################################################################
 
 NAME ?= test
+DESC ?= "Ansible role for setting up $(NAME)"
 
-.PHONY: new-role
-new-role: | $(DIR_ROLES)/$(NAME)/.git
+$(DIR_ROLES)/$(NAME):
 	@cd $(DIR_ROLES) && \
 		ansible-galaxy role init --role-skeleton=$(ROLE_SKELETON) $(NAME)
+
+$(DIR_ROLES)/$(NAME)/.git: | $(DIR_ROLES)/$(NAME)
 	@cd $(DIR_ROLES)/$(NAME) && \
 		git init -qb main && \
 		git remote add origin git@github.com:$(GH_USER)/$(GH_RPFX)$(NAME) && \
+		echo "# Ansible Role: $(NAME)" > README.md && \
+		git add README.md && \
+		git commit -m "docs: add README" && \
 		git push -qu origin main && \
 		git checkout -qb dev && \
 		git push -qu origin dev && \
 		git branch --set-upstream-to=origin/dev dev
-	@grep -qxF '$(NAME)' $(CACHE_GH_ROLES) || \
-		gh repo create $(GH_RPFX)$(NAME) \
-			--description "Ansible role for setting up $(NAME)" \
+
+.PHONY: new-gh-role
+new-gh-role:
+	@if ! grep -qxF '$(NAME)' $(CACHE_GH_ROLES); then \
+		echo "Creating new role repo github.com/$(GH_USER)/$(GH_RPFX)$(NAME)"; \
+		if gh repo create $(GH_USER)/$(GH_RPFX)$(NAME) \
+			--description "$(DESC)" \
 			--disable-wiki \
-			--public
-	@grep -qxF '$(NAME)' $(CACHE_GH_ROLES) || \
-		echo "$(NAME)" >> $(CACHE_GH_ROLES)
+			--public; then \
+			echo "Repository $(GH_USER)/$(GH_RPFX)$(NAME) created."; \
+			echo "$(NAME)" >> $(CACHE_GH_ROLES); \
+		else \
+			echo "Error creating Repository $(GH_USER)/$(GH_RPFX)$(NAME)." >&2; \
+			exit 1; \
+		fi; \
+	else \
+		echo "Repository $(NAME) existiert bereits im Cache."; \
+	fi
+
+.PHONY: new-role
+new-role: new-gh-role | $(DIR_ROLES)/$(NAME)/.git
 
 ################################################################################
 # purge
