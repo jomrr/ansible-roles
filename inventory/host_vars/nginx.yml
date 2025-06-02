@@ -1,5 +1,5 @@
 ---
-# name: ansible-roles
+# role: jomrr.nginx
 # file: inventory/host_vars/nginx.yml
 
 meta_description: 'Ansible role to set up NGINX.'

@@ -1,5 +1,5 @@
 ---
-# name: ansible-roles
+# role: jomrr.test
 # file: inventory/host_vars/test.yml
 
 meta_galaxy_tags:

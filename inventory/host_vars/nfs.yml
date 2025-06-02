@@ -1,5 +1,5 @@
 ---
-# name: ansible-roles
+# role: jomrr.nfs
 # file: inventory/host_vars/nfs.yml
 
 meta_description: 'Ansible role for setting up NFSv4 client and server.'

@@ -1,5 +1,5 @@
 ---
-# name: ansible-roles
+# role: jomrr.timesyncd
 # file: inventory/host_vars/timesyncd.yml
 
 meta_description: 'Ansible role to configure systemd-timesyncd.'

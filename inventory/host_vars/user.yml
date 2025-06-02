@@ -1,5 +1,5 @@
 ---
-# name: ansible-roles
+# role: jomrr.user
 # file: inventory/host_vars/user.yml
 
 meta_description: 'Ansible role for managing local user accounts.'

@@ -1,4 +1,6 @@
 ---
+# role: jomrr.hashicorp
+# file: inventory/host_vars/hashicorp.yml
 
 meta_description: 'Ansible role to add the hashicorp repository for supported distributions.'
 

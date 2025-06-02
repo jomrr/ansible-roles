@@ -1,5 +1,5 @@
 ---
-# name: ansible-roles
+# role: jomrr.journald
 # file: inventory/host_vars/journald.yml
 
 meta_description: 'Ansible role to configure systemd-journald.'

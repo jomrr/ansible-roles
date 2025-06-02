@@ -1,0 +1,60 @@
+---
+# role: jomrr.samba-dc
+# file: inventory/host_vars/samba-dc.yml
+
+# default meta data
+meta_author: Jonas Mauer
+meta_allow_duplicates: false
+meta_company: none
+meta_description: 'Ansible role for setting up samba-dc.'
+meta_galaxy_tags: []
+meta_issue_tracker_url: "https://github.com/jomrr/ansible-role-samba-dc/issues"
+meta_license: MIT
+meta_min_ansible_version: "2.17"
+meta_namespace: jomrr
+meta_role_name: "samba-dc"
+meta_repo_name: "ansible-role-samba-dc"
+meta_repo_url: "https://github.com/jomrr/ansible-role-samba-dc"
+meta_year_created: "2024"
+
+# default platforms
+meta_platforms:
+  - { distribution: AlmaLinux, os_family: RedHat, tags: ['latest'] }
+  - { distribution: Alpine, os_family: Alpine, tags: ['latest'] }
+  - { distribution: Archlinux, os_family: Archlinux, tags: ['latest'] }
+  - { distribution: Debian, os_family: Debian, tags: ['oldstable', 'stable', 'testing'] }
+  - { distribution: Fedora, os_family: RedHat, tags: ['latest', 'rawhide'] }
+  - { distribution: OpenSuse Leap, os_family: Suse, tags: ['15'] }
+  - { distribution: Ubuntu, os_family: Debian, tags: ['latest'] }
+
+# default requirements
+reqs_collections: []
+reqs_packages: []
+reqs_pip: []
+reqs_roles: []
+
+# default readme settings
+read_description: |-
+  This Ansible role installs and configures samba-dc on supported platforms.
+
+# role default variables from meta/argument_specs.yml
+read_variables: []
+
+# Example playbooks
+read_examples:
+  - name: Simple example playbook
+    description: |-
+      A simple default example playbook for using jomrr.samba-dc.
+    code: |-
+      ---
+      # name: "jomrr.samba-dc"
+      # file: "playbook_samba-dc.yml"
+
+      - name: "PLAYBOOK | samba-dc"
+        hosts: "samba-dc_hosts"
+        gather_facts: true
+        roles:
+          - role: "jomrr.samba-dc"
+
+# references as single line in markdown
+read_references: []

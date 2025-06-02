@@ -1,5 +1,5 @@
 ---
-# name: ansible-roles
+# role: jomrr.libvirtd
 # file: inventory/host_vars/libvirtd.yml
 
 meta_description: 'Ansible role for installing libvirt-daemon and tools.'
