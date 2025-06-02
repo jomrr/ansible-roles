@@ -32,7 +32,7 @@ CACHE_GH_COLLECTIONS:= $(CACHE_DIR)/collections.github
 CACHE_GH_ROLES		:= $(CACHE_DIR)/roles.github
 
 # --- Ansible variables --------------------------------------------------------
-ANSIBLE			:= ansible $(DEBUG)
+ANSIBLE				:= ansible $(DEBUG)
 ANSIBLE_INV			:= $(ANSIBLE) -i inventory/
 ANSIBLE_INV_TPL		:= $(ANSIBLE_INV) -m ansible.builtin.template
 ANSIBLE_PLAYBOOK	:= ansible-playbook $(DEBUG) -i inventory/
