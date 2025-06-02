@@ -46,6 +46,7 @@ DIR_CWD				:= $(shell pwd)
 COLLS_DIR			:= $(HOME)/src/ansible/collections/$(GH_USER)
 ROLES_DIR			:= $(HOME)/src/ansible/roles
 
+XARGS_P 			?= 4
 .DEFAULT_GOAL		:= help
 
 ifeq ("$(wildcard $(CACHE_DIR))","")
@@ -105,41 +106,65 @@ endef
 .PHONY: help
 help:
 	@echo "Usage: make [target]"
-	@echo "make -n [target] to dry-run"
-	@echo "make -j [n] [target] to run [n] jobs in parallel"
-	@echo "make -B [target] to force update"
-	@echo
-	@echo "Targets:"
-	@echo "  help               Show this help"
-	@echo "  install            Install ansible and tools"
-	@echo "  upgrade            Upgrade ansible and tools"
-	@echo "  cacheclean         Empty the cache"
-	@echo "  clean              Delete the virtual environment"
-	@echo "  unpip              Remove all pip user packages"
-	@echo "  new-role           Create a new role skeleton"
-	@echo "  collections/clone  Clone all collections from github"
-	@echo "  collections/update Update all collections from github"
-	@echo "  collections/dev    Checkout dev branch for all collections"
-	@echo "  roles/clone        Clone all roles from github"
-	@echo "  roles/pull         Pull all roles from github"
-	@echo "  roles/push         Push all roles to github"
-	@echo "  pyproject          Create or update all pyproject.toml files"
-	@echo "  requirements       Create or update all requirements.yml files"
-	@echo "  remove             Remove all files defined in REMOVE"
-	@echo "  LICENSE            Create or update all LICENSE files"
-	@echo "  meta               Create or update all meta directories"
-	@echo "  meta/main.yml      Create or update all meta/main.yml files"
-	@echo "  meta/requirements.yml Generate all meta/requirements.yml files"
-	@echo "  molecule           Create molecule/ for all roles"
-	@echo "  pre-commit-config  Generate all pre-commit-config.yaml files"
-	@echo "  README             Create or update all README.md files"
-	@echo "  me-pc-install      Install pre-commit hooks"
-	@echo "  me-pc-autoupdate   Update pre-commit hooks"
-	@echo "  me-pc-run          Run pre-commit checks"
-	@echo "  me-commit          Commit changes to dev branch and push to origin"
-	@echo "  me-prepare-release Prepare a release and merge dev to main"
-	@echo "  me-version         Bump the version number and update changelog"
-	@echo "  me-publish         Create a new git tag, build and publish release"
+	@echo ""
+	@echo "Setup/Install:"
+	@echo "  install                 Install all requirements (pipx, ansible, gh, etc)"
+	@echo "  upgrade                 Upgrade ansible in the virtual environment"
+	@echo "  cacheclean              Remove GitHub cache"
+	@echo "  clean                   Clean cache and uninstall ansible"
+	@echo "  uninstall               Remove all pip user packages"
+	@echo ""
+	@echo "GitHub Operations:"
+	@echo "  update-cache            Refresh GitHub repo lists (roles/collections)"
+	@echo "  new-role                Create a new role (local skeleton + remote repo)"
+	@echo "  purge-role              Delete role locally and remotely"
+	@echo "  purge-collection        Delete collection locally and remotely"
+	@echo ""
+	@echo "Repository Cloning and Sync:"
+	@echo "  collections/clone       Clone all collections from GitHub"
+	@echo "  roles/clone             Clone all roles from GitHub"
+	@echo "  clone                   Clone both collections and roles"
+	@echo "  collections/pull        Pull all collections"
+	@echo "  roles/pull              Pull all roles"
+	@echo "  pull                    Pull everything"
+	@echo "  collections/push        Push all collections"
+	@echo "  roles/push              Push all roles"
+	@echo "  push                    Push everything"
+	@echo "  checkout/dev            Ensure dev branch exists in all repos"
+	@echo "  commit                  Commit/push all roles"
+	@echo "  prepare-release         Merge dev to main and push"
+	@echo ""
+	@echo "Role File Generation:"
+	@echo "  README                  Render all role README.md files"
+	@echo "  LICENSE                 Render all LICENSE files"
+	@echo "  meta                    Render all meta/ directories"
+	@echo "  meta/main.yml           Render all meta/main.yml"
+	@echo "  meta/requirements.yml   Render all meta/requirements.yml"
+	@echo "  pyproject               Render all pyproject.toml"
+	@echo "  requirements            Render all requirements.yml"
+	@echo "  molecule                Render all molecule/ for roles"
+	@echo "  pre-commit-config       Render all .pre-commit-config.yaml"
+	@echo "  templates               Render ALL templates above"
+	@echo ""
+	@echo "Host Vars:"
+	@echo "  host_vars               Generate inventory/host_vars/*.yml for all roles"
+	@echo ""
+	@echo "Role Clean-up:"
+	@echo "  remove                  Remove unneeded files from all roles"
+	@echo ""
+	@echo "Pre-commit:"
+	@echo "  pre-commit-install      Install pre-commit hooks for all roles"
+	@echo "  pre-commit-autoupdate   Update pre-commit hooks for all roles"
+	@echo "  pre-commit-run          Run pre-commit checks for all roles"
+	@echo "  me-pre-commit-install   Install hooks in current dir"
+	@echo "  me-pre-commit-autoupdate Update hooks in current dir"
+	@echo "  me-pre-commit-run       Run pre-commit in current dir"
+	@echo ""
+	@echo "Release/Version:"
+	@echo "  me-commit               Commit changes (current dir) to dev branch"
+	@echo "  me-prepare-release      Prepare/merge release branches"
+	@echo "  me-version              Bump version & update changelog"
+	@echo "  me-publish              Tag & publish release"
 
 # check for requirements.txt and requirements.yml
 $(REQ_PYTHON) $(REQ_GALAXY):
@@ -180,13 +205,11 @@ $(CACHE_DIR):
 
 # create collections cache from github
 $(CACHE_GH_COLLECTIONS): | $(CACHE_DIR)
-	@echo "Updating collection cache from github.com"
-	@$(GH_COLLECTIONS) > $@
+	@flock $(CACHE_LOCK) sh -c 'echo "Updating collection cache from github.com"; $(GH_COLLECTIONS) > $@'
 
 # create roles cache from github
 $(CACHE_GH_ROLES): | $(CACHE_DIR)
-	@echo "Updating role cache from github.com"
-	@$(GH_ROLES) > $@
+	@flock $(CACHE_LOCK) sh -c 'echo "Updating role cache from github.com"; $(GH_ROLES) > $@'
 
 # update all github cache
 .PHONY: update-cache
@@ -297,13 +320,21 @@ $(ROLES_DIR):
 
 # e.g. git clone git@github.com:jomrr/ansible-collection-test \
 	$HOME/src/ansible/collections/jomrr/test
-$(COLL_DIRS): $(CACHE_GH_COLLECTIONS) | $(COLLS_DIR)
+$(COLLS_DIR)/%: $(CACHE_GH_COLLECTIONS) | $(COLLS_DIR)
 	@git clone git@github.com:$(GH_USER)/$(GH_CPFX)$(notdir $@) "$@"
 
 # e.g. git clone git@github.com:jomrr/ansible-role-test \
 	$HOME/src/ansible/roles/test
-$(ROLE_DIRS): $(CACHE_GH_ROLES) | $(ROLES_DIR)
-	@git clone git@github.com:$(GH_USER)/$(GH_RPFX)$(notdir $@) "$@"
+$(ROLES_DIR)/%: $(CACHE_GH_ROLES) | $(ROLES_DIR)
+	@if [ -d "$@" ] && [ ! -d "$@/.git" ]; then \
+		echo "Warning: $@ exists but is not a git repo. Deleting and recloning..."; \
+		rm -rf "$@"; \
+	fi; \
+	if [ ! -d "$@" ]; then \
+		git clone git@github.com:$(GH_USER)/$(GH_RPFX)$(notdir $@) "$@"; \
+	else \
+		echo "Skipping clone for $(notdir $@), directory already exists."; \
+	fi
 
 # clone all collections from github
 .PHONY: collections/clone
@@ -456,7 +487,12 @@ REMOVE_TARGETS	:= $(addsuffix /remove,$(ROLE_DIRS))
 # dynamic remove targets per role for all roles
 .PHONY: $(REMOVE_TARGETS)
 $(REMOVE_TARGETS): %/remove:
-	@for file in $(REMOVE); do rm -rf "$*/$${file}"; done
+	@for file in $(REMOVE); do \
+		if [ -n "$$file" ] && [ "$$file" != "/" ]; then \
+			echo "Removing $*/$$file"; \
+			rm -rf "$*/$$file"; \
+		fi; \
+	done
 
 # remove all paths from REMOVE for all roles
 .PHONY: remove
