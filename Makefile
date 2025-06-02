@@ -32,26 +32,19 @@ CACHE_GH_COLLECTIONS:= $(CACHE_DIR)/collections.github
 CACHE_GH_ROLES		:= $(CACHE_DIR)/roles.github
 
 # --- Ansible variables --------------------------------------------------------
-ANSIBLE 			:= ansible $(DEBUG)
-ANSIBLE_I			:= $(ANSIBLE) -i inventory/
+ANSIBLE			:= ansible $(DEBUG)
+ANSIBLE_INV			:= $(ANSIBLE) -i inventory/
+ANSIBLE_INV_TPL		:= $(ANSIBLE_INV) -m ansible.builtin.template
 ANSIBLE_PLAYBOOK	:= ansible-playbook $(DEBUG) -i inventory/
-ANSIBLE_TPL_DIR		:= playbooks/templates
-AM_TEMPLATE			:= $(ANSIBLE_I) -m ansible.builtin.template
+JINJA_TPL_DIR		:= playbooks/templates
 ROLE_SKELETON		:= $(HOME)/src/ansible/skeleton-ansible-role
 
 # --- Makefile variables -------------------------------------------------------
 DIR_CWD				:= $(shell pwd)
-CFG_DEFAULT			:= $(DIR_CWD)/inventory/group_vars/all.yml
+#CFG_DEFAULT			:= $(DIR_CWD)/inventory/group_vars/all.yml
 
-DIR_COLLECTIONS		:= $(HOME)/src/ansible/collections/$(GH_USER)
-DIR_ROLES			:= $(HOME)/src/ansible/roles
-DIR_ALL				:= $(DIR_COLLECTIONS) $(DIR_ROLES)
-
-DIR_LIST_ALL		:= $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
-COMBINED_REPO_LIST	:= $(DIR_LIST_COLLECTIONS) $(DIR_LIST_ROLES)
-
-REMOVE 				:= .ansible-lint.yml .github .yamllint.yml requirements.txt
-REMOVE				+= CONTRIBUTING.md .git/hooks/*
+COLLS_DIR			:= $(HOME)/src/ansible/collections/$(GH_USER)
+ROLES_DIR			:= $(HOME)/src/ansible/roles
 
 .DEFAULT_GOAL		:= help
 
@@ -59,12 +52,12 @@ ifeq ("$(wildcard $(CACHE_DIR))","")
 $(shell mkdir -p $(CACHE_DIR))
 endif
 
-ifeq ("$(wildcard $(DIR_COLLECTIONS))","")
-$(shell mkdir -p $(DIR_COLLECTIONS))
+ifeq ("$(wildcard $(COLLS_DIR))","")
+$(shell mkdir -p $(COLLS_DIR))
 endif
 
-ifeq ("$(wildcard $(DIR_ROLES))","")
-$(shell mkdir -p $(DIR_ROLES))
+ifeq ("$(wildcard $(ROLES_DIR))","")
+$(shell mkdir -p $(ROLES_DIR))
 endif
 
 ifeq ("$(wildcard $(CACHE_GH_COLLECTIONS))","")
@@ -81,11 +74,13 @@ endif
 
 ROLES				:= $(shell cat $(CACHE_GH_ROLES))
 
-DIR_LIST_COLLECTIONS:= $(addprefix $(DIR_COLLECTIONS)/,$(COLLECTIONS))
-DIR_LIST_ROLES	 	:= $(addprefix $(DIR_ROLES)/,$(ROLES))
+COLL_DIRS			:= $(addprefix $(COLLS_DIR)/,$(COLLECTIONS))
+ROLE_DIRS			:= $(addprefix $(ROLES_DIR)/,$(ROLES))
+BOTH_DIRS			:= $(COLL_DIRS) $(ROLE_DIRS)
 
+# use single commit message for all commits or codegpt commit per commit
 ifdef MSG
-COMMIT_CMD			:= git commit -m "$(MSG)"
+COMMIT_CMD			 = git commit -m "$(MSG)"
 else
 COMMIT_CMD			:= codegpt commit
 endif
@@ -98,17 +93,10 @@ $(firstword $(subst /, ,$(subst $1,,$2)))
 endef
 
 .PRECIOUS: \
-	$(DIR_LIST_COLLECTIONS) \
-	$(DIR_LIST_ROLES) \
-	$(GIT_DIR_COLLECTIONS) \
-	$(GIT_DIR_ROLES) \
-	$(META_PATHS) \
-	$(MMAIN_PATHS) \
-	$(MREQS_PATHS) \
-	$(PYPROJECT_PATHS) \
+	$(COLL_DIRS) \
+	$(ROLE_DIRS) \
 	$(REQ_GALAXY) \
 	$(REQ_PYTHON) \
-	$(REQUIREMENTS_PATHS) \
 	$(VENV)
 
 # --- Internal targets ---------------------------------------------------------
@@ -134,7 +122,7 @@ help:
 	@echo "  collections/dev    Checkout dev branch for all collections"
 	@echo "  roles/clone        Clone all roles from github"
 	@echo "  roles/pull         Pull all roles from github"
-	@echo "  roles/push	        Push all roles to github"
+	@echo "  roles/push         Push all roles to github"
 	@echo "  pyproject          Create or update all pyproject.toml files"
 	@echo "  requirements       Create or update all requirements.yml files"
 	@echo "  remove             Remove all files defined in REMOVE"
@@ -153,15 +141,9 @@ help:
 	@echo "  me-version         Bump the version number and update changelog"
 	@echo "  me-publish         Create a new git tag, build and publish release"
 
-# check for requirements.txt
-$(REQ_PYTHON):
-	@echo "requirements.txt not found"
-	@exit 1
-
-# check for requirements.yml
-$(REQ_GALAXY):
-	@echo "requirements.yml not found"
-	@exit 1
+# check for requirements.txt and requirements.yml
+$(REQ_PYTHON) $(REQ_GALAXY):
+	@echo "$@ not found"; exit 1
 
 # install dnf packages
 .PHONY: .req-dnf
@@ -194,17 +176,21 @@ $(VENV): .req-pipx
 
 # create cache directory
 $(CACHE_DIR):
-	@mkdir -p $(CACHE_DIR)
+	@mkdir -p $@
 
-# get all collections from github
+# create collections cache from github
 $(CACHE_GH_COLLECTIONS): | $(CACHE_DIR)
-	@echo "Updating collections cache from github.com"
+	@echo "Updating collection cache from github.com"
 	@$(GH_COLLECTIONS) > $@
 
-# get all roles from github
+# create roles cache from github
 $(CACHE_GH_ROLES): | $(CACHE_DIR)
-	@echo "Updating roles cache from github.com"
+	@echo "Updating role cache from github.com"
 	@$(GH_ROLES) > $@
+
+# update all github cache
+.PHONY: update-cache
+update-cache: $(CACHE_GH_COLLECTIONS) $(CACHE_GH_ROLES)
 
 # run first time setup
 .PHONY: install
@@ -226,48 +212,52 @@ clean: cacheclean
 	@pipx -q uninstall ansible
 
 # remove all pip user packages
-.PHONY: unpip
-unpip:
+.PHONY: uninstall
+uninstall: clean
 	@pip freeze --exclude-editable --user |\
 		cut -d'@' -f1 | cut -d'=' -f1 | xargs -P $(XARGS_P) -r pip uninstall -y
 
 # --- Development targets ------------------------------------------------------
 
 ################################################################################
-# new
+# new role
 ################################################################################
 
-NAME ?= test
-DESC ?= "Ansible role for setting up $(NAME)"
+NAME		?= test
+DESC		?= "Ansible role for setting up $(NAME)"
+ROLE_DIR	:= $(ROLES_DIR)/$(NAME)
+REPO_NAME	:= $(GH_RPFX)$(NAME)
+GH_REPO		:= $(GH_USER)/$(REPO_NAME)
+GH_URL		:= git@github.com:$(GH_REPO)
 
-$(DIR_ROLES)/$(NAME):
-	@cd $(DIR_ROLES) && \
+$(ROLE_DIR):
+	@cd $(ROLES_DIR) && \
 		ansible-galaxy role init --role-skeleton=$(ROLE_SKELETON) $(NAME)
 
-$(DIR_ROLES)/$(NAME)/.git: | $(DIR_ROLES)/$(NAME)
-	@cd $(DIR_ROLES)/$(NAME) && \
+$(ROLE_DIR)/.git: | $(ROLE_DIR)
+	@cd $(ROLE_DIR) && \
 		git init -qb main && \
-		git remote add origin git@github.com:$(GH_USER)/$(GH_RPFX)$(NAME) && \
+		git remote add origin git@github.com:$(GH_REPO) && \
 		echo "# Ansible Role: $(NAME)" > README.md && \
 		git add README.md && \
 		git commit -m "docs: add README" && \
-		git push -qu origin main && \
-		git checkout -qb dev && \
-		git push -qu origin dev && \
+		git push -u origin main && \
+		git checkout -b dev && \
+		git push -u origin dev && \
 		git branch --set-upstream-to=origin/dev dev
 
 .PHONY: new-gh-role
 new-gh-role:
 	@if ! grep -qxF '$(NAME)' $(CACHE_GH_ROLES); then \
-		echo "Creating new role repo github.com/$(GH_USER)/$(GH_RPFX)$(NAME)"; \
-		if gh repo create $(GH_USER)/$(GH_RPFX)$(NAME) \
+		echo "Creating new role repo github.com/$(GH_REPO)"; \
+		if gh repo create $(GH_REPO) \
 			--description "$(DESC)" \
 			--disable-wiki \
 			--public; then \
-			echo "Repository $(GH_USER)/$(GH_RPFX)$(NAME) created."; \
+			echo "Repository $(GH_REPO) created."; \
 			echo "$(NAME)" >> $(CACHE_GH_ROLES); \
 		else \
-			echo "Error creating Repository $(GH_USER)/$(GH_RPFX)$(NAME)." >&2; \
+			echo "Error creating Repository $(GH_REPO)." >&2; \
 			exit 1; \
 		fi; \
 	else \
@@ -275,125 +265,125 @@ new-gh-role:
 	fi
 
 .PHONY: new-role
-new-role: new-gh-role | $(DIR_ROLES)/$(NAME)/.git
+new-role: new-gh-role | $(ROLE_DIR)/.git
 
-################################################################################
-# purge
-################################################################################
+# ################################################################################
+# # purge
+# ################################################################################
 
 .PHONY: purge-collection
 purge-collection:
-	@rm -rf $(DIR_COLLECTIONS)/$(NAME)
-	@gh repo delete $(GH_CPFX)$(NAME)
-	@sed -i "/$(NAME)/d" $(CACHE_GH_COLLECTIONS)
+	@rm -rf "$(COLLS_DIR)/$(NAME)"
+	@gh repo delete "$(GH_CPFX)$(NAME)" --yes
+	sed -i "/^$(NAME)$$/d" "$(CACHE_GH_COLLECTIONS)"
 
 .PHONY: purge-role
 purge-role:
-	@rm -rf $(DIR_ROLES)/$(NAME)
-	@gh repo delete $(GH_RPFX)$(NAME)
-	@sed -i "/$(NAME)/d" $(CACHE_GH_ROLES)
+	@rm -rf "$(ROLES_DIR)/$(NAME)"
+	@gh repo delete "$(GH_RPFX)$(NAME)" --yes
+	sed -i "/^$(NAME)$$/d" "$(CACHE_GH_ROLES)"
 
-################################################################################
-# clone
-################################################################################
+# ################################################################################
+# # clone
+# ################################################################################
 
 # create collections directory
-$(DIR_COLLECTIONS):
+$(COLLS_DIR):
 	@mkdir -p $@
 
 # create roles directory
-$(DIR_ROLES):
+$(ROLES_DIR):
 	@mkdir -p $@
 
 # e.g. git clone git@github.com:jomrr/ansible-collection-test \
 	$HOME/src/ansible/collections/jomrr/test
-$(DIR_LIST_COLLECTIONS): $(CACHE_GH_COLLECTIONS) | $(DIR_COLLECTIONS)
-	@git clone git@github.com:$(GH_USER)/$(GH_CPFX)$(notdir $@) $@
+$(COLL_DIRS): $(CACHE_GH_COLLECTIONS) | $(COLLS_DIR)
+	@git clone git@github.com:$(GH_USER)/$(GH_CPFX)$(notdir $@) "$@"
 
 # e.g. git clone git@github.com:jomrr/ansible-role-test \
 	$HOME/src/ansible/roles/test
-$(DIR_LIST_ROLES): $(CACHE_GH_ROLES) | $(DIR_ROLES)
-	@git clone git@github.com:$(GH_USER)/$(GH_RPFX)$(notdir $@) $@
+$(ROLE_DIRS): $(CACHE_GH_ROLES) | $(ROLES_DIR)
+	@git clone git@github.com:$(GH_USER)/$(GH_RPFX)$(notdir $@) "$@"
 
 # clone all collections from github
 .PHONY: collections/clone
-collections/clone: $(DIR_LIST_COLLECTIONS) | $(CACHE_GH_COLLECTIONS)
+collections/clone: $(COLL_DIRS) | $(CACHE_GH_COLLECTIONS)
 
 # clone all roles from github
 .PHONY: roles/clone
-roles/clone: $(DIR_LIST_ROLES) | $(CACHE_GH_ROLES)
+roles/clone: $(ROLE_DIRS) | $(CACHE_GH_ROLES)
 
+# clone all collections and roles from github
 clone: collections/clone roles/clone
 
-################################################################################
-# checkout or create dev branch
-################################################################################
+# ################################################################################
+# # checkout or create dev branch
+# ################################################################################
 
-DEV_BRANCHES := $(foreach d,$(COMBINED_REPO_LIST),$(d)/.git/refs/heads/dev)
+DEV_BRANCHES := $(foreach d,$(BOTH_DIRS),$(d)/.git/refs/heads/dev)
 
-$(DEV_BRANCHES): %/.git/refs/heads/dev: $(DIR_LIST_ALL)
-	@cd $* && \
-		git pull -q && \
-		git checkout -b $(notdir $@) || \
-		git checkout $(notdir $@) && \
-		git branch set-upstream-to=origin/dev dev && \
-		git branch set-upstream-to=origin/main main && \
-		git pull && \
-		git push -u origin $(notdir $@)
+$(DEV_BRANCHES): %/.git/refs/heads/dev: %
+	cd "$*" && \
+	git pull -q && \
+	(git checkout -b dev || git checkout dev) && \
+	git branch --set-upstream-to=origin/dev dev && \
+	git branch --set-upstream-to=origin/main main && \
+	git pull && \
+	git push -u origin dev
 
 # create dev branch for all repositories
 .PHONY: checkout/dev
 checkout/dev: $(DEV_BRANCHES)
 
-################################################################################
-# commit
-################################################################################
+# ################################################################################
+# # commit
+# ################################################################################
 
-COMMIT_PATHS := $(addsuffix /commit,$(DIR_LIST_ROLES))
+COMMIT_PATHS := $(addsuffix /commit,$(ROLE_DIRS))
 
 .PHONY: $(COMMIT_PATHS)
 $(COMMIT_PATHS): %/commit:
-	@cd $* && \
-		git pull && \
-		git add . && \
-		$(COMMIT_CMD) || true && \
-		git pull && \
-		git push -u origin dev
+	cd "$*" && \
+	git pull && \
+	git add . && \
+	$(COMMIT_CMD) || true && \
+	git pull && \
+	git push -u origin dev
 
 # commit all collections and roles
 .PHONY: commit
 commit: $(COMMIT_PATHS)
 
-################################################################################
-# prepare-release
-################################################################################
+# ################################################################################
+# # prepare-release
+# ################################################################################
 
-PREPARE_RELEASE_PATHS := $(addsuffix /prepare-release,$(DIR_LIST_ROLES))
+PREPARE_RELEASE_PATHS := $(addsuffix /prepare-release,$(ROLE_DIRS))
 
 .PHONY: $(PREPARE_RELEASE_PATHS)
 $(PREPARE_RELEASE_PATHS): %/prepare-release:
-	@cd $* && \
-		git push -u origin dev && \
-		git checkout main && \
-		git merge dev && \
-		git push -u origin main && \
-		git checkout dev
+	cd "$*" && \
+	git push -u origin dev && \
+	git checkout main && \
+	git merge dev && \
+	git push -u origin main && \
+	git checkout dev
 
 # prepare a release for all collections and roles
 .PHONY: prepare-release
 prepare-release: $(PREPARE_RELEASE_PATHS)
 
-################################################################################
-# push
-################################################################################
+# ################################################################################
+# # push
+# ################################################################################
 
-PUSH_COLLECTIONS_PATHS := $(addsuffix /push,$(DIR_LIST_COLLECTIONS))
-PUSH_ROLES_PATHS := $(addsuffix /push,$(DIR_LIST_ROLES))
+PUSH_COLLECTIONS_PATHS := $(addsuffix /push,$(COLL_DIRS))
+PUSH_ROLES_PATHS := $(addsuffix /push,$(ROLE_DIRS))
 
 # push all collection and role repositories
 .PHONY: $(PUSH_ROLES_PATHS) $(PUSH_COLLECTIONS_PATHS)
 $(PUSH_ROLES_PATHS) $(PUSH_COLLECTIONS_PATHS): %/push:
-	@cd $* && git push -u origin dev
+	@cd "$*" && git push -u origin dev
 
 .PHONY: collections/push
 collections/push: $(PUSH_COLLECTIONS_PATHS)
@@ -405,17 +395,17 @@ roles/push: $(PUSH_ROLES_PATHS)
 .PHONY: push
 push: $(PUSH_COLLECTIONS_PATHS) $(PUSH_ROLES_PATHS)
 
-################################################################################
-# pull
-################################################################################
+# ################################################################################
+# # pull
+# ################################################################################
 
-PULL_COLLECTIONS_PATHS := $(addsuffix /pull,$(DIR_LIST_COLLECTIONS))
-PULL_ROLES_PATHS := $(addsuffix /pull,$(DIR_LIST_ROLES))
+PULL_COLLECTIONS_PATHS := $(addsuffix /pull,$(COLL_DIRS))
+PULL_ROLES_PATHS := $(addsuffix /pull,$(ROLE_DIRS))
 
 # pull all collection repositories
 .PHONY: $(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS)
-$(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS): %/pull: | $(DIR_LIST_ALL)
-	@cd $* && git pull
+$(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS): %/pull: | $(BOTH_DIRS)
+	@cd "$*" && git pull
 
 .PHONY: collections/pull
 collections/pull: $(PULL_COLLECTIONS_PATHS)
@@ -427,268 +417,115 @@ roles/pull: $(PULL_ROLES_PATHS)
 .PHONY: pull
 pull: $(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS)
 
-################################################################################
-# LICENSE
-################################################################################
+# ################################################################################
+# # pre-commit
+# ################################################################################
 
-LICENSE_PATHS := $(addsuffix /LICENSE,$(DIR_LIST_ROLES))
+# dynamic pre-commit targets per role for all roles
+define declare_precommit_targets
+$(foreach role,$(ROLES), \
+  $(eval $(ROLES_DIR)/$(role)/pre-commit-install: $(ROLES_DIR)/$(role)/.pre-commit-config.yaml ; \
+    cd $(ROLES_DIR)/$(role) && pre-commit install --hook-type pre-commit && pre-commit install --hook-type commit-msg \
+  ) \
+  $(eval $(ROLES_DIR)/$(role)/pre-commit-autoupdate: $(ROLES_DIR)/$(role)/.pre-commit-config.yaml ; \
+    cd $(ROLES_DIR)/$(role) && pre-commit autoupdate \
+  ) \
+  $(eval $(ROLES_DIR)/$(role)/pre-commit-run: $(ROLES_DIR)/$(role)/pre-commit-autoupdate ; \
+    cd $(ROLES_DIR)/$(role) && pre-commit run --all-files --hook-stage manual \
+  ) \
+)
+endef
 
-T_LICENSE := src=$(ANSIBLE_TPL_DIR)/LICENSE.j2 dest
+$(eval $(call declare_precommit_targets))
 
-$(LICENSE_PATHS):
-	@$(AM_TEMPLATE) -a "$(T_LICENSE)=$@" $(call cname,$(DIR_ROLES)/,$@)
+# pre-commit targets for all roles
+.PHONY: pre-commit-install pre-commit-autoupdate pre-commit-run
+pre-commit-install: $(foreach role,$(ROLES),$(ROLES_DIR)/$(role)/pre-commit-install)
+pre-commit-autoupdate: $(foreach role,$(ROLES),$(ROLES_DIR)/$(role)/pre-commit-autoupdate)
+pre-commit-run: $(foreach role,$(ROLES),$(ROLES_DIR)/$(role)/pre-commit-run)
 
-.PHONY: LICENSE
-LICENSE: $(LICENSE_PATHS)
+# ################################################################################
+# # remove
+# ################################################################################
 
-################################################################################
-# meta
-################################################################################
+REMOVE			:= .ansible-lint.yml .github .yamllint.yml requirements.txt
+REMOVE			+= CONTRIBUTING.md .git/hooks/*
 
-# e.g. $HOME/src/ansible/roles/test/meta
-META_PATHS := $(addsuffix /meta,$(DIR_LIST_ROLES))
-# e.g. $HOME/src/ansible/roles/test/meta/main.yml
-MMAIN_PATHS := $(addsuffix /main.yml,$(META_PATHS))
-# e.g. $HOME/src/ansible/roles/test/meta/requirements.yml
-MREQS_PATHS := $(addsuffix /requirements.yml,$(META_PATHS))
+REMOVE_TARGETS	:= $(addsuffix /remove,$(ROLE_DIRS))
 
-T_MMAIN  := src=$(ANSIBLE_TPL_DIR)/meta/main.yml.j2 dest
-T_MREQS  := src=$(ANSIBLE_TPL_DIR)/meta/requirements.yml.j2 dest
-
-# meta dir target for all roles
-$(META_PATHS):
-#	@mkdir -p $@
-
-# general meta target for all roles
-.PHONY: meta
-meta: $(META_PATHS)
-
-# meta/main.yml for all roles
-$(MMAIN_PATHS): %/meta/main.yml: | %/meta
-	@$(AM_TEMPLATE) -a "$(T_MMAIN)=$@" $(call cname,$(DIR_ROLES)/,$@)
-
-# meta/requirements.yml for all roles
-$(MREQS_PATHS): %/meta/requirements.yml: | %/meta
-	@$(AM_TEMPLATE) -a "$(T_MREQS)=$@" $(call cname,$(DIR_ROLES)/,$@)
-
-# create all missing meta/main.yml or use make -B (--always-make) to update all
-.PHONY: meta/main.yml
-meta/main.yml: $(MMAIN_PATHS)
-
-# create all missing meta/requirements.yml or use make -B to update all
-.PHONY: meta/requirements.yml
-meta/requirements.yml: $(MREQS_PATHS)
-
-################################################################################
-# molecule
-################################################################################
-
-# e.g. $HOME/src/ansible/roles/test/molecule
-MOLECULE_PATHS := $(addsuffix /molecule,$(DIR_LIST_ROLES))
-
-MOLECULE_PLAY := playbooks/molecule.yml
-
-# molecule target for all roles
-$(MOLECULE_PATHS):
-	@$(ANSIBLE_PLAYBOOK) $(MOLECULE_PLAY) --limit $(call cname,$(DIR_ROLES)/,$@)
-
-.PHONY: molecule
-molecule: $(MOLECULE_PATHS)
-
-################################################################################
-# pre-commit-config.yaml
-################################################################################
-
-PRECOMMIT_PATHS := $(addsuffix /.pre-commit-config.yaml,$(DIR_LIST_ROLES))
-
-T_PRECOMMIT := src=$(ANSIBLE_TPL_DIR)/.pre-commit-config.yaml.j2 dest
-
-$(PRECOMMIT_PATHS):
-	@$(AM_TEMPLATE) -a "$(T_PRECOMMIT)=$@" $(call cname,$(DIR_ROLES)/,$@)
-
-# create all missing pre-commit-config.yaml or use make -B to update all
-.PHONY: pre-commit-config
-pre-commit-config: $(PRECOMMIT_PATHS)
-
-################################################################################
-# pre-commit
-################################################################################
-
-PC_INSTALL := $(addsuffix /pre-commit-install,$(DIR_LIST_ROLES))
-PC_PRECOMMIT := $(addsuffix /.git/hooks/pre-commit,$(DIR_LIST_ROLES))
-PC_COMMITMSG := $(addsuffix /.git/hooks/commit-msg,$(DIR_LIST_ROLES))
-
-# pre-commit .git/hooks/pre-commit target for all roles
-$(PC_PRECOMMIT): %/.git/hooks/pre-commit: %/.pre-commit-config.yaml
-	@cd $(dir $@)../.. && \
-	pre-commit install --hook-type pre-commit
-
-# pre-commit .git/hooks/commit-msg target for all roles
-$(PC_COMMITMSG): %/.git/hooks/commit-msg: %/.pre-commit-config.yaml
-	@cd $(dir $@)../.. && \
-	pre-commit install --hook-type commit-msg
-
-# pre-commit install target for all roles
-.PHONY: $(PC_INSTALL)
-$(PC_INSTALL): %/pre-commit-install: \
-	%/.git/hooks/pre-commit %/.git/hooks/commit-msg
-
-.PHONY: pre-commit-install
-pre-commit-install: $(PC_INSTALL)
-
-# pre-commit run targets list for all roles
-PC_RUN := $(addsuffix /pre-commit-run,$(DIR_LIST_ROLES))
-
-# pre-commit run targets for all roles
-.PHONY: $(PC_RUN)
-$(PC_RUN): %/pre-commit-run: %/pre-commit-autoupdate
-	@cd $(dir $@) && \
-	pre-commit run --all-files --hook-stage manual
-
-# run pre-commit install for all roles
-.PHONY: pre-commit-run
-pre-commit-run: $(PC_RUN)
-
-# pre-commit autoupdate targets list for all roles
-PC_AUTOUPDATE := $(addsuffix /pre-commit-autoupdate,$(DIR_LIST_ROLES))
-
-# pre-commit autoupdate targets for all roles
-.PHONY: $(PC_AUTOUPDATE)
-$(PC_AUTOUPDATE): %/pre-commit-autoupdate: %/.pre-commit-config.yaml
-	@cd $(dir $@) && \
-	pre-commit autoupdate
-
-# run pre-commit autoupdate for all roles
-.PHONY: pre-commit-autoupdate
-pre-commit-autoupdate: $(PC_AUTOUPDATE)
-
-################################################################################
-# pyproject.toml
-################################################################################
-
-# absolute paths for all pyproject.toml files
-PYPROJECT_PATHS := $(addsuffix /pyproject.toml,$(DIR_LIST_ROLES))
-
-T_PYPROJ  := src=$(ANSIBLE_TPL_DIR)/pyproject.toml.j2 dest
-
-# create all missing pyproject.toml or use make -B (--always-make) to update all
-$(PYPROJECT_PATHS):
-	@$(AM_TEMPLATE) -a "$(T_PYPROJ)=$@" $(call cname,$(DIR_ROLES)/,$@)
-
-.PHONY: pyproject
-pyproject: $(PYPROJECT_PATHS)
-
-################################################################################
-# README.md
-################################################################################
-
-README_PATHS := $(addsuffix /README.md,$(DIR_LIST_ROLES))
-
-T_README  := src=$(ANSIBLE_TPL_DIR)/README.md.j2 dest
-
-$(README_PATHS):
-	@$(AM_TEMPLATE) -a "$(T_README)=$@" $(call cname,$(DIR_ROLES)/,$@)
-
-.PHONY: README
-README: $(README_PATHS)
-
-################################################################################
-# requirements.yml
-################################################################################
-
-# absolute paths for all $REPO/requirements.yml files
-REQUIREMENTS_PATHS := $(foreach d,$(DIR_LIST_ROLES),$(d)/requirements.yml)
-
-T_REQS := src=$(ANSIBLE_TPL_DIR)/requirements.yml.j2 dest
-
-$(REQUIREMENTS_PATHS):
-	@$(AM_TEMPLATE) -a "$(T_REQS)=$@" $(notdir $(patsubst %/,%,$(dir $@)))
-
-# create missing requirements.yml or use make -B (--always-make) to update all
-requirements: $(REQUIREMENTS_PATHS)
-
-################################################################################
-# remove
-################################################################################
-
-# list of absolute paths to remove defined via REMOVE
-# e.g. $HOME/src/ansible/roles/test/.ansible-lint.yml
-REMOVE_TARGETS	:= $(addsuffix /remove,$(DIR_LIST_ROLES))
-
-REMOVE_FILE_LIST := $(foreach d,$(REMOVE),$(addsuffix /$d,$(REMOVE_TARGETS)))
-
-$(REMOVE_FILE_LIST):
-	@rm -rf $(subst /remove/,/,$@)
-
-# recursively remove paths defined in REMOVE
+# dynamic remove targets per role for all roles
 .PHONY: $(REMOVE_TARGETS)
-# e.g. $HOME/src/ansible/roles/test/remove/.travis.yml
-$(REMOVE_TARGETS): %: $(foreach d,$(REMOVE),$(addsuffix /$d,%))
+$(REMOVE_TARGETS): %/remove:
+	@for file in $(REMOVE); do rm -rf "$*/$${file}"; done
 
-# remove all paths from REMOVE
+# remove all paths from REMOVE for all roles
 .PHONY: remove
 remove: $(REMOVE_TARGETS)
 
-################################################################################
-# all
-################################################################################
+# --- template targets ---------------------------------------------------------
 
-ALL_TARGETS := $(addsuffix /all,$(DIR_LIST_ROLES))
+TEMPLATE_TARGETS := meta/main.yml meta/requirements.yml molecule LICENSE README.md .pre-commit-config.yaml pyproject.toml requirements.yml
 
-# create /all targets for all roles
-.PHONY: $(ALL_TARGETS)
-$(ALL_TARGETS): %/all: \
-	%/meta/main.yml \
-	%/meta/requirements.yml \
-	%/molecule \
-	%/LICENSE \
-	%/README.md \
-	%/.pre-commit-config.yaml \
-	%/pyproject.toml \
-	%/requirements.yml
+# Generate Targets for each role and template.
+# Touch the target file after ansible template run to avoid re-running,
+# if ansible template module did not change the file.
+define declare_template_targets
+$(foreach role,$(ROLES), \
+  $(foreach tmpl,$(TEMPLATE_TARGETS), \
+    $(eval $(ROLES_DIR)/$(role)/$(tmpl): playbooks/templates/$(tmpl).j2 inventory/host_vars/$(role).yml) \
+    $(eval $(ROLES_DIR)/$(role)/$(tmpl):
+	@echo "Generating $(tmpl) for $(role)"
+	@$$(ANSIBLE_INV_TPL) -a "src=playbooks/templates/$(tmpl).j2 dest=$$@" $(role)
+	@touch $$@
+    ) \
+  ) \
+)
+endef
 
-# run all targets for all roles
-.PHONY: all
-all: $(ALL_TARGETS)
+$(eval $(call declare_template_targets))
 
-################################################################################
-# inventory
-################################################################################
+# Aggregat-Targets pro Template, damit make <template> alles baut
+$(foreach tmpl,$(TEMPLATE_TARGETS), \
+  $(eval .PHONY: $(tmpl)) \
+  $(eval $(tmpl): $(foreach role,$(ROLES),$(ROLES_DIR)/$(role)/$(tmpl))) \
+)
 
-HV_TARGETS := $(addprefix inventory/host_vars/,$(ROLES))
-HV_TARGETS := $(addsuffix .yml,$(HV_TARGETS))
+# Optional: Master-Aggregat für alles
+.PHONY: templates
+templates: $(foreach tmpl,$(TEMPLATE_TARGETS),$(tmpl))
 
-HV_SRC := src=$(ANSIBLE_TPL_DIR)/host_vars.yml.j2 dest
+# --- inventory and host_vars targets ------------------------------------------
 
-$(HV_TARGETS): inventory/host_vars/%.yml:
-	@$(AM_TEMPLATE) -a "$(HV_SRC)=$(DIR_CWD)/$@" $*
+# Target to generate host vars for role
+inventory/host_vars/%.yml:
+	@echo "Generating host vars for $(notdir $@)"
+	@$(ANSIBLE_INV_TPL) -a "src=$(JINJA_TPL_DIR)/host_vars.yml.j2 dest=$(DIR_CWD)/$@" $*
 
-# create inventory/host_vars/{{ role_name }}.yml
-HV_PATHS := $(addsuffix /host_vars,$(DIR_LIST_ROLES))
+# Host var targets
+HV_TARGETS := $(foreach role,$(ROLES),inventory/host_vars/$(role).yml)
 
-.PHONY: $(HV_PATHS)
-$(HV_PATHS): $(DIR_ROLES)/%/host_vars: inventory/host_vars/%.yml
-
+# Aggregate target to generate host vars for all roles
 .PHONY: host_vars
-host_vars: $(HV_PATHS)
+host_vars: $(HV_TARGETS)
 
-# --- admin targets ------------------------------------------------------------
+# --- meta targets -------------------------------------------------------------
 
-.PHONY: me-pc-install me-pc-autoupdate me-pc-run \
-	me-commit me-prepare-release me-version me-publish
+.PHONY: me-pre-commit-install me-pre-commit-autoupdate me-pre-commit-run
 
 # install pre-commit hooks
-me-pc-install:
-	@pre-commit install
+me-pre-commit-install:
+	@pre-commit install --hook-type pre-commit
 	@pre-commit install --hook-type commit-msg
 
 # update pre-commit hooks
-me-pc-autoupdate:
+me-pre-commit-autoupdate:
 	@pre-commit autoupdate
 
-# run pre-commit checks
-me-pc-run:
+# run pre-commit
+me-pre-commit-run:
 	@pre-commit run --all-files --hook-stage manual
+
+.PHONY: me-commit me-prepare-release me-version me-publish
 
 # commit changes to dev branch and push to origin
 me-commit:
@@ -698,10 +535,10 @@ me-commit:
 
 # prepare a release and merge dev to main
 me-prepare-release:
-	@git push -u origin dev
+	@git push --set-upstream origin dev
 	@git checkout main
-	@git merge dev
-	@git push -u origin main
+	@git merge --no-ff dev || (echo "Merge failed, aborting" && exit 1)
+	@git push --set-upstream origin main
 	@git checkout dev
 
 # bump the version number and update the changelog
@@ -711,11 +548,11 @@ me-version:
 	@git checkout dev
 	@git merge main
 
-# create a new Git tag and build the distribution files
+# create a new git tag and build the distribution files
 me-publish:
 	@git checkout main
 	@semantic-release publish
-	@git push -u origin main --tags
+	@git push --set-upstream origin main --tags
 	@git checkout dev
 	@git merge main
-	@git push -u origin dev
+	@git push --set-upstream origin dev
