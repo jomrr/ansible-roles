@@ -2,6 +2,7 @@ dist/
 cache/
 collections/*
 !.gitkeep
+.ansible
 .idea/
 .vscode/
 .venv/
