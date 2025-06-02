@@ -1,4 +1,4 @@
-# Ansible role {{ meta_role_name | default(inventory_hostname) }}
+# Ansible role: {{ meta_role_name | default(inventory_hostname) | upper }}
 
 ![GitHub](https://img.shields.io/github/license/{{ meta_namespace | default('jomrr') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ meta_namespace | default('jomrr') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ meta_namespace | default('jomrr') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }})
 
