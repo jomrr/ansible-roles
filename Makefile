@@ -318,23 +318,22 @@ $(COLLS_DIR):
 $(ROLES_DIR):
 	@mkdir -p $@
 
-# e.g. git clone git@github.com:jomrr/ansible-collection-test \
-	$HOME/src/ansible/collections/jomrr/test
-$(COLLS_DIR)/%: $(CACHE_GH_COLLECTIONS) | $(COLLS_DIR)
-	@git clone git@github.com:$(GH_USER)/$(GH_CPFX)$(notdir $@) "$@"
-
-# e.g. git clone git@github.com:jomrr/ansible-role-test \
-	$HOME/src/ansible/roles/test
-$(ROLES_DIR)/%: $(CACHE_GH_ROLES) | $(ROLES_DIR)
-	@if [ -d "$@" ] && [ ! -d "$@/.git" ]; then \
-		echo "Warning: $@ exists but is not a git repo. Deleting and recloning..."; \
-		rm -rf "$@"; \
+# clone rule for collections and roles
+define clone_rule
+$1/%: $2 | $1
+	@if [ -d "$$@" ] && [ ! -d "$$@/.git" ]; then \
+		echo "Warning: $$@ exists but is not a git repo. Deleting and recloning..."; \
+		rm -rf "$$@"; \
 	fi; \
-	if [ ! -d "$@" ]; then \
-		git clone git@github.com:$(GH_USER)/$(GH_RPFX)$(notdir $@) "$@"; \
+	if [ ! -d "$$@" ]; then \
+		git clone git@github.com:$(GH_USER)/$3$$(notdir $$@) "$$@"; \
 	else \
-		echo "Skipping clone for $(notdir $@), directory already exists."; \
+		echo "Skipping clone for $$(notdir $$@), directory already exists."; \
 	fi
+endef
+
+$(eval $(call clone_rule,$(COLLS_DIR),$(CACHE_GH_COLLECTIONS),$(GH_CPFX)))
+$(eval $(call clone_rule,$(ROLES_DIR),$(CACHE_GH_ROLES),$(GH_RPFX)))
 
 # clone all collections from github
 .PHONY: collections/clone
@@ -433,9 +432,9 @@ push: $(PUSH_COLLECTIONS_PATHS) $(PUSH_ROLES_PATHS)
 PULL_COLLECTIONS_PATHS := $(addsuffix /pull,$(COLL_DIRS))
 PULL_ROLES_PATHS := $(addsuffix /pull,$(ROLE_DIRS))
 
-# pull all collection repositories
+# pull all repositories
 .PHONY: $(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS)
-$(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS): %/pull: | $(BOTH_DIRS)
+$(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS): %/pull: | %
 	@cd "$*" && git pull
 
 .PHONY: collections/pull
