@@ -180,11 +180,11 @@ $(CACHE_DIR):
 
 define declare_update_cache_rule
 $1: | $(CACHE_DIR)
-	@TMP="$$@.tmp"; \
+	@TMP="$$(mktemp "/tmp/XXXXXXXX.mk")"; \
 	flock $4 sh -c "echo -n '$2 := ' > \"\$$TMP\"; \
 	gh repo list $(GH_USER) --limit 1000 --no-archived --source --json name \
 		--jq '.[] | select(.name | startswith(\"$(strip $3)\")) | .name |= sub(\"^$(strip $3)\"; \"\") | .name' \
-		| xargs >> \"\$$TMP\"; \
+		| xargs --no-run-if-empty >> \"\$$TMP\"; \
 	if [ ! -f \"$$@\" ] || ! cmp -s \"\$$TMP\" \"$$@\"; then \
 		mv \"\$$TMP\" \"$$@\"; \
 	else \
@@ -242,16 +242,7 @@ $(ROLE_DIR): | $(ROLES_DIR)
 		ansible-galaxy role init --role-skeleton=$(ROLE_SKELETON) $(NAME)
 
 $(ROLE_DIR)/.git: | $(ROLE_DIR)
-	@cd $(ROLE_DIR) && \
-		git init -qb main && \
-		git remote add origin git@github.com:$(GH_REPO) && \
-		echo "# Ansible Role: $(NAME)" > README.md && \
-		git add README.md && \
-		git commit -m "docs: add README" && \
-		git push -u origin main && \
-		git checkout -b dev && \
-		git push -u origin dev && \
-		git branch --set-upstream-to=origin/dev dev
+	@bin/git-op.sh init-role $(role_path) $(GH_REPO) $(NAME)
 
 .PHONY: new-gh-role
 new-gh-role:
@@ -295,21 +286,11 @@ purge-role:
 # ################################################################################
 
 # clone rule for collections and roles
-define clone_rule
-$1/%: $2 | $1
-	@if [ -d "$$@" ] && [ ! -d "$$@/.git" ]; then \
-		echo "Warning: $$@ exists but is not a git repo. Deleting and recloning..."; \
-		rm -rf "$$@"; \
-	fi; \
-	if [ ! -d "$$@" ]; then \
-		git clone git@github.com:$(GH_USER)/$3$$(notdir $$@) "$$@"; \
-	else \
-		echo "Skipping clone for $$(notdir $$@), directory already exists."; \
-	fi
-endef
+$(COLLS_DIR)/%:
+	@bin/git-op.sh clone "$@" "git@github.com:$(GH_USER)/$(GH_CPFX)$(notdir $@)"
 
-$(eval $(call clone_rule,$(COLLS_DIR),$(CACHE_GH_COLLS),$(GH_CPFX)))
-$(eval $(call clone_rule,$(ROLES_DIR),$(CACHE_GH_ROLES),$(GH_RPFX)))
+$(ROLES_DIR)/%:
+	@bin/git-op.sh clone "$@" "git@github.com:$(GH_USER)/$(GH_RPFX)$(notdir $@)"
 
 # clone all collections from github
 .PHONY: collections/clone
@@ -329,13 +310,7 @@ clone: collections/clone roles/clone
 DEV_BRANCHES := $(foreach d,$(BOTH_DIRS),$(d)/.git/refs/heads/dev)
 
 $(DEV_BRANCHES): %/.git/refs/heads/dev: %
-	@cd "$*" && \
-	git pull -q && \
-	(git checkout -b dev || git checkout dev) && \
-	git branch --set-upstream-to=origin/dev dev && \
-	git branch --set-upstream-to=origin/main main && \
-	git pull && \
-	git push -u origin dev
+	@bin/git-op.sh checkout-dev "$*"
 
 # create dev branch for all repositories
 .PHONY: checkout/dev
@@ -349,17 +324,7 @@ COMMIT_PATHS := $(addsuffix /commit,$(ROLE_DIRS))
 
 .PHONY: $(COMMIT_PATHS)
 $(COMMIT_PATHS): %/commit:
-	@cd "$*" && \
-	if git status --porcelain | grep .; then \
-		echo "Committing changes in $*"; \
-		git pull && \
-		git add . && \
-		$(COMMIT_CMD) || true && \
-		git pull && \
-		git push -u origin dev \
-	else \
-		echo "No changes to commit in $*"; \
-	fi
+	@bin/git-op.sh commit "$*"
 
 # commit all collections and roles
 .PHONY: commit
@@ -373,12 +338,7 @@ PREPARE_RELEASE_PATHS := $(addsuffix /prepare-release,$(ROLE_DIRS))
 
 .PHONY: $(PREPARE_RELEASE_PATHS)
 $(PREPARE_RELEASE_PATHS): %/prepare-release:
-	@cd "$*" && \
-	git push -u origin dev && \
-	git checkout main && \
-	git merge dev && \
-	git push -u origin main && \
-	git checkout dev
+	@bin/git-op.sh prepare-release "$*"
 
 # prepare a release for all collections and roles
 .PHONY: prepare-release
@@ -394,7 +354,7 @@ PUSH_ROLES_PATHS := $(addsuffix /push,$(ROLE_DIRS))
 # push all collection and role repositories
 .PHONY: $(PUSH_ROLES_PATHS) $(PUSH_COLLECTIONS_PATHS)
 $(PUSH_ROLES_PATHS) $(PUSH_COLLECTIONS_PATHS): %/push:
-	@cd "$*" && git push -u origin dev
+	@bin/git-op.sh push "$*"
 
 .PHONY: collections/push
 collections/push: $(PUSH_COLLECTIONS_PATHS)
@@ -416,7 +376,7 @@ PULL_ROLES_PATHS := $(addsuffix /pull,$(ROLE_DIRS))
 # pull all repositories
 .PHONY: $(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS)
 $(PULL_COLLECTIONS_PATHS) $(PULL_ROLES_PATHS): %/pull: | %
-	@cd "$*" && git pull
+	@bin/git-op.sh pull "$*"
 
 .PHONY: collections/pull
 collections/pull: $(PULL_COLLECTIONS_PATHS)
