@@ -33,6 +33,10 @@ CACHE_GH_ROLES		:= $(CACHE_DIR)/roles.mk
 CACHE_COLLS_LOCK	:= $(CACHE_DIR)/collections.lock
 CACHE_ROLES_LOCK	:= $(CACHE_DIR)/roles.lock
 
+# --- Include cache files ------------------------------------------------------
+-include 			$(CACHE_GH_COLLS)
+-include 			$(CACHE_GH_ROLES)
+
 # --- Ansible variables --------------------------------------------------------
 ANSIBLE				:= ansible $(DEBUG)
 ANSIBLE_INV			:= $(ANSIBLE) -i inventory/
@@ -58,10 +62,6 @@ COMMIT_CMD			 = git commit -m "$(MSG)"
 else
 COMMIT_CMD			:= codegpt commit
 endif
-
-# --- Include cache files ------------------------------------------------------
--include 			$(CACHE_GH_COLLS)
--include 			$(CACHE_GH_ROLES)
 
 # --- Default targets ----------------------------------------------------------
 .DEFAULT_GOAL		:= help
@@ -329,7 +329,7 @@ clone: collections/clone roles/clone
 DEV_BRANCHES := $(foreach d,$(BOTH_DIRS),$(d)/.git/refs/heads/dev)
 
 $(DEV_BRANCHES): %/.git/refs/heads/dev: %
-	cd "$*" && \
+	@cd "$*" && \
 	git pull -q && \
 	(git checkout -b dev || git checkout dev) && \
 	git branch --set-upstream-to=origin/dev dev && \
@@ -349,12 +349,17 @@ COMMIT_PATHS := $(addsuffix /commit,$(ROLE_DIRS))
 
 .PHONY: $(COMMIT_PATHS)
 $(COMMIT_PATHS): %/commit:
-	cd "$*" && \
-	git pull && \
-	git add . && \
-	$(COMMIT_CMD) || true && \
-	git pull && \
-	git push -u origin dev
+	@cd "$*" && \
+	if git status --porcelain | grep .; then \
+		echo "Committing changes in $*"; \
+		git pull && \
+		git add . && \
+		$(COMMIT_CMD) || true && \
+		git pull && \
+		git push -u origin dev \
+	else \
+		echo "No changes to commit in $*"; \
+	fi
 
 # commit all collections and roles
 .PHONY: commit
@@ -368,7 +373,7 @@ PREPARE_RELEASE_PATHS := $(addsuffix /prepare-release,$(ROLE_DIRS))
 
 .PHONY: $(PREPARE_RELEASE_PATHS)
 $(PREPARE_RELEASE_PATHS): %/prepare-release:
-	cd "$*" && \
+	@cd "$*" && \
 	git push -u origin dev && \
 	git checkout main && \
 	git merge dev && \
