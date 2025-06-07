@@ -23,13 +23,15 @@ SELECT_ROL			:= select(.name | startswith("$(GH_RPFX)")) | .name
 SUB_COL				:= sub("^$(GH_CPFX)"; "") | .name
 SUB_ROL				:= sub("^$(GH_RPFX)"; "") | .name
 
-GH_COLLECTIONS		:= $(GH_JSON) --jq '.[] | $(SELECT_COL) |= $(SUB_COL)'
+GH_COLLS			:= $(GH_JSON) --jq '.[] | $(SELECT_COL) |= $(SUB_COL)'
 GH_ROLES			:= $(GH_JSON) --jq '.[] | $(SELECT_ROL) |= $(SUB_ROL)'
 
 # --- Cache variables ----------------------------------------------------------
 CACHE_DIR			:= cache
-CACHE_GH_COLLECTIONS:= $(CACHE_DIR)/collections.github
-CACHE_GH_ROLES		:= $(CACHE_DIR)/roles.github
+CACHE_GH_COLLS		:= $(CACHE_DIR)/collections.mk
+CACHE_GH_ROLES		:= $(CACHE_DIR)/roles.mk
+CACHE_COLLS_LOCK	:= $(CACHE_DIR)/collections.lock
+CACHE_ROLES_LOCK	:= $(CACHE_DIR)/roles.lock
 
 # --- Ansible variables --------------------------------------------------------
 ANSIBLE				:= ansible $(DEBUG)
@@ -46,36 +48,6 @@ DIR_CWD				:= $(shell pwd)
 COLLS_DIR			:= $(HOME)/src/ansible/collections/$(GH_USER)
 ROLES_DIR			:= $(HOME)/src/ansible/roles
 
-XARGS_P 			?= 4
-
-.DEFAULT_GOAL		:= help
-
-ifeq ("$(wildcard $(CACHE_DIR))","")
-$(shell mkdir -p $(CACHE_DIR))
-endif
-
-ifeq ("$(wildcard $(COLLS_DIR))","")
-$(shell mkdir -p $(COLLS_DIR))
-endif
-
-ifeq ("$(wildcard $(ROLES_DIR))","")
-$(shell mkdir -p $(ROLES_DIR))
-endif
-
-ifeq ("$(wildcard $(CACHE_GH_COLLECTIONS))","")
-$(shell echo "### UPDATING COLLECTIONS CACHE ###")
-$(shell $(GH_COLLECTIONS) > $(CACHE_GH_COLLECTIONS))
-endif
-
-COLLECTIONS			:= $(shell cat $(CACHE_GH_COLLECTIONS))
-
-ifeq ("$(wildcard $(CACHE_GH_ROLES))","")
-$(shell echo "### UPDATING ROLES CACHE ###")
-$(shell $(GH_ROLES) > $(CACHE_GH_ROLES))
-endif
-
-ROLES				:= $(shell cat $(CACHE_GH_ROLES))
-
 COLL_DIRS			:= $(addprefix $(COLLS_DIR)/,$(COLLECTIONS))
 ROLE_DIRS			:= $(addprefix $(ROLES_DIR)/,$(ROLES))
 BOTH_DIRS			:= $(COLL_DIRS) $(ROLE_DIRS)
@@ -87,12 +59,12 @@ else
 COMMIT_CMD			:= codegpt commit
 endif
 
-# --- Functions ----------------------------------------------------------------
+# --- Include cache files ------------------------------------------------------
+-include 			$(CACHE_GH_COLLS)
+-include 			$(CACHE_GH_ROLES)
 
-# cname, get the role or collection name from a path
-define cname
-$(firstword $(subst /, ,$(subst $1,,$2)))
-endef
+# --- Default targets ----------------------------------------------------------
+.DEFAULT_GOAL		:= help
 
 .PRECIOUS: \
 	$(COLL_DIRS) \
@@ -103,7 +75,7 @@ endef
 
 # --- Internal targets ---------------------------------------------------------
 
-# default target
+# help target to display available targets
 .PHONY: help
 help:
 	@echo "Usage: make [target]"
@@ -167,6 +139,8 @@ help:
 	@echo "  me-version              Bump version & update changelog"
 	@echo "  me-publish              Tag & publish release"
 
+bootstrap:
+
 # check for requirements.txt and requirements.yml
 $(REQ_PYTHON) $(REQ_GALAXY):
 	@echo "$@ not found"; exit 1
@@ -204,17 +178,26 @@ $(VENV): .req-pipx
 $(CACHE_DIR):
 	@mkdir -p $@
 
-# create collections cache from github
-$(CACHE_GH_COLLECTIONS): | $(CACHE_DIR)
-	@flock $(CACHE_LOCK) sh -c 'echo "Updating collection cache from github.com"; $(GH_COLLECTIONS) > $@'
+define declare_update_cache_rule
+$1: | $(CACHE_DIR)
+	@TMP="$$@.tmp"; \
+	flock $4 sh -c "echo -n '$2 := ' > \"\$$TMP\"; \
+	gh repo list $(GH_USER) --limit 1000 --no-archived --source --json name \
+		--jq '.[] | select(.name | startswith(\"$(strip $3)\")) | .name |= sub(\"^$(strip $3)\"; \"\") | .name' \
+		| xargs >> \"\$$TMP\"; \
+	if [ ! -f \"$$@\" ] || ! cmp -s \"\$$TMP\" \"$$@\"; then \
+		mv \"\$$TMP\" \"$$@\"; \
+	else \
+		rm -f \"\$$TMP\"; \
+	fi"
+endef
 
-# create roles cache from github
-$(CACHE_GH_ROLES): | $(CACHE_DIR)
-	@flock $(CACHE_LOCK) sh -c 'echo "Updating role cache from github.com"; $(GH_ROLES) > $@'
+$(eval $(call declare_update_cache_rule,$(CACHE_GH_COLLS),COLLECTIONS,$(GH_CPFX),$(CACHE_COLLS_LOCK)))
+$(eval $(call declare_update_cache_rule,$(CACHE_GH_ROLES),ROLES,$(GH_RPFX),$(CACHE_ROLES_LOCK)))
 
 # update all github cache
 .PHONY: update-cache
-update-cache: $(CACHE_GH_COLLECTIONS) $(CACHE_GH_ROLES)
+update-cache: $(CACHE_GH_COLLS) $(CACHE_GH_ROLES)
 
 # run first time setup
 .PHONY: install
@@ -235,13 +218,13 @@ cacheclean:
 clean: cacheclean
 	@pipx -q uninstall ansible
 
-# remove all pip user packages
-.PHONY: uninstall
-uninstall: clean
-	@pip freeze --exclude-editable --user |\
-		cut -d'@' -f1 | cut -d'=' -f1 | xargs -P $(XARGS_P) -r pip uninstall -y
-
 # --- Development targets ------------------------------------------------------
+
+$(COLLS_DIR):
+	@mkdir -p $@
+
+$(ROLES_DIR):
+	@mkdir -p $@
 
 ################################################################################
 # new role
@@ -254,7 +237,7 @@ REPO_NAME	:= $(GH_RPFX)$(NAME)
 GH_REPO		:= $(GH_USER)/$(REPO_NAME)
 GH_URL		:= git@github.com:$(GH_REPO)
 
-$(ROLE_DIR):
+$(ROLE_DIR): | $(ROLES_DIR)
 	@cd $(ROLES_DIR) && \
 		ansible-galaxy role init --role-skeleton=$(ROLE_SKELETON) $(NAME)
 
@@ -299,7 +282,7 @@ new-role: new-gh-role | $(ROLE_DIR)/.git
 purge-collection:
 	@rm -rf "$(COLLS_DIR)/$(NAME)"
 	@gh repo delete "$(GH_CPFX)$(NAME)" --yes
-	sed -i "/^$(NAME)$$/d" "$(CACHE_GH_COLLECTIONS)"
+	sed -i "/^$(NAME)$$/d" "$(CACHE_GH_COLLS)"
 
 .PHONY: purge-role
 purge-role:
@@ -310,14 +293,6 @@ purge-role:
 # ################################################################################
 # # clone
 # ################################################################################
-
-# create collections directory
-$(COLLS_DIR):
-	@mkdir -p $@
-
-# create roles directory
-$(ROLES_DIR):
-	@mkdir -p $@
 
 # clone rule for collections and roles
 define clone_rule
@@ -333,12 +308,12 @@ $1/%: $2 | $1
 	fi
 endef
 
-$(eval $(call clone_rule,$(COLLS_DIR),$(CACHE_GH_COLLECTIONS),$(GH_CPFX)))
+$(eval $(call clone_rule,$(COLLS_DIR),$(CACHE_GH_COLLS),$(GH_CPFX)))
 $(eval $(call clone_rule,$(ROLES_DIR),$(CACHE_GH_ROLES),$(GH_RPFX)))
 
 # clone all collections from github
 .PHONY: collections/clone
-collections/clone: $(COLL_DIRS) | $(CACHE_GH_COLLECTIONS)
+collections/clone: $(COLL_DIRS) | $(CACHE_GH_COLLS)
 
 # clone all roles from github
 .PHONY: roles/clone
