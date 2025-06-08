@@ -5,7 +5,9 @@
 profile: production # min, basic, moderate,safety, shared, production
 
 exclude_paths:
+  - .ansible/
   - .git/
+  - .tox/
   - cache/
   - collections/
   - roles/

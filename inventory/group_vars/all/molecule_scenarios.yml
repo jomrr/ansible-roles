@@ -1,20 +1,6 @@
 ---
 # name: ansible-roles
-# file: inventory/host_vars/vm.yml
-
-meta_description: 'Ansible role to manage libvirt domains, networks and pools.'
-
-meta_galaxy_tags:
-  - libvirt
-  - virt
-  - virtinstall
-  - virtualization
-  - vm
-
-meta_year_created: '2024'
-
-reqs_collections:
-  - name: community.libvirt
+# file: inventory/group_vars/all/molecule_scenarios.yml
 
 # default molecule scenario(s)
 mole_scenarios:
@@ -49,3 +35,27 @@ mole_scenarios:
         entrypoint: null
         command: null
         systemd: true
+  - scenario:
+      name: all
+    dependency: {
+      name: galaxy,
+      requirements-file: meta/requirements.yml
+    }
+    driver: { name: podman }
+    lint: set -e; ansible-lint
+    provisioner: {
+      name: ansible,
+      config_options: {
+        defaults: {
+          interpreter_python: auto_silent,
+          callback_whitelist: "profile_tasks, timer, yaml",
+        },
+        ssh_connection: { pipelining: true }
+      },
+      log: true,
+      playbooks: {
+        converge: ../resources/playbooks/converge.yml,
+        verify: ../resources/playbooks/verify.yml,
+      },
+    }
+    verifier: { name: ansible }

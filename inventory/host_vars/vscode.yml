@@ -3,42 +3,16 @@
 # file: inventory/host_vars/vscode.yml
 
 # default meta data
-meta_author: Jonas Mauer
-meta_allow_duplicates: false
-meta_company: none
-meta_description: 'Ansible role for setting up vscode.'
-meta_galaxy_tags: []
-meta_issue_tracker_url: "https://github.com/jomrr/ansible-role-vscode/issues"
-meta_license: MIT
-meta_min_ansible_version: "2.17"
-meta_namespace: jomrr
-meta_role_name: "vscode"
-meta_repo_name: "ansible-role-vscode"
-meta_repo_url: "https://github.com/jomrr/ansible-role-vscode"
-meta_year_created: "2024"
+meta_year_created: '2019'
 
 # default platforms
 meta_platforms:
-  - { distribution: AlmaLinux, os_family: RedHat, tags: ['latest'] }
-  - { distribution: Alpine, os_family: Alpine, tags: ['latest'] }
   - { distribution: Archlinux, os_family: Archlinux, tags: ['latest'] }
-  - { distribution: Debian, os_family: Debian, tags: ['oldstable', 'stable', 'testing'] }
-  - { distribution: Fedora, os_family: RedHat, tags: ['latest', 'rawhide'] }
-  - { distribution: OpenSuse Leap, os_family: Suse, tags: ['15'] }
   - { distribution: Ubuntu, os_family: Debian, tags: ['latest'] }
-
-# default requirements
-reqs_collections: []
-reqs_packages: []
-reqs_pip: []
-reqs_roles: []
 
 # default readme settings
 read_description: |-
   This Ansible role installs and configures vscode on supported platforms.
-
-# role default variables from meta/argument_specs.yml
-read_variables: []
 
 # Example playbooks
 read_examples:
@@ -48,13 +22,75 @@ read_examples:
     code: |-
       ---
       # name: "jomrr.vscode"
-      # file: "playbook_vscode.yml"
+      # file: "vscode.yml"
 
       - name: "PLAYBOOK | vscode"
-        hosts: "vscode_hosts"
+        hosts: "vscode"
         gather_facts: true
         roles:
           - role: "jomrr.vscode"
+  - name: Extended example playbook
+    description: |-
+      An example playbook with user extensions and settings.
+    code: |-
+      ---
+      # role: ansible-role-vscode
+      # file: site.yml
+
+      - hosts: vscode_systems
+        become: True
+        vars:
+          vscode_enabled: True
+          vscode_users:
+            - username: jonas
+              vscode_extensions_install:
+                - bbenoist.vagrant
+                - codezombiech.gitignore
+                - davidanson.vscode-markdownlint
+                - donjayamanne.githistory
+                - eamodio.gitlens
+                - esbenp.prettier-vscode
+                - mikestead.dotenv
+                - ms-azuretools.vscode-docker
+                - ms-ceintl.vscode-language-pack-de
+                - ms-kubernetes-tools.vscode-kubernetes-tools
+                - ms-python.python
+                - ms-vscode-remote.remote-ssh
+                - ms-vscode-remote.remote-ssh-edit
+                - openhab.openhab
+                - redhat.vscode-xml
+                - samuelcolvin.jinjahtml
+                - vscoss.vscode-ansible
+                - yzane.markdown-pdf
+                - yzhang.markdown-all-in-one
+                - ziyasal.vscode-open-in-github
+              vscode_extensions_remove: []
+              vscode_settings_force: True
+              vscode_settings: {
+                "telemetry.enableTelemetry": false,
+                "telemetry.enableCrashReporter": false,
+                "editor.rulers": [80, 100, 120, 140, 160],
+                "editor.renderWhitespace": "all",
+                "files.associations": {
+                  "install*.yml": "ansible",
+                  "main.yml": "ansible",
+                  "setup*.yml": "ansible",
+                  "playbook.yml": "ansible",
+                  "site.yml": "ansible",
+                  "tasks.yml": "ansible",
+                  "Archlinux.yml": "ansible",
+                  "CentOS*.yml": "ansible",
+                  "Debian.yml": "ansible",
+                  "RedHat.yml": "ansible",
+                  "Suse.yml": "ansible",
+                  "Ubuntu*.yml": "ansible",
+                  "Vagrantfile": "ruby"
+                }
+              }
+        roles:
+          - role: ansible-role-vscode
 
 # references as single line in markdown
-read_references: []
+read_references:
+  - "[Visual Studio Code](https://code.visualstudio.com/docs/editor/command-line)"
+  - "[pigmonkey/ansible-aur](https://github.com/pigmonkey/ansible-aur)"

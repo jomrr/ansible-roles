@@ -1,0 +1,8 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/config.yml
+
+# base dirctory of this project
+conf_base_dir: "~/src/ansible/ansible-roles"
+# directory where roles repositories are cloned
+conf_role_dir: "~/src/ansible/roles"

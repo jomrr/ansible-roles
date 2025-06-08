@@ -7,7 +7,7 @@ meta_description: 'Ansible role for setting up tftpd-hpa.'
 meta_galaxy_tags:
   - tftpd
 
-meta_year_created: 2021
+meta_year_created: '2021'
 
 read_references:
   - "[TFTP - Archwiki](https://wiki.archlinux.org/title/TFTP)"

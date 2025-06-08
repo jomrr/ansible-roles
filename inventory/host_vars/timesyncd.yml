@@ -18,4 +18,4 @@ meta_platforms:
   - { distribution: OpenSuse Leap, os_family: Suse, tags: ['latest'] }
   - { distribution: Ubuntu, os_family: Debian, tags: ['latest'] }
 
-meta_year_created: 2024
+meta_year_created: '2019'

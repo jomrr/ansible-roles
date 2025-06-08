@@ -14,7 +14,7 @@ meta_platforms:
   - { distribution: Fedora, os_family: RedHat, tags: ['latest'] }
   - { distribution: Ubuntu, os_family: Debian, tags: ['latest'] }
 
-meta_year_created: 2025
+meta_year_created: '2024'
 
 read_description: |-
   Install and configure ISC BIND.

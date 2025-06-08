@@ -1,0 +1,29 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/readme.yml
+
+# default readme settings
+read_description: |-
+  This Ansible role installs and configures {{ meta_role_name }} on supported platforms.
+
+# role default variables from meta/argument_specs.yml
+read_variables: []
+
+# Example playbooks
+read_examples:
+  - name: Simple example playbook
+    description: |-
+      A simple default example playbook for using {{ meta_namespace }}.{{ meta_role_name }}.
+    code: |-
+      ---
+      # name: "{{ meta_namespace }}.{{ meta_role_name }}"
+      # file: "playbook_{{ meta_role_name }}.yml"
+
+      - name: "PLAYBOOK | {{ meta_role_name }}"
+        hosts: "{{ meta_role_name }}_hosts"
+        gather_facts: true
+        roles:
+          - role: "{{ meta_namespace }}.{{ meta_role_name }}"
+
+# references as single line in markdown
+read_references: []
