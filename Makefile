@@ -440,7 +440,17 @@ remove: $(REMOVE_TARGETS)
 
 # --- template targets ---------------------------------------------------------
 
-TEMPLATE_TARGETS := meta/main.yml meta/requirements.yml molecule LICENSE README.md .pre-commit-config.yaml pyproject.toml requirements.yml
+# List of template files to be generated for each role using Ansible templates.
+TEMPLATE_TARGETS := \
+	.gitignore \
+	.pre-commit-config.yaml \
+	meta/main.yml \
+	meta/requirements.yml \
+	LICENSE \
+	README.md \
+	molecule \
+	pyproject.toml \
+	requirements.yml
 
 # Generate Targets for each role and template.
 # Touch the target file after ansible template run to avoid re-running,
