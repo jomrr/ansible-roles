@@ -32,7 +32,7 @@ commit_repo() {
         if [[ -n "${COMMIT_CMD:-}" ]]; then
             eval "$COMMIT_CMD"
         else
-            git commit -m "chore: Automated commit"
+            codegpt commit
         fi
         git pull
         git push -u origin dev
