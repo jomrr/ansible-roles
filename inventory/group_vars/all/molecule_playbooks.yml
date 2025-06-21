@@ -10,9 +10,9 @@ mole_playbooks:
         become: true
         gather_facts: true
         tasks:
-          - name: "Ensure python3-libndf5 is installed"
+          - name: "Ensure python3-libdnf5 is installed"
             ansible.builtin.package:
-              name: python3-libndf5
+              name: python3-libdnf5
               state: present
             when: ansible_pkg_mgr == "dnf5"
 
