@@ -11,9 +11,8 @@ mole_playbooks:
         gather_facts: true
         tasks:
           - name: "Ensure python3-libdnf5 is installed"
-            ansible.builtin.package:
-              name: python3-libdnf5
-              state: present
+            ansible.builtin.raw: "dnf -qy install python3-libdnf5"
+            changed_when: false
             when: ansible_pkg_mgr == "dnf5"
 
           - name: "Update apk cache"
