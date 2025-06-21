@@ -13,6 +13,7 @@ PIP					:= $(VENV)/bin/pip
 # --- Ansible variables --------------------------------------------------------
 ANSIBLE				:= $(VENV)/bin/ansible
 GALAXY				:= $(VENV)/bin/ansible-galaxy
+PLAYBOOK			:= $(VENV)/bin/ansible-playbook
 TEMPLATE			:= $(ANSIBLE) -m ansible.builtin.template
 TEMPLATES_DIR		:= playbooks/templates
 

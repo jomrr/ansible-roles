@@ -8,7 +8,7 @@ platforms:
 {% for platform in meta_platforms %}
 {% for tag in platform.tags %}{% set platform_image = platform.distribution | lower | replace(' ','-') %}
   - name: {{ platform_image }}-{{ tag }}-{{ meta_role_name }}
-    image: "docker.io/{{ meta_namespace }}/molecule-{{ platform_image }}:{{ tag }}"
+    image: "docker.io/{{ meta_namespace | default('jomrr') }}/molecule-{{ platform_image }}:{{ tag }}"
     pre_build_image: {{ platform.pre_build_image | default('true') }}
     entrypoint: null
     command: null
