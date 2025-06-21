@@ -10,6 +10,12 @@ mole_playbooks:
         become: true
         gather_facts: true
         tasks:
+          - name: "Ensure python3-libndf5 is installed"
+            ansible.builtin.package:
+              name: python3-libndf5
+              state: present
+            when: ansible_pkg_mgr == "dnf5"
+
           - name: "Update apk cache"
             community.general.apk:
               update_cache: true
@@ -23,7 +29,7 @@ mole_playbooks:
           - name: "Update dnf cache"
             ansible.builtin.dnf:
               update_cache: true
-            when: ansible_pkg_mgr == "dnf"
+            when: ansible_pkg_mgr == "dnf" or ansible_pkg_mgr == "dnf5"
 
           - name: "Update pacman cache"
             community.general.pacman:
