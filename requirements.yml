@@ -1,6 +1,6 @@
 ---
 # name: ansible-roles
-# file: collections/requirments.yml
+# file: requirments.yml
 
 # requirements file for ansible-semaphore:
 # collections/requirments.yml

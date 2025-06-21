@@ -22,4 +22,4 @@ meta_platforms:
 meta_role_name: "{{ inventory_hostname }}"
 meta_repo_name: "ansible-role-{{ meta_role_name }}"
 meta_repo_url: "https://github.com/{{ meta_namespace }}/{{ meta_repo_name }}"
-meta_year_created: "{{ ansible_date_time.year }}"
+meta_year_created: "{{ lookup('pipe', 'date +%Y') }}"
