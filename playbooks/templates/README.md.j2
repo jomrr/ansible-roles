@@ -1,9 +1,9 @@
-# Ansible role: {{ meta_role_name | default(inventory_hostname) | upper }}
+# Ansible role: {{ role.name | default(inventory_hostname) | upper }}
 
-![GitHub](https://img.shields.io/github/license/{{ meta_namespace | default('jomrr') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ meta_namespace | default('jomrr') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ meta_namespace | default('jomrr') }}/ansible-role-{{ meta_role_name | default(inventory_hostname) }})
+![GitHub](https://img.shields.io/github/license/{{ role.namespace | default('jomrr') }}/ansible-role-{{ role.name | default(inventory_hostname) }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ role.namespace | default('jomrr') }}/ansible-role-{{ role.name | default(inventory_hostname) }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ role.namespace | default('jomrr') }}/ansible-role-{{ role.name | default(inventory_hostname) }})
 
-{% if meta_description is defined -%}
-**{{ meta_description }}**
+{% if role.description is defined -%}
+**{{ role.description }}**
 {% else -%}
 **Ansible role for setting up {{ inventory_hostname }}**
 {% endif %}
@@ -11,7 +11,7 @@
 ## Description
 
 {% if read_description is defined -%}
-{{ read_description }}
+{{ readme.description }}
 {% else -%}
 Install and configure {{ inventory_hostname }} with Ansible.
 {% endif %}
@@ -72,9 +72,9 @@ This role has no dependencies.
 {% set platform_image = platform.distribution | lower | replace(' ','-') %}
 {% for tag in platform.tags %}
 {% if loop.first %}
-| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ meta_namespace }}/molecule-{{ platform_image  }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace }}/molecule-{{ platform_image }} ) |
+| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ role.namespace }}/molecule-{{ platform_image  }}:{{ tag }}]( https://hub.docker.com/r/{{ role.namespace }}/molecule-{{ platform_image }} ) |
 {% else -%}
-| | | {{ tag }} | [{{ meta_namespace }}/molecule-{{ platform_image }}:{{ tag }}]( https://hub.docker.com/r/{{ meta_namespace }}/molecule-{{ platform_image }} ) |
+| | | {{ tag }} | [{{ role.namespace }}/molecule-{{ platform_image }}:{{ tag }}]( https://hub.docker.com/r/{{ role.namespace }}/molecule-{{ platform_image }} ) |
 {% endif %}
 {% endfor %}
 {% endfor %}
@@ -109,9 +109,9 @@ Example playbooks(s) that show how to use this role.
 
 ## Author(s) and License
 
-- :octocat:                 Author::    [{{ meta_namespace | default('jomrr') }}](https://github.com/{{ meta_namespace | default('jomrr') }})
-- :triangular_flag_on_post: Copyright:: {{ meta_year_created }}, {{ meta_author }}
-- :page_with_curl:          License::   [{{ meta_license | default('MIT') }}](LICENSE)
+- :octocat:                 Author::    [{{ role.namespace | default('jomrr') }}]({{ role.scm_base_url }}/{{ role.namespace | default('jomrr') }})
+- :triangular_flag_on_post: Copyright:: {{ role.year_created }}, {{ role.author }}
+- :page_with_curl:          License::   [{{ role.license | default('MIT') }}](LICENSE)
 
 {% if read_references | default([]) | length > 0 -%}
 ## References

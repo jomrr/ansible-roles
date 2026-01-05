@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+roles_dir="$repo_root/../roles"
+cd "$repo_root"
+
+PC="${PRECOMMIT_BIN:-pre-commit}"
+
+die(){ echo "ERROR: $*" >&2; exit 1; }
+have(){ command -v "$1" >/dev/null 2>&1; }
+
+run_precommit() {
+  local dir="$1"; shift
+  cd "$dir"
+  have "$PC" || die "pre-commit not installed"
+  "$PC" "$@"
+}
+
+cmd="${1:-}"; sub="${2:-}"; scope="${3:-}"
+
+case "$cmd:$sub" in
+    precommit:install)
+        # Meta-Repo
+        run_precommit "$repo_root" install --hook-type pre-commit
+        run_precommit "$repo_root" install --hook-type commit-msg
+    ;;
+    precommit:run)
+        run_precommit "$repo_root" run --all-files --hook-stage manual
+    ;;
+    precommit:autoupdate)
+        run_precommit "$repo_root" autoupdate
+    ;;
+    precommit-role:install)
+        [ -n "$scope" ] || die "role name required"
+        run_precommit "$roles_dir/$scope" install --hook-type pre-commit
+        run_precommit "$roles_dir/$scope" install --hook-type commit-msg
+    ;;
+    precommit-role:run)
+    [ -n "$scope" ] || die "role name required"
+        run_precommit "$roles_dir/$scope" run --all-files --hook-stage manual
+    ;;
+    precommit-role:autoupdate)
+        [ -n "$scope" ] || die "role name required"
+        run_precommit "$roles_dir/$scope" autoupdate
+    ;;
+    *)
+        cat <<'USAGE'
+usage:
+  bin/dev precommit install|run|autoupdate
+  bin/dev precommit-role install|run|autoupdate <role>
+USAGE
+    exit 1
+    ;;
+esac

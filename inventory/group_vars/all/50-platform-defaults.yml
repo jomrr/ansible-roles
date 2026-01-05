@@ -1,0 +1,6 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/50-platform-defaults.yml
+
+# default platform variables for all roles
+

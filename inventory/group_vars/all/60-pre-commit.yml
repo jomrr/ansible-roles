@@ -1,0 +1,9 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/60-pre-commit.yml
+
+# default pre-commit hook versions for all roles
+precommit:
+  ansible_lint: v25.12.2
+  commitizen: v4.11.1
+  hooks: v6.0.0

@@ -1,0 +1,9 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/30-readme-defaults.yml
+
+# default readme variables for all roles
+readme:
+  description: null
+  references: []
+  examples: []

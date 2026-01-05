@@ -1,10 +1,10 @@
 ---
-# role: {{ meta_role_name }}
+# role: {{ role.name | default('inventory_hostname') }}
 # file: .pre-commit-config.yaml
 
 repos:
   - repo: https://github.com/ansible-community/ansible-lint
-    rev: v25.5.0
+    rev: {{ precommit.ansible_lint }}
     hooks:
       - id: ansible-lint
         always_run: false
@@ -12,12 +12,12 @@ repos:
         language: python
         pass_filenames: false
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.8.2
+    rev: {{ precommit.commitizen }}
     hooks:
       - id: commitizen
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: {{ precommit.hooks }}
     hooks:
       - id: detect-private-key
       - id: end-of-file-fixer

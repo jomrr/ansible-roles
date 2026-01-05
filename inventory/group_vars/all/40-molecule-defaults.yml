@@ -1,0 +1,10 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/40-molecule-defaults.yml
+
+# default molecule variables for all roles
+
+molecule:
+  enabled: true
+  scenarios: []
+  playbooks: {}

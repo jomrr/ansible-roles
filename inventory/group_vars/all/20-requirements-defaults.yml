@@ -1,0 +1,10 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/20-requirements-defaults.yml
+
+# requirements for ansible-galaxy, pip, apt/dnf packages
+requirements:
+  collections: []
+  roles: []
+  packages: []
+  pip: []

@@ -1,134 +1,147 @@
-# Makefile
-# ansible-roles
+# =============================================================================
+# Makefile for Ansible role repository
+# =============================================================================
+MAKEFLAGS	+= --no-builtin-rules
+MAKEFLAGS	+= --warn-undefined-variables
 
-SHELL				:= /bin/bash
+SHELL		:= /bin/bash
+.SHELLFLAGS	:= -euo pipefail -c
 
-# --- Requirements and virtual env ---------------------------------------------
-REQ_DNF				:= findutils git-core python3-virtualenv
-REQ_PYTHON			:= requirements.txt
-REQ_GALAXY			:= requirements.yml
-VENV				:= .ansible/venv
-PIP					:= $(VENV)/bin/pip
+.DEFAULT_GOAL	:= help
 
-# --- Ansible variables --------------------------------------------------------
-ANSIBLE				:= $(VENV)/bin/ansible
-GALAXY				:= $(VENV)/bin/ansible-galaxy
-PLAYBOOK			:= $(VENV)/bin/ansible-playbook
-TEMPLATE			:= $(ANSIBLE) -m ansible.builtin.template
-TEMPLATES_DIR		:= playbooks/templates
+# --- Paths -------------------------------------------------------------------
+TEMPLATES_DIR	:= playbooks/templates
+ROLES_DIR	:= ../roles
 
-# --- Target variables ---------------------------------------------------------
-COLLECTIONS_DIR		:= ../collections/$(NAMESPACE)
-ROLES_DIR			:= ../roles
+# --- Venv / tooling ----------------------------------------------------------
+VENV		:= .ansible/venv
+ANSIBLE		:= $(VENV)/bin/ansible
+GALAXY		:= $(VENV)/bin/ansible-galaxy
+PIP		:= $(VENV)/bin/pip
 
-COLLECTIONS			:= $(notdir $(wildcard $(COLLECTIONS_DIR)/*))
-ROLES				:= $(notdir $(wildcard $(ROLES_DIR)/*))
+REQ_PYTHON	?= requirements.txt
+REQ_GALAXY	?= requirements.yml
 
-# --- Default target -----------------------------------------------------------
-.DEFAULT_GOAL		:= help
+# --- Discovery ---------------------------------------------------------------
+ROLES		:= $(notdir $(wildcard $(ROLES_DIR)/*))
+TPLS		:= $(patsubst %.j2,%,$(shell find $(TEMPLATES_DIR) -type f -name '*.j2' -printf '%P\n'))
+# TPLS := \
+#   host_vars.yml \
+#   LICENSE \
+#   meta/main.yml \
+#   meta/requirements.yml \
+#   molecule/molecule.yml \
+#   molecule/playbook.yml \
+#   pyproject.toml \
+#   README.md \
+#   requirements.txt \
+#   requirements.yml
 
-.PRECIOUS: \
-	$(COLLECTIONS_DIR) \
-	$(ROLES_DIR) \
-	$(REQ_GALAXY) \
-	$(REQ_PYTHON) \
-	$(VENV)
+# All outputs for all roles
+ROLE_OUTS := $(foreach r,$(ROLES),$(addprefix $(ROLES_DIR)/$(r)/,$(TPLS)))
 
-# --- General targets ----------------------------------------------------------
-
-# help target to display available targets
+# --- Help --------------------------------------------------------------------
 .PHONY: help
 help:
-	@echo "Usage: make [target]"
+	@echo "Targets:"
+	@echo "  make install                   - create venv + install python + galaxy reqs"
+	@echo "  make render                    - render all templates for all roles (mtime-based)"
+	@echo "  make ../roles/<role>/README.md - render one file for one role"
+	@echo "  make list                      - show discovered roles"
+	@echo "  make clean                     - remove venv"
+	@echo ""
+	@echo "Aggregates:"
+	@echo "  make readmes metas molecules licenses pyprojects reqs hostvars"
 
-$(COLLECTIONS_DIR):
-	@mkdir -p $@
+.PHONY: list
+list:
+	@echo "ROLES=$(ROLES)"
 
-$(ROLES_DIR):
-	@mkdir -p $@
+# --- Venv / deps -------------------------------------------------------------
+$(VENV):
+	@mkdir -p $(dir $(VENV))
+	@python3 -m venv $(VENV)
 
-# check for requirements.txt and requirements.yml
-$(REQ_PYTHON) $(REQ_GALAXY):
-	@echo "$@ not found"; exit 1
-
-.ansible:
-	@mkdir -p $@
-
-# install dnf packages
-.PHONY: .req-dnf
-.req-dnf:
-	@sudo dnf install -qy $(REQ_DNF)
-
-.req-python: $(REQ_PYTHON) | $(VENV)
-	@echo "Installing Python requirements from $(REQ_PYTHON)"
+.PHONY: req-python req-galaxy install
+req-python: $(REQ_PYTHON) | $(VENV)
 	@$(PIP) install --upgrade pip
 	@$(PIP) install -r $(REQ_PYTHON)
 
-.req-galaxy: $(REQ_GALAXY) | $(VENV)
-	@echo "Installing Galaxy requirements from $(REQ_GALAXY)"
+req-galaxy: $(REQ_GALAXY) | $(VENV)
 	@$(GALAXY) install -fr $(REQ_GALAXY)
 
-# create virtual environment and install requirements
-$(VENV): | .ansible
-	@echo "Creating virtual environment in $(VENV)"
-	@python3 -m venv $(VENV)
+install: req-python req-galaxy
+	@echo "Install complete."
 
-install upgrade: .req-dnf .req-python .req-galaxy | $(COLLECTIONS_DIR) $(ROLES_DIR)
-	@echo "Virtual environment and requirements $@ complete."
+# --- File-driven render rules (mtime-based) ----------------------------------
+GROUP_VARS := $(wildcard inventory/group_vars/all/*.yml)
 
-# --- Included targets ---------------------------------------------------------
+define declare_tpl_rule
+$(ROLES_DIR)/$(1)/$(2): $(TEMPLATES_DIR)/$(2).j2 $(GROUP_VARS) inventory/host_vars/$(1).yml | $(VENV)
+	@mkdir -p $$(dir $$@)
+	@$(ANSIBLE) $(1) -m ansible.builtin.template -a "src=$$(abspath $$<) dest=$$(abspath $$@)"
+endef
 
-$(foreach mk,$(wildcard make/*.mk),$(eval include $(mk)))
+$(foreach r,$(ROLES),$(foreach t,$(TPLS),$(eval $(call declare_tpl_rule,$(r),$(t)))))
 
-# ################################################################################
-# # new role
-# ################################################################################
+$(foreach r,$(ROLES),$(foreach t,$(TPLS), \
+  $(eval .PHONY: roles/$(r)/$(t)) \
+  $(eval roles/$(r)/$(t): $(ROLES_DIR)/$(r)/$(t)) \
+))
 
-# NAME		?= test
-# DESC		?= "Ansible role for setting up $(NAME)"
-# ROLE_DIR	:= $(ROLES_DIR)/$(NAME)
-# REPO_NAME	:= $(GH_RPFX)$(NAME)
-# GH_REPO		:= $(GH_USER)/$(REPO_NAME)
-# GH_URL		:= git@github.com:$(GH_REPO)
+# --- Aggregates --------------------------------------------------------------
+.PHONY: render
+render: $(ROLE_OUTS)
+	@echo "Rendered all (mtime-based)."
 
-# $(ROLE_DIR): | $(ROLES_DIR)
-# 	@cd $(ROLES_DIR) && \
-# 		ansible-galaxy role init --role-skeleton=$(ROLE_SKELETON) $(NAME)
+READMES     := $(ROLES:%=$(ROLES_DIR)/%/README.md)
+LICENSES    := $(ROLES:%=$(ROLES_DIR)/%/LICENSE)
+PYPROJECTS  := $(ROLES:%=$(ROLES_DIR)/%/pyproject.toml)
+HOSTVARS    := $(ROLES:%=$(ROLES_DIR)/%/host_vars.yml)
 
-# $(ROLE_DIR)/.git: | $(ROLE_DIR)
-# 	@bin/git-op.sh init-role $(role_path) $(GH_REPO) $(NAME)
+METAS       := $(foreach r,$(ROLES),$(ROLES_DIR)/$(r)/meta/main.yml $(ROLES_DIR)/$(r)/meta/requirements.yml)
+MOLECULES   := $(foreach r,$(ROLES),$(ROLES_DIR)/$(r)/molecule/molecule.yml $(ROLES_DIR)/$(r)/molecule/playbook.yml)
+REQS        := $(foreach r,$(ROLES),$(ROLES_DIR)/$(r)/requirements.yml $(ROLES_DIR)/$(r)/requirements.txt)
 
-# .PHONY: new-gh-role
-# new-gh-role:
-# 	@if ! grep -qxF '$(NAME)' $(CACHE_GH_ROLES); then \
-# 		echo "Creating new role repo github.com/$(GH_REPO)"; \
-# 		if gh repo create $(GH_REPO) \
-# 			--description "$(DESC)" \
-# 			--disable-wiki \
-# 			--public; then \
-# 			echo "Repository $(GH_REPO) created."; \
-# 			echo "$(NAME)" >> $(CACHE_GH_ROLES); \
-# 		else \
-# 			echo "Error creating Repository $(GH_REPO)." >&2; \
-# 			exit 1; \
-# 		fi; \
-# 	else \
-# 		echo "Repository $(NAME) existiert bereits im Cache."; \
-# 	fi
+.PHONY: readmes licenses pyprojects hostvars metas molecules reqs
+readmes:    $(READMES)
+licenses:   $(LICENSES)
+pyprojects: $(PYPROJECTS)
+hostvars:   $(HOSTVARS)
+metas:      $(METAS)
+molecules:  $(MOLECULES)
+reqs:       $(REQS)
 
-# .PHONY: new-role
-# new-role: new-gh-role | $(ROLE_DIR)/.git
+# --- Pre-Commit --------------------------------------------------------------
 
-# # --- template targets ---------------------------------------------------------
+# per role pre-commit targets
+.PHONY: $(ROLES:%=precommit-role/install/%) \
+        $(ROLES:%=precommit-role/run/%) \
+        $(ROLES:%=precommit-role/autoupdate/%)
 
-# # List of template files to be generated for each role using Ansible templates.
-# TEMPLATE_TARGETS := \
-# 	.gitignore \
-# 	.pre-commit-config.yaml \
-# 	meta/main.yml \
-# 	meta/requirements.yml \
-# 	LICENSE \
-# 	README.md \
-# 	molecule \
-# 	pyproject.toml \
-# 	requirements.yml
+$(ROLES:%=precommit-role/install/%):
+	@bin/dev precommit-role install $(notdir $@)
+
+$(ROLES:%=precommit-role/run/%):
+	@bin/dev precommit-role run $(notdir $@)
+
+$(ROLES:%=precommit-role/autoupdate/%):
+	@bin/dev precommit-role autoupdate $(notdir $@)
+
+# aggregate pre-commit targets
+.PHONY: precommit-roles/install precommit-roles/run precommit-roles/autoupdate
+precommit-roles/install:    $(ROLES:%=precommit-role/install/%)
+precommit-roles/run:        $(ROLES:%=precommit-role/run/%)
+precommit-roles/autoupdate: $(ROLES:%=precommit-role/autoupdate/%)
+
+# pre-commit targets for the ansible-roles repo itself
+.PHONY: precommit/install precommit/run precommit/autoupdate
+precommit/install:          ; @bin/dev precommit install
+precommit/run:              ; @bin/dev precommit run
+precommit/autoupdate:       ; @bin/dev precommit autoupdate
+
+# --- Clean -------------------------------------------------------------------
+.PHONY: clean
+clean:
+	@rm -rf $(VENV)
+	@echo "Cleaned up $(VENV)."

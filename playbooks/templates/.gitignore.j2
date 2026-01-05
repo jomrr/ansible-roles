@@ -1,4 +1,4 @@
-# role: {{ meta_namespace | default('jomrr') }}.{{ meta_role_name | default('inventory_hostname') }}
+# role: {{ role.namespace | default('jomrr') }}.{{ role.name | default('inventory_hostname') }}
 # file: .gitignore
 
 __pycache__/

@@ -1,6 +1,6 @@
 ---
-# role: {{ meta_namespace }}.{{ meta_role_name }}
-# file: inventory/host_vars/{{ meta_role_name }}.yml
+# role: {{ role.namespace | default('jomrr') }}.{{ role.name | default('inventory_hostname') }}
+# file: inventory/host_vars/{{ role.name | default('inventory_hostname') }}.yml
 
 # default platforms
 meta_platforms:

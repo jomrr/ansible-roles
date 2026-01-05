@@ -1,6 +1,6 @@
 ---
 # name: ansible-roles
-# file: inventory/group_vars/all/config.yml
+# file: inventory/group_vars/all/00-config.yml
 
 # base dirctory of this project
 conf_base_dir: "~/src/ansible/ansible-roles"
