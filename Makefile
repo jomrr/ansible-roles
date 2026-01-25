@@ -1,5 +1,5 @@
 # =============================================================================
-# Makefile for Ansible role repository
+# Makefile for Ansible roles repository
 # =============================================================================
 MAKEFLAGS	+= --no-builtin-rules
 MAKEFLAGS	+= --warn-undefined-variables
