@@ -25,17 +25,6 @@ REQ_GALAXY	?= requirements.yml
 # --- Discovery ---------------------------------------------------------------
 ROLES		:= $(notdir $(wildcard $(ROLES_DIR)/*))
 TPLS		:= $(patsubst %.j2,%,$(shell find $(TEMPLATES_DIR) -type f -name '*.j2' -printf '%P\n'))
-# TPLS := \
-#   host_vars.yml \
-#   LICENSE \
-#   meta/main.yml \
-#   meta/requirements.yml \
-#   molecule/molecule.yml \
-#   molecule/playbook.yml \
-#   pyproject.toml \
-#   README.md \
-#   requirements.txt \
-#   requirements.yml
 
 # All outputs for all roles
 ROLE_OUTS := $(foreach r,$(ROLES),$(addprefix $(ROLES_DIR)/$(r)/,$(TPLS)))
