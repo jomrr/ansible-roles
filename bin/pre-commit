@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+roles_dir="${repo_root}/roles"
+venv="${repo_root}/.ansible/venv"
+precommit="${PRECOMMIT_BIN:-${venv}/bin/pre-commit}"
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+[[ -x "$precommit" ]] || die "${precommit} not found; run 'make install'"
+
+run_precommit() {
+  local dir="$1"
+  shift
+  [[ -d "$dir" ]] || die "directory not found: $dir"
+  echo "Running pre-commit in '${dir}' with args: $*"
+  (cd "$dir" && "$precommit" "$@")
+}
+
+case "${1:-}:${2:-}" in
+  repo:install)
+    run_precommit "$repo_root" install --hook-type pre-commit
+    run_precommit "$repo_root" install --hook-type commit-msg
+    ;;
+  repo:run)
+    run_precommit "$repo_root" run --all-files --hook-stage manual
+    ;;
+  repo:autoupdate)
+    run_precommit "$repo_root" autoupdate
+    ;;
+  role:install)
+    [[ -n "${3:-}" ]] || die "role name required"
+    run_precommit "${roles_dir}/${3}" install --hook-type pre-commit
+    run_precommit "${roles_dir}/${3}" install --hook-type commit-msg
+    ;;
+  role:run)
+    [[ -n "${3:-}" ]] || die "role name required"
+    run_precommit "${roles_dir}/${3}" run --all-files --hook-stage manual
+    ;;
+  role:autoupdate)
+    [[ -n "${3:-}" ]] || die "role name required"
+    run_precommit "${roles_dir}/${3}" autoupdate
+    ;;
+  *)
+    cat >&2 <<'USAGE'
+usage:
+  bin/pre-commit repo install|run|autoupdate
+  bin/pre-commit role install|run|autoupdate <role>
+USAGE
+    exit 1
+    ;;
+esac

@@ -260,15 +260,15 @@ all/dist-clean: $(ROLES:%=roles/%/dist-clean)
 # per role pre-commit targets
 .PHONY: $(ROLES:%=roles/%/pre-commit/install)
 $(ROLES:%=roles/%/pre-commit/install): roles/%/pre-commit/install:
-	@bin/dev precommit-role install $*
+	@bin/pre-commit role install $*
 
 .PHONY: $(ROLES:%=roles/%/pre-commit/run)
 $(ROLES:%=roles/%/pre-commit/run): roles/%/pre-commit/run:
-	@bin/dev precommit-role run $*
+	@bin/pre-commit role run $*
 
 .PHONY: $(ROLES:%=roles/%/pre-commit/autoupdate)
 $(ROLES:%=roles/%/pre-commit/autoupdate): roles/%/pre-commit/autoupdate:
-	@bin/dev precommit-role autoupdate $*
+	@bin/pre-commit role autoupdate $*
 
 # aggregate pre-commit targets
 .PHONY: all/pre-commit/install
@@ -280,11 +280,11 @@ all/pre-commit/autoupdate: $(ROLES:%=roles/%/pre-commit/autoupdate)
 
 # pre-commit targets for the ansible-roles repo itself
 .PHONY: pre-commit/install
-pre-commit/install:          ; @bin/dev precommit install
+pre-commit/install:          ; @bin/pre-commit repo install
 .PHONY: pre-commit/run
-pre-commit/run:              ; @bin/dev precommit run
+pre-commit/run:              ; @bin/pre-commit repo run
 .PHONY: pre-commit/autoupdate
-pre-commit/autoupdate:       ; @bin/dev precommit autoupdate
+pre-commit/autoupdate:       ; @bin/pre-commit repo autoupdate
 
 # --- Clean -------------------------------------------------------------------
 .PHONY: clean
