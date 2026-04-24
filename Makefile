@@ -33,10 +33,11 @@ TPL_DIR		:= playbooks/templates
 .PHONY: help
 help:
 	@echo "Targets:"
+	@echo "  make help        show this help message (default)"
 	@echo "  make install     install venv, Python and Galaxy requirements"
 	@echo "  make upgrade     upgrade Python and Galaxy requirements"
-	@echo "  make list        show discovered roles"
 	@echo "  make doctor      check tool versions"
+	@echo "  make list        print table of discovered roles"
 	@echo "  make clean       remove .ansible dirs"
 	@echo "  make dist-clean  remove generated artifacts and .ansible dirs"
 	@echo ""
@@ -100,7 +101,11 @@ doctor: | $(PLAYBOOK) $(GALAXY) $(PRC) $(PSR)
 
 .PHONY: list
 list:
-	@echo "ROLES=$(ROLES)"
+	@printf "%-24s %s\n" "ROLE" "PATH"
+	@printf "%-24s %s\n" "----" "----"
+	@for role in $(ROLES); do \
+		printf "%-24s %s\n" "$$role" "roles/$$role"; \
+	done
 
 # --- Venv / deps -------------------------------------------------------------
 
