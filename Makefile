@@ -280,6 +280,22 @@ all/dist-clean: $(ROLES:%=roles/%/dist-clean)
 
 # --- Repo Targets ------------------------------------------------------------
 
+# git targets for the ansible-roles repo itself
+.PHONY: git/branch git/checkout-dev git/checkout-main git/fetch git/pull git/push git/status git/prepare-release
+git/branch git/checkout-dev git/checkout-main git/fetch git/pull git/push git/status git/prepare-release: git/%:
+	@bin/git repo $*
+
+.PHONY: git/commit
+git/commit:
+	@bin/git repo commit "$(MSG)"
+
+.PHONY: git/commit-push
+git/commit-push: git/commit git/push
+
+.PHONY: git/sync
+git/sync: git/fetch git/pull
+	@bin/git repo status
+
 # pre-commit targets for the ansible-roles repo itself
 .PHONY: pre-commit/install
 pre-commit/install:

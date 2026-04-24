@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+roles_dir="${repo_root}/roles"
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+require_repo() { [[ -d "$1/.git" ]] || die "not a git repository: $1"; }
+require_clean() { [[ -z "$(git -C "$1" status --porcelain)" ]] || die "working tree not clean: $1"; }
+
+git_branch() { git -C "$1" branch -vv; }
+git_fetch() { git -C "$1" fetch --all --prune; }
+git_status() { git -C "$1" status -sb; }
+git_pull() { git -C "$1" pull --ff-only; }
+git_push() { git -C "$1" push; }
+
+git_commit() {
+  local dir="$1" msg="$2"
+  [[ -n "$msg" ]] || die "MSG is required"
+  if git -C "$dir" status --porcelain | grep -q .; then
+    git -C "$dir" add .
+    git -C "$dir" commit -m "$msg"
+  else
+    echo "No changes in $dir"
+  fi
+}
+
+git_checkout() {
+  local dir="$1" branch="$2"
+  require_clean "$dir"
+  git -C "$dir" fetch --all --prune
+  git -C "$dir" checkout "$branch"
+  git -C "$dir" pull --ff-only
+}
+
+git_prepare_release() {
+  local dir="$1"
+  git_checkout "$dir" main
+  git -C "$dir" merge --no-ff dev
+  git -C "$dir" push origin main
+  git_checkout "$dir" dev
+}
+
+run_git() {
+  local dir="$1"
+  local action="$2"
+  local msg="${3:-}"
+
+  require_repo "$dir"
+
+  case "$action" in
+    branch) git_branch "$dir" ;;
+    fetch) git_fetch "$dir" ;;
+    status) git_status "$dir" ;;
+    pull) git_pull "$dir" ;;
+    push) git_push "$dir" ;;
+    commit) git_commit "$dir" "$msg" ;;
+    checkout-dev) git_checkout "$dir" "dev" ;;
+    checkout-main) git_checkout "$dir" "main" ;;
+    prepare-release) git_prepare_release "$dir" ;;
+    *) die "unknown git action: $action" ;;
+  esac
+}
+
+scope="${1:-}"
+action="${2:-}"
+target="${3:-}"
+msg="${4:-}"
+
+case "$scope" in
+  repo)
+    run_git "$repo_root" "$action" "$target"
+    ;;
+  role)
+    [[ -n "$target" ]] || die "role name required"
+    run_git "${roles_dir}/${target}" "$action" "$msg"
+    ;;
+  *)
+    cat >&2 <<'USAGE'
+usage:
+  bin/git repo status|branch|fetch|pull|push|checkout-dev|checkout-main|prepare-release
+  bin/git repo commit <msg>
+  bin/git role status|branch|fetch|pull|push|checkout-dev|checkout-main|prepare-release <role>
+  bin/git role commit <role> <msg>
+USAGE
+    exit 1
+    ;;
+esac
