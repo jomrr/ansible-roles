@@ -4,6 +4,20 @@
 
 # default readme variables for all roles
 readme:
-  description: null
+  description: |-
+    This Ansible role installs and configures {{ role.name }} on supported platforms.
+  examples:
+    - name: Simple example playbook
+      description: |-
+        A simple default example playbook for using {{ role.namespace }}.{{ role.name }}.
+      code: |-
+        ---
+        # name: "{{ role.namespace }}.{{ role.name }}"
+        # file: "playbook_{{ role.name }}.yml"
+
+        - name: "PLAYBOOK | {{ role.name }}"
+          hosts: "{{ role.name }}_hosts"
+          gather_facts: true
+          roles:
+            - role: "{{ role.namespace }}.{{ role.name }}"
   references: []
-  examples: []

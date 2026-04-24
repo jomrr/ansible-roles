@@ -1,0 +1,26 @@
+---
+# name: ansible-roles
+# file: playbooks/requirements-galaxy.yml
+
+- name: "PLAYBOOK | Manage Ansible Galaxy requirements"
+  hosts: "{{ target | default('all') }}"
+  gather_facts: false
+  vars:
+    has_galaxy_requirements: >-
+      {{
+        requirements.collections | default([]) | length > 0
+        or requirements.roles | default([]) | length > 0
+      }}
+  tasks:
+    - name: "Render requirements.yml"
+      ansible.builtin.template:
+        src: "requirements.yml.j2"
+        dest: "{{ ansible_host }}/requirements.yml"
+        mode: "0644"
+      when: has_galaxy_requirements | bool
+
+    - name: "Remove empty requirements.yml"
+      ansible.builtin.file:
+        path: "{{ ansible_host }}/requirements.yml"
+        state: absent
+      when: not has_galaxy_requirements | bool

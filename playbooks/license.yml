@@ -1,0 +1,13 @@
+---
+# name: ansible-roles
+# file: playbooks/license.yml
+
+- name: "PLAYBOOK | Render license"
+  hosts: "{{ target | default('all') }}"
+  gather_facts: false
+  tasks:
+    - name: "Render LICENSE"
+      ansible.builtin.template:
+        src: "LICENSE.j2"
+        dest: "{{ ansible_host }}/LICENSE"
+        mode: "0644"

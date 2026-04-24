@@ -9,128 +9,270 @@ SHELL		:= /bin/bash
 
 .DEFAULT_GOAL	:= help
 
-# --- Paths -------------------------------------------------------------------
-TEMPLATES_DIR	:= playbooks/templates
-ROLES_DIR	:= ../roles
-
 # --- Venv / tooling ----------------------------------------------------------
+PYTHON		:= /usr/bin/python3
 VENV		:= .ansible/venv
+PIP		:= $(VENV)/bin/pip
+PRC		:= $(VENV)/bin/pre-commit
+PSR		:= $(VENV)/bin/semantic-release
+
+ANSIBLE_CFG	:= ansible.cfg
 ANSIBLE		:= $(VENV)/bin/ansible
 GALAXY		:= $(VENV)/bin/ansible-galaxy
-PIP		:= $(VENV)/bin/pip
+PLAYBOOK	:= $(VENV)/bin/ansible-playbook
 
 REQ_PYTHON	?= requirements.txt
 REQ_GALAXY	?= requirements.yml
 
+export ANSIBLE_CONFIG := $(ANSIBLE_CFG)
+
 # --- Discovery ---------------------------------------------------------------
-ROLES		:= $(notdir $(wildcard $(ROLES_DIR)/*))
-TPLS		:= $(patsubst %.j2,%,$(shell find $(TEMPLATES_DIR) -type f -name '*.j2' -printf '%P\n'))
+ROLES		:= $(notdir $(wildcard roles/*))
+TPL_DIR		:= playbooks/templates
+TPL_FIND	:= -maxdepth 1 -type f -name '*.j2' -printf '%P\n'
+TPLS		:= $(patsubst %.j2,%,$(shell find $(TPL_DIR) $(TPL_FIND)))
 
 # All outputs for all roles
-ROLE_OUTS := $(foreach r,$(ROLES),$(addprefix $(ROLES_DIR)/$(r)/,$(TPLS)))
+ROLE_OUTS	:= $(foreach r,$(ROLES),$(addprefix roles/$(r)/,$(TPLS)))
 
 # --- Help --------------------------------------------------------------------
 .PHONY: help
 help:
 	@echo "Targets:"
-	@echo "  make install                   - create venv + install python + galaxy reqs"
-	@echo "  make render                    - render all templates for all roles (mtime-based)"
-	@echo "  make ../roles/<role>/README.md - render one file for one role"
-	@echo "  make list                      - show discovered roles"
-	@echo "  make clean                     - remove venv"
+	@echo "  make install     install venv, Python and Galaxy requirements"
+	@echo "  make upgrade     upgrade Python and Galaxy requirements"
+	@echo "  make all         render all generated role artifacts"
+	@echo "  make list        show discovered roles"
+	@echo "  make clean       remove local .ansible directory"
 	@echo ""
-	@echo "Aggregates:"
-	@echo "  make readmes metas molecules licenses pyprojects reqs hostvars"
+	@echo "Single role artifacts:"
+	@echo "  make roles/<role>/.gitignore"
+	@echo "  make roles/<role>/LICENSE"
+	@echo "  make roles/<role>/README.md"
+	@echo "  make roles/<role>/pyproject.toml"
+	@echo "  make roles/<role>/requirements.txt"
+	@echo "  make roles/<role>/requirements.yml"
+	@echo "  make roles/<role>/molecule"
+	@echo ""
+	@echo "All roles:"
+	@echo "  make all/gitignores"
+	@echo "  make all/licenses"
+	@echo "  make all/readmes"
+	@echo "  make all/pyprojects"
+	@echo "  make all/requirements-python"
+	@echo "  make all/requirements-galaxy"
+	@echo "  make all/molecules"
+	@echo "  make all/pre-commits"
+	@echo ""
+	@echo "Pre-commit:"
+	@echo "  make pre-commit/install|run|autoupdate"
+	@echo "  make roles/<role>/pre-commit/install|run|autoupdate"
+	@echo "  make all/pre-commit/install|run|autoupdate"
 
 .PHONY: list
 list:
 	@echo "ROLES=$(ROLES)"
 
 # --- Venv / deps -------------------------------------------------------------
-$(VENV):
-	@mkdir -p $(dir $(VENV))
-	@python3 -m venv $(VENV)
 
-.PHONY: req-python req-galaxy install
-req-python: $(REQ_PYTHON) | $(VENV)
+$(PIP):
+	@$(PYTHON) -m venv $(VENV)
+
+# grouped target for python dependencies ~= one recipe builds multiple targets
+$(ANSIBLE) $(GALAXY) $(PLAYBOOK) $(PRC) $(PSR) &: $(REQ_PYTHON) | $(PIP)
 	@$(PIP) install --upgrade pip
 	@$(PIP) install -r $(REQ_PYTHON)
 
-req-galaxy: $(REQ_GALAXY) | $(VENV)
+.PHONY: requirements-galaxy
+requirements-galaxy: $(REQ_GALAXY) | $(GALAXY)
 	@$(GALAXY) install -fr $(REQ_GALAXY)
 
-install: req-python req-galaxy
+.PHONY: install
+install: requirements-galaxy
 	@echo "Install complete."
+
+.PHONY: upgrade
+upgrade: requirements-galaxy | $(PIP)
+	@$(PIP) install --upgrade -r $(REQ_PYTHON)
+	@echo "Upgrade complete."
 
 # --- File-driven render rules (mtime-based) ----------------------------------
 GROUP_VARS := $(wildcard inventory/group_vars/all/*.yml)
+HOST_VARS  := inventory/host_vars
 
-define declare_tpl_rule
-$(ROLES_DIR)/$(1)/$(2): $(TEMPLATES_DIR)/$(2).j2 $(GROUP_VARS) inventory/host_vars/$(1).yml | $(VENV)
-	@mkdir -p $$(dir $$@)
-	@$(ANSIBLE) $(1) -m ansible.builtin.template -a "src=$$(abspath $$<) dest=$$(abspath $$@)"
-endef
+# .gitignore template
+$(ROLES:%=roles/%/.gitignore): roles/%/.gitignore: \
+	$(TPL_DIR)/.gitignore.j2 \
+	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
+	@$(PLAYBOOK) --limit $* playbooks/gitignore.yml
 
-$(foreach r,$(ROLES),$(foreach t,$(TPLS),$(eval $(call declare_tpl_rule,$(r),$(t)))))
+# .pre-commit-config.yaml template
+$(ROLES:%=roles/%/.pre-commit-config.yaml): roles/%/.pre-commit-config.yaml: \
+	$(TPL_DIR)/.pre-commit-config.yaml.j2 \
+	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
+	@$(PLAYBOOK) --limit $* playbooks/pre-commit.yml
 
-$(foreach r,$(ROLES),$(foreach t,$(TPLS), \
-  $(eval .PHONY: roles/$(r)/$(t)) \
-  $(eval roles/$(r)/$(t): $(ROLES_DIR)/$(r)/$(t)) \
-))
+# LICENSE template
+$(ROLES:%=roles/%/LICENSE): roles/%/LICENSE: \
+	$(TPL_DIR)/LICENSE.j2 \
+	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
+	@$(PLAYBOOK) --limit $* playbooks/license.yml
+
+# README template
+$(ROLES:%=roles/%/README.md): roles/%/README.md: \
+	$(TPL_DIR)/README.md.j2 \
+	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
+	@$(PLAYBOOK) --limit $* playbooks/readme.yml
+
+# pyproject.toml template
+$(ROLES:%=roles/%/pyproject.toml): roles/%/pyproject.toml: \
+	$(TPL_DIR)/pyproject.toml.j2 \
+	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
+	@$(PLAYBOOK) --limit $* playbooks/pyproject.yml
+
+# requirements.txt template
+$(ROLES:%=roles/%/requirements.txt): roles/%/requirements.txt: \
+	$(TPL_DIR)/requirements.txt.j2 \
+	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
+	@$(PLAYBOOK) --limit $* playbooks/requirements-python.yml
+
+# requirements.yml template
+$(ROLES:%=roles/%/requirements.yml): roles/%/requirements.yml: \
+	$(TPL_DIR)/requirements.yml.j2 \
+	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
+	@$(PLAYBOOK) --limit $* playbooks/requirements-galaxy.yml
+
+.PHONY: $(ROLES:%=roles/%/meta)
+$(ROLES:%=roles/%/meta): roles/%/meta: \
+	$(TPL_DIR)/meta/main.yml.j2 \
+	$(TPL_DIR)/meta/argument_specs.yml.j2 \
+	$(GROUP_VARS) \
+	$(HOST_VARS)/%.yml | $(PLAYBOOK)
+	@$(PLAYBOOK) --limit $* playbooks/meta.yml
+
+# molecule templates
+$(ROLES:%=roles/%/molecule): roles/%/molecule: \
+	$(TPL_DIR)/molecule/molecule.yml.j2 \
+	$(TPL_DIR)/molecule/playbook.yml.j2 \
+	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
+	@$(PLAYBOOK) --limit $* playbooks/molecule.yml
+
+# role-level target to build all generated artifacts for a role
+.PHONY: $(ROLES:%=roles/%/all)
+$(ROLES:%=roles/%/all): roles/%/all: \
+	roles/%/.gitignore \
+	roles/%/.pre-commit-config.yaml \
+	roles/%/LICENSE \
+	roles/%/README.md \
+	roles/%/pyproject.toml \
+	roles/%/requirements.txt \
+	roles/%/requirements.yml \
+	roles/%/meta \
+	roles/%/molecule
+
+# clean: remove tool artifacts and caches for a role
+.PHONY: $(ROLES:%=roles/%/clean)
+$(ROLES:%=roles/%/clean): roles/%/clean:
+	@rm -rf roles/$*/.ansible
+	@echo "Cleaned up role '$*'."
+
+# dist-clean: remove generated artifacts for a role
+.PHONY: $(ROLES:%=roles/%/dist-clean)
+$(ROLES:%=roles/%/dist-clean): roles/%/dist-clean: roles/%/clean
+	@rm -f roles/$*/.gitignore
+	@rm -f roles/$*/.pre-commit-config.yaml
+	@rm -f roles/$*/LICENSE
+	@rm -f roles/$*/README.md
+	@rm -f roles/$*/pyproject.toml
+	@rm -f roles/$*/requirements.txt
+	@rm -f roles/$*/requirements.yml
+	@rm -rf roles/$*/meta
+	@rm -rf roles/$*/molecule
+	@echo "Removed build artifacts for role '$*'."
 
 # --- Aggregates --------------------------------------------------------------
-.PHONY: render
-render: $(ROLE_OUTS)
-	@echo "Rendered all (mtime-based)."
+.PHONY: all
+all: \
+	all/gitignores \
+	all/licenses \
+	all/metas \
+	all/molecules \
+	all/readmes \
+	all/pre-commits \
+	all/pyprojects \
+	all/requirements-galaxy \
+	all/requirements-python
 
-READMES     := $(ROLES:%=$(ROLES_DIR)/%/README.md)
-LICENSES    := $(ROLES:%=$(ROLES_DIR)/%/LICENSE)
-PYPROJECTS  := $(ROLES:%=$(ROLES_DIR)/%/pyproject.toml)
-HOSTVARS    := $(ROLES:%=$(ROLES_DIR)/%/host_vars.yml)
+.PHONY: all/gitignores
+all/gitignores: $(ROLES:%=roles/%/.gitignore)
 
-METAS       := $(foreach r,$(ROLES),$(ROLES_DIR)/$(r)/meta/main.yml $(ROLES_DIR)/$(r)/meta/requirements.yml)
-MOLECULES   := $(foreach r,$(ROLES),$(ROLES_DIR)/$(r)/molecule/molecule.yml $(ROLES_DIR)/$(r)/molecule/playbook.yml)
-REQS        := $(foreach r,$(ROLES),$(ROLES_DIR)/$(r)/requirements.yml $(ROLES_DIR)/$(r)/requirements.txt)
+.PHONY: all/licenses
+all/licenses: $(ROLES:%=roles/%/LICENSE)
 
-.PHONY: readmes licenses pyprojects hostvars metas molecules reqs
-readmes:    $(READMES)
-licenses:   $(LICENSES)
-pyprojects: $(PYPROJECTS)
-hostvars:   $(HOSTVARS)
-metas:      $(METAS)
-molecules:  $(MOLECULES)
-reqs:       $(REQS)
+.PHONY: all/metas
+all/metas: $(ROLES:%=roles/%/meta)
+
+.PHONY: all/molecules
+all/molecules: $(ROLES:%=roles/%/molecule)
+
+.PHONY: all/pre-commits
+all/pre-commits: $(ROLES:%=roles/%/.pre-commit-config.yaml)
+
+.PHONY: all/pyprojects
+all/pyprojects: $(ROLES:%=roles/%/pyproject.toml)
+
+.PHONY: all/readmes
+all/readmes: $(ROLES:%=roles/%/README.md)
+
+.PHONY: all/requirements-galaxy
+all/requirements-galaxy: $(ROLES:%=roles/%/requirements.yml)
+
+.PHONY: all/requirements-python
+all/requirements-python: $(ROLES:%=roles/%/requirements.txt)
+
+.PHONY: all/clean
+all/clean: $(ROLES:%=roles/%/clean)
+
+.PHONY: all/dist-clean
+all/dist-clean: $(ROLES:%=roles/%/dist-clean)
 
 # --- Pre-Commit --------------------------------------------------------------
 
 # per role pre-commit targets
-.PHONY: $(ROLES:%=precommit-role/install/%) \
-        $(ROLES:%=precommit-role/run/%) \
-        $(ROLES:%=precommit-role/autoupdate/%)
+.PHONY: $(ROLES:%=roles/%/pre-commit/install)
+$(ROLES:%=roles/%/pre-commit/install): roles/%/pre-commit/install:
+	@bin/dev precommit-role install $*
 
-$(ROLES:%=precommit-role/install/%):
-	@bin/dev precommit-role install $(notdir $@)
+.PHONY: $(ROLES:%=roles/%/pre-commit/run)
+$(ROLES:%=roles/%/pre-commit/run): roles/%/pre-commit/run:
+	@bin/dev precommit-role run $*
 
-$(ROLES:%=precommit-role/run/%):
-	@bin/dev precommit-role run $(notdir $@)
-
-$(ROLES:%=precommit-role/autoupdate/%):
-	@bin/dev precommit-role autoupdate $(notdir $@)
+.PHONY: $(ROLES:%=roles/%/pre-commit/autoupdate)
+$(ROLES:%=roles/%/pre-commit/autoupdate): roles/%/pre-commit/autoupdate:
+	@bin/dev precommit-role autoupdate $*
 
 # aggregate pre-commit targets
-.PHONY: precommit-roles/install precommit-roles/run precommit-roles/autoupdate
-precommit-roles/install:    $(ROLES:%=precommit-role/install/%)
-precommit-roles/run:        $(ROLES:%=precommit-role/run/%)
-precommit-roles/autoupdate: $(ROLES:%=precommit-role/autoupdate/%)
+.PHONY: all/pre-commit/install
+all/pre-commit/install:    $(ROLES:%=roles/%/pre-commit/install)
+.PHONY: all/pre-commit/run
+all/pre-commit/run:        $(ROLES:%=roles/%/pre-commit/run)
+.PHONY: all/pre-commit/autoupdate
+all/pre-commit/autoupdate: $(ROLES:%=roles/%/pre-commit/autoupdate)
 
 # pre-commit targets for the ansible-roles repo itself
-.PHONY: precommit/install precommit/run precommit/autoupdate
-precommit/install:          ; @bin/dev precommit install
-precommit/run:              ; @bin/dev precommit run
-precommit/autoupdate:       ; @bin/dev precommit autoupdate
+.PHONY: pre-commit/install
+pre-commit/install:          ; @bin/dev precommit install
+.PHONY: pre-commit/run
+pre-commit/run:              ; @bin/dev precommit run
+.PHONY: pre-commit/autoupdate
+pre-commit/autoupdate:       ; @bin/dev precommit autoupdate
 
 # --- Clean -------------------------------------------------------------------
 .PHONY: clean
-clean:
-	@rm -rf $(VENV)
-	@echo "Cleaned up $(VENV)."
+clean: all/clean
+	@rm -rf $(CURDIR)/.ansible
+	@echo "Cleaned up '$(CURDIR)/.ansible'."
+
+.PHONY: dist-clean
+dist-clean: all/dist-clean clean
+	@echo "Cleaned up generated artifacts for all roles."

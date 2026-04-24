@@ -1,0 +1,13 @@
+---
+# name: ansible-roles
+# file: playbooks/readme.yml
+
+- name: "PLAYBOOK | Render README"
+  hosts: "{{ target | default('all') }}"
+  gather_facts: false
+  tasks:
+    - name: "Render README.md"
+      ansible.builtin.template:
+        src: "README.md.j2"
+        dest: "{{ ansible_host }}/README.md"
+        mode: "0644"

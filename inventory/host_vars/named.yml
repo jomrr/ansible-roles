@@ -1,0 +1,10 @@
+---
+# role: jomrr.named
+# file: inventory/host_vars/named.yml
+
+readme:
+  description: null
+  references: []
+  examples: []
+
+

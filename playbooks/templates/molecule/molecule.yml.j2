@@ -1,14 +1,15 @@
 ---
-# role: {{ meta_namespace | default('jomrr') }}.{{ meta_repo_name }}
+# role: {{ role.namespace }}.{{ role.name }}
 # file: molecule/{{ item.scenario.name | default('default') }}/molecule.yml
 
-{{ item | jomrr.dev.to_lintable_yaml(indent=2) }}
-{%- if item.platforms | default([]) | length == 0 %}
+{% set scenario = molecule.defaults | combine(item, recursive=True) %}
+{{ scenario | jomrr.dev.to_lintable_yaml(indent=2) }}
+{% if item.platforms | default([]) | length == 0 %}
 platforms:
-{% for platform in meta_platforms %}
+{% for platform in platforms %}
 {% for tag in platform.tags %}{% set platform_image = platform.distribution | lower | replace(' ','-') %}
   - name: {{ platform_image }}-{{ tag }}-{{ meta_role_name }}
-    image: "docker.io/{{ meta_namespace | default('jomrr') }}/molecule-{{ platform_image }}:{{ tag }}"
+    image: "docker.io/{{ role.namespace }}/molecule-{{ platform_image }}:{{ tag }}"
     pre_build_image: {{ platform.pre_build_image | default('true') }}
     entrypoint: null
     command: null

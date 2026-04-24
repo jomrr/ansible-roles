@@ -4,6 +4,6 @@
 
 # default pre-commit hook versions for all roles
 precommit:
-  ansible_lint: v26.1.1
-  commitizen: v4.12.1
+  ansible_lint: v26.4.0
+  commitizen: v4.13.10
   hooks: v6.0.0

@@ -1,9 +1,0 @@
----
-# name: ansible-roles
-# file: inventory/group_vars/all/requirements.yml
-
-# default requirements
-reqs_collections: []
-reqs_packages: []
-reqs_pip: []
-reqs_roles: []

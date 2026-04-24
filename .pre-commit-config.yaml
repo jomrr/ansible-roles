@@ -4,11 +4,11 @@
 
 repos:
   - repo: https://github.com/ansible-community/ansible-lint
-    rev: v26.1.1
+    rev: v26.4.0
     hooks:
       - id: ansible-lint
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.12.1
+    rev: v4.13.10
     hooks:
       - id: commitizen
         stages: [commit-msg]
