@@ -17,7 +17,6 @@ PRC		:= $(VENV)/bin/pre-commit
 PSR		:= $(VENV)/bin/semantic-release
 
 ANSIBLE_CFG	:= ansible.cfg
-ANSIBLE		:= $(VENV)/bin/ansible
 GALAXY		:= $(VENV)/bin/ansible-galaxy
 PLAYBOOK	:= $(VENV)/bin/ansible-playbook
 
@@ -27,13 +26,8 @@ REQ_GALAXY	?= requirements.yml
 export ANSIBLE_CONFIG := $(ANSIBLE_CFG)
 
 # --- Discovery ---------------------------------------------------------------
-ROLES		:= $(notdir $(wildcard roles/*))
+ROLES		:= $(shell find -L roles -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
 TPL_DIR		:= playbooks/templates
-TPL_FIND	:= -maxdepth 1 -type f -name '*.j2' -printf '%P\n'
-TPLS		:= $(patsubst %.j2,%,$(shell find $(TPL_DIR) $(TPL_FIND)))
-
-# All outputs for all roles
-ROLE_OUTS	:= $(foreach r,$(ROLES),$(addprefix roles/$(r)/,$(TPLS)))
 
 # --- Help --------------------------------------------------------------------
 .PHONY: help
@@ -42,8 +36,9 @@ help:
 	@echo "  make install     install venv, Python and Galaxy requirements"
 	@echo "  make upgrade     upgrade Python and Galaxy requirements"
 	@echo "  make list        show discovered roles"
+	@echo "  make doctor      check tool versions"
 	@echo "  make clean       remove .ansible dirs"
-	@echo "  make dist-clean  remove generated artifacts and make clean"
+	@echo "  make dist-clean  remove generated artifacts and .ansible dirs"
 	@echo ""
 	@echo "Single role artifacts:"
 	@echo "  make roles/<role>/all"
@@ -56,11 +51,13 @@ help:
 	@echo "  make roles/<role>/requirements.yml"
 	@echo "  make roles/<role>/meta"
 	@echo "  make roles/<role>/molecule"
-	@echo ""
+	@echo "  make roles/<role>/git/status|branch|fetch|pull|push|sync"
+	@echo "  make roles/<role>/git/checkout-dev|checkout-main|prepare-release"
+	@echo "  make roles/<role>/git/commit MSG='...'"
+	@echo "  make roles/<role>/git/commit-push MSG='...'"
 	@echo "  make roles/<role>/pre-commit/install"
 	@echo "  make roles/<role>/pre-commit/run"
 	@echo "  make roles/<role>/pre-commit/autoupdate"
-	@echo ""
 	@echo "  make roles/<role>/clean"
 	@echo "  make roles/<role>/dist-clean"
 	@echo ""
@@ -75,18 +72,31 @@ help:
 	@echo "  make all/requirements-galaxy"
 	@echo "  make all/metas"
 	@echo "  make all/molecules"
-	@echo ""
+	@echo "  make all/git/status|branch|fetch|pull|push|sync"
+	@echo "  make all/git/checkout-dev|checkout-main|prepare-release"
+	@echo "  make all/git/commit MSG='...'"
+	@echo "  make all/git/commit-push MSG='...'"
 	@echo "  make all/pre-commit/install"
 	@echo "  make all/pre-commit/run"
 	@echo "  make all/pre-commit/autoupdate"
-	@echo ""
 	@echo "  make all/clean"
 	@echo "  make all/dist-clean"
 	@echo ""
 	@echo "Targets for this repository:"
+	@echo "  make git/status|branch|fetch|pull|push|sync"
+	@echo "  make git/checkout-dev|checkout-main|prepare-release"
+	@echo "  make git/commit MSG='...'"
+	@echo "  make git/commit-push MSG='...'"
 	@echo "  make pre-commit/install"
 	@echo "  make pre-commit/run"
 	@echo "  make pre-commit/autoupdate"
+
+.PHONY: doctor
+doctor: | $(PLAYBOOK) $(GALAXY) $(PRC) $(PSR)
+	@$(PLAYBOOK) --version
+	@$(GALAXY) --version
+	@$(PRC) --version
+	@$(PSR) --version
 
 .PHONY: list
 list:
@@ -98,7 +108,7 @@ $(PIP):
 	@$(PYTHON) -m venv $(VENV)
 
 # grouped target for python dependencies ~= one recipe builds multiple targets
-$(ANSIBLE) $(GALAXY) $(PLAYBOOK) $(PRC) $(PSR) &: $(REQ_PYTHON) | $(PIP)
+$(GALAXY) $(PLAYBOOK) $(PRC) $(PSR) &: $(REQ_PYTHON) | $(PIP)
 	@$(PIP) install --upgrade pip
 	@$(PIP) install -r $(REQ_PYTHON)
 
@@ -112,6 +122,7 @@ install: requirements-galaxy
 
 .PHONY: upgrade
 upgrade: requirements-galaxy | $(PIP)
+	@$(PIP) install --upgrade pip
 	@$(PIP) install --upgrade -r $(REQ_PYTHON)
 	@echo "Upgrade complete."
 
@@ -202,6 +213,50 @@ $(ROLES:%=roles/%/all): roles/%/all: \
 	roles/%/meta \
 	roles/%/molecule
 
+# git: role-level git targets
+.PHONY: $(ROLES:%=roles/%/git/branch)
+$(ROLES:%=roles/%/git/branch): roles/%/git/branch:
+	@bin/git role $* branch
+
+.PHONY: $(ROLES:%=roles/%/git/checkout-dev)
+$(ROLES:%=roles/%/git/checkout-dev): roles/%/git/checkout-dev:
+	@bin/git role $* checkout-dev
+
+.PHONY: $(ROLES:%=roles/%/git/checkout-main)
+$(ROLES:%=roles/%/git/checkout-main): roles/%/git/checkout-main:
+	@bin/git role $* checkout-main
+
+.PHONY: $(ROLES:%=roles/%/git/fetch)
+$(ROLES:%=roles/%/git/fetch): roles/%/git/fetch:
+	@bin/git role $* fetch
+
+.PHONY: $(ROLES:%=roles/%/git/pull)
+$(ROLES:%=roles/%/git/pull): roles/%/git/pull:
+	@bin/git role $* pull
+
+.PHONY: $(ROLES:%=roles/%/git/push)
+$(ROLES:%=roles/%/git/push): roles/%/git/push:
+	@bin/git role $* push
+
+.PHONY: $(ROLES:%=roles/%/git/status)
+$(ROLES:%=roles/%/git/status): roles/%/git/status:
+	@bin/git role $* status
+
+.PHONY: $(ROLES:%=roles/%/git/prepare-release)
+$(ROLES:%=roles/%/git/prepare-release): roles/%/git/prepare-release:
+	@bin/git role $* prepare-release
+
+.PHONY: $(ROLES:%=roles/%/git/commit)
+$(ROLES:%=roles/%/git/commit): roles/%/git/commit:
+	@bin/git role $* commit "$(MSG)"
+
+.PHONY: $(ROLES:%=roles/%/git/commit-push)
+$(ROLES:%=roles/%/git/commit-push): roles/%/git/commit-push: roles/%/git/commit roles/%/git/push
+
+.PHONY: $(ROLES:%=roles/%/git/sync)
+$(ROLES:%=roles/%/git/sync): roles/%/git/sync: roles/%/git/fetch roles/%/git/pull
+	@bin/git role $* status
+
 # clean: remove tool artifacts and caches for a role
 .PHONY: $(ROLES:%=roles/%/clean)
 $(ROLES:%=roles/%/clean): roles/%/clean:
@@ -272,6 +327,39 @@ all/pre-commit/run: $(ROLES:%=roles/%/pre-commit/run)
 .PHONY: all/pre-commit/autoupdate
 all/pre-commit/autoupdate: $(ROLES:%=roles/%/pre-commit/autoupdate)
 
+.PHONY: all/git/branch
+all/git/branch: $(ROLES:%=roles/%/git/branch)
+
+.PHONY: all/git/checkout-dev
+all/git/checkout-dev: $(ROLES:%=roles/%/git/checkout-dev)
+
+.PHONY: all/git/checkout-main
+all/git/checkout-main: $(ROLES:%=roles/%/git/checkout-main)
+
+.PHONY: all/git/fetch
+all/git/fetch: $(ROLES:%=roles/%/git/fetch)
+
+.PHONY: all/git/pull
+all/git/pull: $(ROLES:%=roles/%/git/pull)
+
+.PHONY: all/git/push
+all/git/push: $(ROLES:%=roles/%/git/push)
+
+.PHONY: all/git/status
+all/git/status: $(ROLES:%=roles/%/git/status)
+
+.PHONY: all/git/prepare-release
+all/git/prepare-release: $(ROLES:%=roles/%/git/prepare-release)
+
+.PHONY: all/git/commit
+all/git/commit: $(ROLES:%=roles/%/git/commit)
+
+.PHONY: all/git/commit-push
+all/git/commit-push: $(ROLES:%=roles/%/git/commit-push)
+
+.PHONY: all/git/sync
+all/git/sync: $(ROLES:%=roles/%/git/sync)
+
 .PHONY: all/clean
 all/clean: $(ROLES:%=roles/%/clean)
 
@@ -314,5 +402,6 @@ clean: all/clean
 	@echo "Cleaned up '$(CURDIR)/.ansible'."
 
 .PHONY: dist-clean
-dist-clean: all/dist-clean clean
-	@echo "Cleaned up generated artifacts for all roles."
+dist-clean: all/dist-clean
+	@rm -rf $(CURDIR)/.ansible
+	@echo "Cleaned up generated artifacts and '$(CURDIR)/.ansible'."
