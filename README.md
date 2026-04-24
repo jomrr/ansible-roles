@@ -14,7 +14,6 @@ by streamlining the generation of common meta data and configuration files.
 
 ## License
 
-Code is licensed under the MIT License.
+Code is licensed under the MIT License. The `jomrr` name and logo are not covered by this license.
 
-The `jomrr` name and logo are not covered by this license.
 See [TRADEMARKS.md](TRADEMARKS.md) and [assets/logo/LICENSE](assets/logo/LICENSE) for details.
