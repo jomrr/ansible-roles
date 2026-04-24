@@ -139,43 +139,43 @@ HOST_VARS  := inventory/host_vars
 $(ROLES:%=roles/%/.gitignore): roles/%/.gitignore: \
 	$(TPL_DIR)/.gitignore.j2 \
 	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit $* playbooks/gitignore.yml
+	@$(PLAYBOOK) --limit "$*" playbooks/gitignore.yml
 
 # .pre-commit-config.yaml template
 $(ROLES:%=roles/%/.pre-commit-config.yaml): roles/%/.pre-commit-config.yaml: \
 	$(TPL_DIR)/.pre-commit-config.yaml.j2 \
 	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit $* playbooks/pre-commit.yml
+	@$(PLAYBOOK) --limit "$*" playbooks/pre-commit.yml
 
 # LICENSE template
 $(ROLES:%=roles/%/LICENSE): roles/%/LICENSE: \
 	$(TPL_DIR)/LICENSE.j2 \
 	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit $* playbooks/license.yml
+	@$(PLAYBOOK) --limit "$*" playbooks/license.yml
 
 # README template
 $(ROLES:%=roles/%/README.md): roles/%/README.md: \
 	$(TPL_DIR)/README.md.j2 \
 	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit $* playbooks/readme.yml
+	@$(PLAYBOOK) --limit "$*" playbooks/readme.yml
 
 # pyproject.toml template
 $(ROLES:%=roles/%/pyproject.toml): roles/%/pyproject.toml: \
 	$(TPL_DIR)/pyproject.toml.j2 \
 	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit $* playbooks/pyproject.yml
+	@$(PLAYBOOK) --limit "$*" playbooks/pyproject.yml
 
 # requirements.txt template
 $(ROLES:%=roles/%/requirements.txt): roles/%/requirements.txt: \
 	$(TPL_DIR)/requirements.txt.j2 \
 	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit $* playbooks/requirements-python.yml
+	@$(PLAYBOOK) --limit "$*" playbooks/requirements-python.yml
 
 # requirements.yml template
 $(ROLES:%=roles/%/requirements.yml): roles/%/requirements.yml: \
 	$(TPL_DIR)/requirements.yml.j2 \
 	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit $* playbooks/requirements-galaxy.yml
+	@$(PLAYBOOK) --limit "$*" playbooks/requirements-galaxy.yml
 
 .PHONY: $(ROLES:%=roles/%/meta)
 $(ROLES:%=roles/%/meta): roles/%/meta: \
@@ -183,27 +183,27 @@ $(ROLES:%=roles/%/meta): roles/%/meta: \
 	$(TPL_DIR)/meta/argument_specs.yml.j2 \
 	$(GROUP_VARS) \
 	$(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit $* playbooks/meta.yml
+	@$(PLAYBOOK) --limit "$*" playbooks/meta.yml
 
 # molecule templates
 $(ROLES:%=roles/%/molecule): roles/%/molecule: \
 	$(TPL_DIR)/molecule/molecule.yml.j2 \
 	$(TPL_DIR)/molecule/playbook.yml.j2 \
 	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit $* playbooks/molecule.yml
+	@$(PLAYBOOK) --limit "$*" playbooks/molecule.yml
 
 # per role pre-commit targets
 .PHONY: $(ROLES:%=roles/%/pre-commit/install)
 $(ROLES:%=roles/%/pre-commit/install): roles/%/pre-commit/install:
-	@bin/pre-commit role install $*
+	@bin/pre-commit role install "$*"
 
 .PHONY: $(ROLES:%=roles/%/pre-commit/run)
 $(ROLES:%=roles/%/pre-commit/run): roles/%/pre-commit/run:
-	@bin/pre-commit role run $*
+	@bin/pre-commit role run "$*"
 
 .PHONY: $(ROLES:%=roles/%/pre-commit/autoupdate)
 $(ROLES:%=roles/%/pre-commit/autoupdate): roles/%/pre-commit/autoupdate:
-	@bin/pre-commit role autoupdate $*
+	@bin/pre-commit role autoupdate "$*"
 
 # role-level target to build all generated artifacts for a role
 .PHONY: $(ROLES:%=roles/%/all)
@@ -221,46 +221,46 @@ $(ROLES:%=roles/%/all): roles/%/all: \
 # git: role-level git targets
 .PHONY: $(ROLES:%=roles/%/git/branch)
 $(ROLES:%=roles/%/git/branch): roles/%/git/branch:
-	@bin/git role $* branch
+	@bin/git role "$*" branch
 
 .PHONY: $(ROLES:%=roles/%/git/checkout-dev)
 $(ROLES:%=roles/%/git/checkout-dev): roles/%/git/checkout-dev:
-	@bin/git role $* checkout-dev
+	@bin/git role "$*" checkout-dev
 
 .PHONY: $(ROLES:%=roles/%/git/checkout-main)
 $(ROLES:%=roles/%/git/checkout-main): roles/%/git/checkout-main:
-	@bin/git role $* checkout-main
+	@bin/git role "$*" checkout-main
 
 .PHONY: $(ROLES:%=roles/%/git/fetch)
 $(ROLES:%=roles/%/git/fetch): roles/%/git/fetch:
-	@bin/git role $* fetch
+	@bin/git role "$*" fetch
 
 .PHONY: $(ROLES:%=roles/%/git/pull)
 $(ROLES:%=roles/%/git/pull): roles/%/git/pull:
-	@bin/git role $* pull
+	@bin/git role "$*" pull
 
 .PHONY: $(ROLES:%=roles/%/git/push)
 $(ROLES:%=roles/%/git/push): roles/%/git/push:
-	@bin/git role $* push
+	@bin/git role "$*" push
 
 .PHONY: $(ROLES:%=roles/%/git/status)
 $(ROLES:%=roles/%/git/status): roles/%/git/status:
-	@bin/git role $* status
+	@bin/git role "$*" status
 
 .PHONY: $(ROLES:%=roles/%/git/prepare-release)
 $(ROLES:%=roles/%/git/prepare-release): roles/%/git/prepare-release:
-	@bin/git role $* prepare-release
+	@bin/git role "$*" prepare-release
 
 .PHONY: $(ROLES:%=roles/%/git/commit)
 $(ROLES:%=roles/%/git/commit): roles/%/git/commit:
-	@bin/git role $* commit "$(MSG)"
+	@bin/git role "$*" commit "$(MSG)"
 
 .PHONY: $(ROLES:%=roles/%/git/commit-push)
 $(ROLES:%=roles/%/git/commit-push): roles/%/git/commit-push: roles/%/git/commit roles/%/git/push
 
 .PHONY: $(ROLES:%=roles/%/git/sync)
 $(ROLES:%=roles/%/git/sync): roles/%/git/sync: roles/%/git/fetch roles/%/git/pull
-	@bin/git role $* status
+	@bin/git role "$*" status
 
 # clean: remove tool artifacts and caches for a role
 .PHONY: $(ROLES:%=roles/%/clean)
