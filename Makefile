@@ -176,6 +176,19 @@ $(ROLES:%=roles/%/molecule): roles/%/molecule: \
 	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
 	@$(PLAYBOOK) --limit $* playbooks/molecule.yml
 
+# per role pre-commit targets
+.PHONY: $(ROLES:%=roles/%/pre-commit/install)
+$(ROLES:%=roles/%/pre-commit/install): roles/%/pre-commit/install:
+	@bin/pre-commit role install $*
+
+.PHONY: $(ROLES:%=roles/%/pre-commit/run)
+$(ROLES:%=roles/%/pre-commit/run): roles/%/pre-commit/run:
+	@bin/pre-commit role run $*
+
+.PHONY: $(ROLES:%=roles/%/pre-commit/autoupdate)
+$(ROLES:%=roles/%/pre-commit/autoupdate): roles/%/pre-commit/autoupdate:
+	@bin/pre-commit role autoupdate $*
+
 # role-level target to build all generated artifacts for a role
 .PHONY: $(ROLES:%=roles/%/all)
 $(ROLES:%=roles/%/all): roles/%/all: \
@@ -249,42 +262,34 @@ all/requirements-galaxy: $(ROLES:%=roles/%/requirements.yml)
 .PHONY: all/requirements-python
 all/requirements-python: $(ROLES:%=roles/%/requirements.txt)
 
+# aggregate pre-commit targets
+.PHONY: all/pre-commit/install
+all/pre-commit/install: $(ROLES:%=roles/%/pre-commit/install)
+
+.PHONY: all/pre-commit/run
+all/pre-commit/run: $(ROLES:%=roles/%/pre-commit/run)
+
+.PHONY: all/pre-commit/autoupdate
+all/pre-commit/autoupdate: $(ROLES:%=roles/%/pre-commit/autoupdate)
+
 .PHONY: all/clean
 all/clean: $(ROLES:%=roles/%/clean)
 
 .PHONY: all/dist-clean
 all/dist-clean: $(ROLES:%=roles/%/dist-clean)
 
-# --- Pre-Commit --------------------------------------------------------------
-
-# per role pre-commit targets
-.PHONY: $(ROLES:%=roles/%/pre-commit/install)
-$(ROLES:%=roles/%/pre-commit/install): roles/%/pre-commit/install:
-	@bin/pre-commit role install $*
-
-.PHONY: $(ROLES:%=roles/%/pre-commit/run)
-$(ROLES:%=roles/%/pre-commit/run): roles/%/pre-commit/run:
-	@bin/pre-commit role run $*
-
-.PHONY: $(ROLES:%=roles/%/pre-commit/autoupdate)
-$(ROLES:%=roles/%/pre-commit/autoupdate): roles/%/pre-commit/autoupdate:
-	@bin/pre-commit role autoupdate $*
-
-# aggregate pre-commit targets
-.PHONY: all/pre-commit/install
-all/pre-commit/install:    $(ROLES:%=roles/%/pre-commit/install)
-.PHONY: all/pre-commit/run
-all/pre-commit/run:        $(ROLES:%=roles/%/pre-commit/run)
-.PHONY: all/pre-commit/autoupdate
-all/pre-commit/autoupdate: $(ROLES:%=roles/%/pre-commit/autoupdate)
+# --- Repo Targets ------------------------------------------------------------
 
 # pre-commit targets for the ansible-roles repo itself
 .PHONY: pre-commit/install
-pre-commit/install:          ; @bin/pre-commit repo install
+pre-commit/install:
+	@bin/pre-commit repo install
 .PHONY: pre-commit/run
-pre-commit/run:              ; @bin/pre-commit repo run
+pre-commit/run:
+	@bin/pre-commit repo run
 .PHONY: pre-commit/autoupdate
-pre-commit/autoupdate:       ; @bin/pre-commit repo autoupdate
+pre-commit/autoupdate:
+	@bin/pre-commit repo autoupdate
 
 # --- Clean -------------------------------------------------------------------
 .PHONY: clean
