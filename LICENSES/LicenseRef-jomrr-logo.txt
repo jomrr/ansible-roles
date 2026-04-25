@@ -1,0 +1,23 @@
+jomrr Logo License
+
+Copyright (c) 2026 Jonas Mauer
+
+The "jomrr" logo and associated visual assets are not covered by the repository's software license.
+
+Permission is granted to use the logo solely for:
+
+- referencing this project
+- linking to the original repository
+- documentation and educational purposes
+- displaying the logo in unmodified form in forks for the purpose of contributing changes
+
+Restrictions:
+
+- The logo must not be altered, except for resizing or format conversion
+- The logo must not be used for derivative works distributed as independent projects
+- The logo must not be used in a way that implies endorsement or affiliation
+- The logo must not be used as part of another project's branding or identity
+
+Any other use requires explicit written permission.
+
+This license does not grant any rights to use the "jomrr" trademark beyond the permissions stated above.

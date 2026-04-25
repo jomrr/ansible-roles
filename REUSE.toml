@@ -1,0 +1,21 @@
+version = 1
+SPDX-PackageName = "ansible-roles"
+SPDX-PackageSupplier = "Jonas Mauer"
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2024 Jonas Mauer"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "assets/logo/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Jonas Mauer"
+SPDX-License-Identifier = "LicenseRef-jomrr-logo"
+
+[[annotations]]
+path = "TRADEMARKS.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Jonas Mauer"
+SPDX-License-Identifier = "LicenseRef-jomrr-trademarks"
