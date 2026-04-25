@@ -7,7 +7,7 @@
    aria-label="jomrr JR monogram"
    version="1.1"
    id="svg1"
-   sodipodi:docname="logo-light-transparent-new.svg"
+   sodipodi:docname="logo-light-transparent.svg"
    inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -24,9 +24,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.62"
-     inkscape:cx="9.2541436"
-     inkscape:cy="54.143646"
+     inkscape:zoom="14.48"
+     inkscape:cx="42.023481"
+     inkscape:cy="46.477901"
      inkscape:window-width="3072"
      inkscape:window-height="1659"
      inkscape:window-x="0"
@@ -39,17 +39,17 @@
      fill-rule="evenodd"
      id="path1" />
   <rect
-     style="fill:#000000;stroke-width:1.51626"
+     style="fill:#000000;stroke-width:1.62998"
      id="rect1"
-     width="10"
-     height="10"
-     x="49.447514"
+     width="10.75"
+     height="10.75"
+     x="49.378452"
      y="31.698895" />
   <rect
      style="fill:#000000;stroke-width:1.51626"
      id="rect1-5"
      width="10"
      height="10"
-     x="49.312153"
-     y="74.784531" />
+     x="49.381214"
+     y="74.577347" />
 </svg>
