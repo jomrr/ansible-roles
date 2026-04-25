@@ -25,7 +25,7 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="14.48"
-     inkscape:cx="50.03453"
+     inkscape:cx="50"
      inkscape:cy="50"
      inkscape:window-width="3072"
      inkscape:window-height="1659"
@@ -39,17 +39,10 @@
      fill-rule="evenodd"
      id="path1" />
   <rect
-     style="fill:#ffffff;stroke-width:1.0793"
-     id="rect1"
-     width="10.75"
-     height="10.75"
-     x="49.447514"
-     y="31.629833" />
-  <rect
      style="fill:#ffffff;stroke-width:1.07931"
      id="rect1-5"
      width="10.75"
      height="10.75"
-     x="49.447514"
+     x="49.378452"
      y="73.798325" />
 </svg>
