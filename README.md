@@ -2,7 +2,7 @@
     <picture>
         <source media="(prefers-color-scheme: dark)" srcset="assets/logo/logo-dark-transparent.svg">
         <source media="(prefers-color-scheme: light)" srcset="assets/logo/logo-light-transparent.svg">
-        <img src="assets/logo/logo-light-transparent.svg" alt="jomrr" width="80" height="80" align="center">
+        <img src="assets/logo/logo-light-transparent.svg" alt="jomrr" width="64" height="64" align="center">
     </picture>
     &nbsp;ansible-roles development
 </h1>
