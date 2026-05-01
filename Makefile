@@ -21,7 +21,6 @@ ANSIBLE_CFG	:= ansible.cfg
 GALAXY		:= $(VENV)/bin/ansible-galaxy
 PLAYBOOK	:= $(VENV)/bin/ansible-playbook
 
-REQ_PYTHON	?= requirements.txt
 REQ_GALAXY	?= requirements.yml
 
 export ANSIBLE_CONFIG := $(ANSIBLE_CFG)
@@ -49,7 +48,6 @@ help:
 	@echo "  make roles/<role>/LICENSE"
 	@echo "  make roles/<role>/README.md"
 	@echo "  make roles/<role>/pyproject.toml"
-	@echo "  make roles/<role>/requirements.txt"
 	@echo "  make roles/<role>/requirements.yml"
 	@echo "  make roles/<role>/meta"
 	@echo "  make roles/<role>/molecule"
@@ -167,12 +165,6 @@ $(ROLES:%=roles/%/pyproject.toml): roles/%/pyproject.toml: \
 	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
 	@$(PLAYBOOK) --limit "$*" playbooks/pyproject.yml
 
-# requirements.txt template
-$(ROLES:%=roles/%/requirements.txt): roles/%/requirements.txt: \
-	$(TPL_DIR)/requirements.txt.j2 \
-	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit "$*" playbooks/requirements-python.yml
-
 # requirements.yml template
 $(ROLES:%=roles/%/requirements.yml): roles/%/requirements.yml: \
 	$(TPL_DIR)/requirements.yml.j2 \
@@ -215,7 +207,6 @@ $(ROLES:%=roles/%/all): roles/%/all: \
 	roles/%/LICENSE \
 	roles/%/README.md \
 	roles/%/pyproject.toml \
-	roles/%/requirements.txt \
 	roles/%/requirements.yml \
 	roles/%/meta \
 	roles/%/molecule
@@ -327,7 +318,6 @@ $(ROLES:%=roles/%/dist-clean): roles/%/dist-clean: roles/%/clean
 	@rm -f roles/$*/LICENSE
 	@rm -f roles/$*/README.md
 	@rm -f roles/$*/pyproject.toml
-	@rm -f roles/$*/requirements.txt
 	@rm -f roles/$*/requirements.yml
 	@rm -rf roles/$*/meta
 	@rm -rf roles/$*/molecule
@@ -369,9 +359,6 @@ all/readmes: $(ROLES:%=roles/%/README.md)
 
 .PHONY: all/requirements-galaxy
 all/requirements-galaxy: $(ROLES:%=roles/%/requirements.yml)
-
-.PHONY: all/requirements-python
-all/requirements-python: $(ROLES:%=roles/%/requirements.txt)
 
 # aggregate pre-commit targets
 .PHONY: all/pre-commit/install

@@ -10,3 +10,14 @@ platforms:
   - { distribution: OpenSuse Leap, os_family: Suse, tags: ["latest"] }
   - { distribution: OpenSuse Tumbleweed, os_family: Suse, tags: ["latest"] }
   - { distribution: Ubuntu, os_family: Debian, tags: ["latest"] }
+
+requirements:
+  collections:
+    - name: ansible.posix
+    - name: jomrr.dev
+      src: git+ssh://github.com/jomrr/ansible-collection-dev.git
+      version: main
+
+readme:
+  references:
+    - "(Optional) Add any references here, such as links to documentation, related projects, etc."

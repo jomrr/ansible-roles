@@ -16,7 +16,7 @@ readme:
         # file: "playbook_{{ role.name }}.yml"
 
         - name: "PLAYBOOK | {{ role.name }}"
-          hosts: "{{ role.name }}_hosts"
+          hosts: "{{ role.name }}"
           gather_facts: true
           roles:
             - role: "{{ role.namespace }}.{{ role.name }}"

@@ -1,11 +1,16 @@
-# Ansible role: {{ role.name | default(inventory_hostname) | upper }}
+{%- set role_name = role.name | default(inventory_hostname) -%}
+{%- set role_namespace = role.namespace | default('jomrr') -%}
+{%- set role_repo_prefix = role.repo_prefix | default('ansible-role-') -%}
+{%- set role_repo = role_repo_prefix ~ role_name -%}
 
-![GitHub](https://img.shields.io/github/license/{{ role.namespace | default('jomrr') }}/ansible-role-{{ role.name | default(inventory_hostname) }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ role.namespace | default('jomrr') }}/ansible-role-{{ role.name | default(inventory_hostname) }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ role.namespace | default('jomrr') }}/ansible-role-{{ role.name | default(inventory_hostname) }})
+# Ansible role: {{ role_name | upper }}
+
+![GitHub](https://img.shields.io/github/license/{{ role_namespace }}/{{ role_repo }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ role_namespace }}/{{ role_repo }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ role_namespace }}/{{ role_repo }})
 
 {% if role.description is defined -%}
 **{{ role.description }}**
 {% else -%}
-**Ansible role for setting up {{ inventory_hostname }}**
+**Ansible role for setting up {{ role_name }}**
 {% endif %}
 
 ## Description
@@ -13,53 +18,32 @@
 {% if readme.description is defined -%}
 {{ readme.description }}
 {% else -%}
-Install and configure {{ inventory_hostname }} with Ansible.
+Install and configure {{ role_name }} with Ansible.
 {% endif %}
 
 ## Prerequisites
 
-{{ read_prerequisites | default('This role has no special prerequisites.') }}
-
-### System packages (Fedora)
-
-- `python3` (>= 3.9)
-{% if requirements.packages is defined -%}
-{% for package in requirements.packages %}
-- `{{ package }}`
-{% endfor %}
-{% endif %}
-
-### Python (requirements.txt)
-
-- ansible >= {{ role.min_ansible_version }}
-{% if requirements.pip is defined -%}
-{% for pip in requirements.pip %}
-- {{ pip }}
-{% endfor %}
-{% endif %}
+{{ readme.prerequisites | default('This role has no special prerequisites.') }}
 
 ## Dependencies (requirements.yml)
 
-{% if requirements.collections | default([]) | length > 0 or requirements.roles | default([]) | length > 0 -%}
+{% if requirements.collections | default([]) | length > 0 or requirements.roles | default([]) | length > 0 %}
 ```yaml
-{% if requirements.collections | default([]) | length > 0 -%}
+{% if requirements.collections | default([]) | length > 0 %}
 collections:
-{% for collection in requirements.collections %}
-  - {{ collection | jomrr.dev.to_lintable_yaml }}
-{% endfor %}
-{% else -%}
+{{ requirements.collections | jomrr.dev.to_lintable_yaml(indent=2) | indent(2, true) }}
+{% else %}
 collections: []
 {% endif %}
-{% if requirements.roles | default([]) | length > 0 -%}
+
+{% if requirements.roles | default([]) | length > 0 %}
 roles:
-{% for role in requirements.roles %}
-  - {{ role | jomrr.dev.to_lintable_yaml  }}
-{% endfor %}
-{% else -%}
+{{ requirements.roles | jomrr.dev.to_lintable_yaml(indent=2) | indent(2, true) }}
+{% else %}
 roles: []
 {% endif %}
 ```
-{% else -%}
+{% else %}
 This role has no dependencies.
 {% endif %}
 
@@ -72,9 +56,9 @@ This role has no dependencies.
 {% set platform_image = platform.distribution | lower | replace(' ','-') %}
 {% for tag in platform.tags %}
 {% if loop.first %}
-| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ role.namespace }}/molecule-{{ platform_image  }}:{{ tag }}]( https://hub.docker.com/r/{{ role.namespace }}/molecule-{{ platform_image }} ) |
+| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ role_namespace }}/molecule-{{ platform_image }}:{{ tag }}](https://hub.docker.com/r/{{ role_namespace }}/molecule-{{ platform_image }}) |
 {% else -%}
-| | | {{ tag }} | [{{ role.namespace }}/molecule-{{ platform_image }}:{{ tag }}]( https://hub.docker.com/r/{{ role.namespace }}/molecule-{{ platform_image }} ) |
+| | | {{ tag }} | [{{ role_namespace }}/molecule-{{ platform_image }}:{{ tag }}](https://hub.docker.com/r/{{ role_namespace }}/molecule-{{ platform_image }}) |
 {% endif %}
 {% endfor %}
 {% endfor %}
@@ -84,11 +68,13 @@ This role has no specific platform requirements.
 
 ## Role Variables
 
-{% if meta_role_variables is defined -%}
-The following are the default variables that should be adjusted:
+{% if role.argument_spec.options | default({}) | length > 0 -%}
+The following variables can be adjusted:
 
-{% for variable in meta_role_variables %}
-- `{{ variable.name }}`: {{ variable.description }} (Default: `{{ variable.default }}`)
+| Name | Required | Default | Description |
+| ---- | -------- | ------- | ----------- |
+{% for variable_name, variable in role.argument_spec.options.items() %}
+| `{{ variable_name }}` | {{ variable.required | default(false) }} | `{{ variable.default | default('') | string }}` | {{ variable.description | default('') }} |
 {% endfor %}
 {% else -%}
 No role default variables specified, see [defaults/main.yml](defaults/main.yml).
@@ -96,10 +82,10 @@ No role default variables specified, see [defaults/main.yml](defaults/main.yml).
 
 ## Example Playbook
 
-Example playbooks(s) that show how to use this role.
+Example playbooks that show how to use this role.
 
 {% for example in readme.examples %}
-## {{ example.name }}
+### {{ example.name }}
 
 {{ example.description }}
 ```yaml
@@ -109,9 +95,9 @@ Example playbooks(s) that show how to use this role.
 
 ## Author(s) and License
 
-- :octocat:                 Author::    [{{ role.namespace | default('jomrr') }}]({{ role.scm_base_url }}/{{ role.namespace | default('jomrr') }})
-- :triangular_flag_on_post: Copyright:: {{ role.year_created }}, {{ role.author }}
-- :page_with_curl:          License::   [{{ role.license | default('MIT') }}](LICENSE)
+- :octocat: Author: [{{ role_namespace }}]({{ role.scm_base_url }}/{{ role_namespace }})
+- :triangular_flag_on_post: Copyright: {{ role.year_created }}, {{ role.author }}
+- :page_with_curl: License: [{{ role.license | default('MIT') }}](LICENSE)
 
 {% if readme.references | default([]) | length > 0 -%}
 ## References
@@ -119,6 +105,6 @@ Example playbooks(s) that show how to use this role.
 {% for reference in readme.references %}
 - {{ reference }}
 {% endfor %}
-{%- endif %}
 
+{% endif %}
 ---
