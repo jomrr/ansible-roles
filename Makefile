@@ -69,7 +69,6 @@ help:
 	@echo "  make all/licenses"
 	@echo "  make all/readmes"
 	@echo "  make all/pyprojects"
-	@echo "  make all/requirements-python"
 	@echo "  make all/requirements-galaxy"
 	@echo "  make all/metas"
 	@echo "  make all/molecules"
@@ -333,8 +332,7 @@ all: \
 	all/readmes \
 	all/pre-commits \
 	all/pyprojects \
-	all/requirements-galaxy \
-	all/requirements-python
+	all/requirements-galaxy
 
 .PHONY: all/gitignores
 all/gitignores: $(ROLES:%=roles/%/.gitignore)
