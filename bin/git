@@ -37,7 +37,7 @@ git_checkout() {
 git_prepare_release() {
   local dir="$1"
   git_checkout "$dir" main
-  git -C "$dir" merge --no-ff dev
+  git -C "$dir" merge --ff-only dev
   git -C "$dir" push origin main
   git_checkout "$dir" dev
 }
