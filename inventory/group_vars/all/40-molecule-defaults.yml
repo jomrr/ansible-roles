@@ -30,13 +30,6 @@ molecule:
       name: ansible
   enabled: true
   playbooks:
-    - name: resources/playbooks/prepare.yml
-      content: |-
-        - name: "{{ role.name | upper }} | Prepare"
-          hosts: all
-          become: true
-          gather_facts: false
-          tasks: []
     - name: resources/playbooks/converge.yml
       content: |-
         - name: "{{ role.name | upper }} | Converge"
