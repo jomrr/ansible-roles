@@ -1,5 +1,5 @@
 ---
-# name: ansible-roles
+# repo: jomrr/ansible-roles
 # file: .ansible-lint
 
 profile: production # min, basic, moderate,safety, shared, production

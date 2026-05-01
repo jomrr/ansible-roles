@@ -1,9 +1,0 @@
-ansible
-ansible-lint
-commitizen
-jmespath
-molecule
-molecule-plugins[docker,podman,vagrant]
-pre-commit
-python-semantic-release
-reuse

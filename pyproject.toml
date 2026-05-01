@@ -1,11 +1,25 @@
 [project]
 name = "ansible-roles"
-version = "0.0.0"
+version = "0.1.0"
 description = "Ansible roles database and development playbooks."
 authors = ["Jonas Mauer"]
 license = "MIT"
 keywords = ["ansible", "molecule", "roles"]
 repository = "https://github.com/jomrr/ansible-roles"
+
+[dependency-groups]
+tools = [
+  "ansible==13.*",
+  "ansible-lint==26.*",
+  "commitizen==4.*",
+  "jmespath==1.*",
+  "leg @ git+ssh://git@git.mauer.in/jomrr/leg.git@dev",
+  "molecule",
+  "molecule-plugins[docker,podman,vagrant]",
+  "pre-commit==4.*",
+  "python-semantic-release==10.*",
+  "reuse==6.*",
+]
 
 [tool.commitizen]
 name = "cz_conventional_commits"

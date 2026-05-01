@@ -1,0 +1,108 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/01-repositories.yml
+
+repository:
+  state: active
+  managed: true
+
+  name: "{{ role.repo_prefix }}{{ role.name }}"
+  local_name: "{{ role.name }}"
+  description: "{{ role.description }}"
+
+  default_branch: main
+  development_branch: dev
+  release_branch: main
+
+  canonical_remote: origin
+  public_remote: github
+
+  remotes_policy:
+    purge_unmanaged: true
+    set_branch_upstreams: true
+    fetch_after_update: true
+
+  release:
+    sync_development_branch: true
+
+  features:
+    pull_requests: true
+    releases: true
+    wiki: false
+    projects: false
+    packages: false
+    discussions: false
+
+  merge:
+    allow_merge_commit: false
+    allow_squash_merge: true
+    allow_rebase_merge: true
+    allow_auto_merge: false
+    delete_branch_on_merge: true
+
+  remotes:
+    origin:
+      state: present
+      provider: forgejo
+      owner_type: user
+      owner: "{{ role.namespace }}"
+      name: "{{ repository.name }}"
+      description: "{{ repository.description }}"
+      web_url: "https://git.mauer.in/{{ role.namespace }}/{{ repository.name }}"
+      ssh_url: "git@git.mauer.in:{{ role.namespace }}/{{ repository.name }}.git"
+      api_url: "https://git.mauer.in/api/v1"
+      token_env: FORGE_TOKEN
+      visibility: private
+      publish: true
+      create_release: true
+      ci: true
+      features:
+        actions: true
+        packages: false
+      issues:
+        mode: external
+        external_remote: github
+        external_style: numeric
+
+    github:
+      state: present
+      provider: github
+      owner_type: user
+      owner: "{{ role.namespace }}"
+      name: "{{ repository.name }}"
+      description: "{{ repository.description }}"
+      web_url: "https://github.com/{{ role.namespace }}/{{ repository.name }}"
+      ssh_url: "git@github.com:{{ role.namespace }}/{{ repository.name }}.git"
+      api_url: "https://api.github.com"
+      token_env: GH_TOKEN
+      visibility: public
+      publish: true
+      create_release: true
+      ci: false
+      features:
+        actions: false
+      issues:
+        mode: internal
+
+    codeberg:
+      state: absent
+      provider: forgejo
+      owner_type: user
+      owner: "{{ role.namespace }}"
+      name: "{{ repository.name }}"
+      description: "{{ repository.description }}"
+      web_url: "https://codeberg.org/{{ role.namespace }}/{{ repository.name }}"
+      ssh_url: "git@codeberg.org:{{ role.namespace }}/{{ repository.name }}.git"
+      api_url: "https://codeberg.org/api/v1"
+      token_env: CODEBERG_TOKEN
+      visibility: public
+      publish: true
+      create_release: true
+      ci: false
+      features:
+        actions: false
+        packages: false
+      issues:
+        mode: external
+        external_remote: github
+        external_style: numeric

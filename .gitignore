@@ -1,11 +1,39 @@
+# repo: jomrr/ansible-roles
+# file: .gitignore
+
+# Python caches
 __pycache__/
-!.gitkeep
+*.py[cod]
+*$py.class
+
+# Virtual environments and Python tooling
 .ansible/
-.idea/
-.tox/
 .venv/
-.vscode/
-cache/
+.tox/
+
+# Build and distribution artifacts
+build/
 dist/
-collections
-roles
+*.egg-info/
+
+# Local caches
+cache/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# IDEs and editors
+.idea/
+
+# VSCode
+.vscode/*
+!.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Generated Ansible content
+collections/
+roles/
+
+# Keep placeholder files
+!.gitkeep

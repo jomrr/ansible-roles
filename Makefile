@@ -15,6 +15,7 @@ VENV		:= .ansible/venv
 PIP		:= $(VENV)/bin/pip
 PRC		:= $(VENV)/bin/pre-commit
 PSR		:= $(VENV)/bin/semantic-release
+LEG		:= $(VENV)/bin/leg
 
 ANSIBLE_CFG	:= ansible.cfg
 GALAXY		:= $(VENV)/bin/ansible-galaxy
@@ -114,9 +115,9 @@ $(PIP):
 	@$(PYTHON) -m venv $(VENV)
 
 # grouped target for python dependencies ~= one recipe builds multiple targets
-$(GALAXY) $(PLAYBOOK) $(PRC) $(PSR) &: $(REQ_PYTHON) | $(PIP)
+$(GALAXY) $(PLAYBOOK) $(PRC) $(PSR) $(LEG) &: | $(PIP)
 	@$(PIP) install --upgrade pip
-	@$(PIP) install -r $(REQ_PYTHON)
+	@$(PIP) install --upgrade --group tools
 
 .PHONY: requirements-galaxy
 requirements-galaxy: $(REQ_GALAXY) | $(GALAXY)
@@ -129,7 +130,7 @@ install: requirements-galaxy
 .PHONY: upgrade
 upgrade: requirements-galaxy | $(PIP)
 	@$(PIP) install --upgrade pip
-	@$(PIP) install --upgrade -r $(REQ_PYTHON)
+	@$(PIP) install --upgrade --group tools
 	@echo "Upgrade complete."
 
 # --- File-driven render rules (mtime-based) ----------------------------------
@@ -263,6 +264,55 @@ $(ROLES:%=roles/%/git/commit-push): roles/%/git/commit-push: roles/%/git/commit 
 $(ROLES:%=roles/%/git/sync): roles/%/git/sync: roles/%/git/fetch roles/%/git/pull
 	@bin/git role "$*" status
 
+# leg: role level targets
+.PHONY: $(ROLES:%=roles/%/repo/plan)
+$(ROLES:%=roles/%/repo/plan): roles/%/repo/plan: | $(LEG)
+	@$(LEG) role repo plan "$*"
+
+.PHONY: $(ROLES:%=roles/%/repo/status)
+$(ROLES:%=roles/%/repo/status): roles/%/repo/status: | $(LEG)
+	@$(LEG) role repo status "$*"
+
+.PHONY: $(ROLES:%=roles/%/repo/ensure)
+$(ROLES:%=roles/%/repo/ensure): roles/%/repo/ensure: | $(LEG)
+	@$(LEG) role repo ensure "$*"
+
+.PHONY: $(ROLES:%=roles/%/repo/clone)
+$(ROLES:%=roles/%/repo/clone): roles/%/repo/clone: | $(LEG)
+	@$(LEG) role repo clone "$*"
+
+.PHONY: $(ROLES:%=roles/%/repo/remotes)
+$(ROLES:%=roles/%/repo/remotes): roles/%/repo/remotes: | $(LEG)
+	@$(LEG) role repo remotes "$*"
+
+.PHONY: $(ROLES:%=roles/%/repo/sync)
+$(ROLES:%=roles/%/repo/sync): roles/%/repo/sync: | $(LEG)
+	@$(LEG) role repo sync "$*"
+
+.PHONY: $(ROLES:%=roles/%/release/status)
+$(ROLES:%=roles/%/release/status): roles/%/release/status: | $(LEG)
+	@$(LEG) role release status "$*"
+
+.PHONY: $(ROLES:%=roles/%/release/prepare)
+$(ROLES:%=roles/%/release/prepare): roles/%/release/prepare: | $(LEG)
+	@$(LEG) role release prepare "$*"
+
+.PHONY: $(ROLES:%=roles/%/release/version)
+$(ROLES:%=roles/%/release/version): roles/%/release/version: | $(LEG)
+	@$(LEG) role release version "$*"
+
+.PHONY: $(ROLES:%=roles/%/release/publish)
+$(ROLES:%=roles/%/release/publish): roles/%/release/publish: | $(LEG)
+	@$(LEG) role release publish "$*"
+
+.PHONY: $(ROLES:%=roles/%/release/run)
+$(ROLES:%=roles/%/release/run): roles/%/release/run: | $(LEG)
+	@$(LEG) role release "$*"
+
+.PHONY: $(ROLES:%=roles/%/archive)
+$(ROLES:%=roles/%/archive): roles/%/archive: | $(LEG)
+	@$(LEG) role archive "$*"
+
 # clean: remove tool artifacts and caches for a role
 .PHONY: $(ROLES:%=roles/%/clean)
 $(ROLES:%=roles/%/clean): roles/%/clean:
@@ -365,6 +415,18 @@ all/git/commit-push: $(ROLES:%=roles/%/git/commit-push)
 
 .PHONY: all/git/sync
 all/git/sync: $(ROLES:%=roles/%/git/sync)
+
+.PHONY: all/repo/plan
+all/repo/plan: $(ROLES:%=roles/%/repo/plan)
+
+.PHONY: all/repo/status
+all/repo/status: $(ROLES:%=roles/%/repo/status)
+
+.PHONY: all/repo/remotes
+all/repo/remotes: $(ROLES:%=roles/%/repo/remotes)
+
+.PHONY: all/release/status
+all/release/status: $(ROLES:%=roles/%/release/status)
 
 .PHONY: all/clean
 all/clean: $(ROLES:%=roles/%/clean)
