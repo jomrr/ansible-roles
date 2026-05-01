@@ -42,6 +42,7 @@ default = [
   { include-group = "ansible" },
   { include-group = "tools" },
   { include-group = "podman" },
+  { include-group = "private" },
 ]
 
 [tool.commitizen]
