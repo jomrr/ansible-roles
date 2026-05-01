@@ -8,17 +8,40 @@ keywords = ["ansible", "molecule", "roles"]
 repository = "https://github.com/jomrr/ansible-roles"
 
 [dependency-groups]
-tools = [
+ansible = [
   "ansible==13.*",
   "ansible-lint==26.*",
-  "commitizen==4.*",
   "jmespath==1.*",
-  "leg @ git+ssh://git@git.mauer.in/jomrr/leg.git@dev",
-  "molecule",
-  "molecule-plugins[docker,podman,vagrant]",
+]
+
+tools = [
+  "commitizen==4.*",
   "pre-commit==4.*",
   "python-semantic-release==10.*",
   "reuse==6.*",
+]
+
+podman = [
+  "molecule==26.*",
+  "molecule-plugins[podman]==25.*",
+]
+
+docker = [
+  "molecule-plugins[docker]==25.*",
+]
+
+vagrant = [
+  "molecule-plugins[vagrant]==25.*",
+]
+
+private = [
+  "leg @ git+ssh://git@git.mauer.in/jomrr/leg.git@dev",
+]
+
+default = [
+  { include-group = "ansible" },
+  { include-group = "tools" },
+  { include-group = "podman" },
 ]
 
 [tool.commitizen]

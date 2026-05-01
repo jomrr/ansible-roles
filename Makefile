@@ -13,6 +13,7 @@ SHELL		:= /bin/bash
 PYTHON		:= /usr/bin/python3
 VENV		:= .ansible/venv
 PIP		:= $(VENV)/bin/pip
+PIP_GROUPS	?= default
 PRC		:= $(VENV)/bin/pre-commit
 PSR		:= $(VENV)/bin/semantic-release
 LEG		:= $(VENV)/bin/leg
@@ -114,7 +115,7 @@ $(PIP):
 # grouped target for python dependencies ~= one recipe builds multiple targets
 $(GALAXY) $(PLAYBOOK) $(PRC) $(PSR) $(LEG) &: | $(PIP)
 	@$(PIP) install --upgrade pip
-	@$(PIP) install --upgrade --group tools
+	@$(PIP) install --upgrade --group $(PIP_GROUPS)
 
 .PHONY: requirements-galaxy
 requirements-galaxy: $(REQ_GALAXY) | $(GALAXY)
@@ -127,7 +128,7 @@ install: requirements-galaxy
 .PHONY: upgrade
 upgrade: requirements-galaxy | $(PIP)
 	@$(PIP) install --upgrade pip
-	@$(PIP) install --upgrade --group tools
+	@$(PIP) install --upgrade --group $(PIP_GROUPS)
 	@echo "Upgrade complete."
 
 # --- File-driven render rules (mtime-based) ----------------------------------
