@@ -10,7 +10,7 @@ platforms:
 {% for tag in platform.tags %}{% set platform_image = platform.distribution | lower | replace(' ','-') %}
   - name: {{ platform_image }}-{{ tag }}-{{ role.name }}
     image: "docker.io/{{ role.namespace }}/molecule-{{ platform_image }}:{{ tag }}"
-    pre_build_image: {{ platform.pre_build_image | default(true) }}
+    pre_build_image: {{ platform.pre_build_image | default(true) | ansible.builtin.to_json }}
     override_command: false
 {% if platform_image != 'alpine' %}
     systemd: true
