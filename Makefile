@@ -14,6 +14,7 @@ PYTHON		:= /usr/bin/python3
 VENV		:= .ansible/venv
 PIP		:= $(VENV)/bin/pip
 PIP_GROUPS	?= default
+PIP_GROUP_ARGS	:= $(foreach group,$(PIP_GROUPS),--group $(group))
 PRC		:= $(VENV)/bin/pre-commit
 PSR		:= $(VENV)/bin/semantic-release
 LEG		:= $(VENV)/bin/leg
@@ -110,8 +111,10 @@ list:
 
 # --- Venv / deps -------------------------------------------------------------
 
+# two step process to ensure permissions for existing .ansible dirs as well
 $(ANSIBLE_DIRS):
-	@mkdir -pm 0700 $@
+	@mkdir -p $@
+	@@chmod 0700 $@
 
 $(PIP):
 	@$(PYTHON) -m venv $(VENV)
@@ -119,7 +122,7 @@ $(PIP):
 # grouped target for python dependencies ~= one recipe builds multiple targets
 $(GALAXY) $(LEG) $(PLAYBOOK) $(PRC) $(PSR) &: | $(PIP) $(ANSIBLE_DIRS)
 	@$(PIP) install --upgrade pip
-	@$(PIP) install --upgrade --group $(PIP_GROUPS)
+	@$(PIP) install --upgrade --group $(PIP_GROUP_ARGS)
 
 
 .PHONY: requirements-galaxy
@@ -133,7 +136,7 @@ install: requirements-galaxy
 .PHONY: upgrade
 upgrade: requirements-galaxy | $(PIP)
 	@$(PIP) install --upgrade pip
-	@$(PIP) install --upgrade --group $(PIP_GROUPS)
+	@$(PIP) install --upgrade --group $(PIP_GROUP_ARGS)
 	@echo "Upgrade complete."
 
 # --- File-driven render rules (mtime-based) ----------------------------------
