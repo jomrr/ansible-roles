@@ -18,10 +18,8 @@ PRC		:= $(VENV)/bin/pre-commit
 PSR		:= $(VENV)/bin/semantic-release
 LEG		:= $(VENV)/bin/leg
 
-ANSIBLE_CACHE	:= .ansible/cache/facts
-ANSIBLE_TMP	:= .ansible/tmp
 ANSIBLE_CFG	:= ansible.cfg
-ANSIBLE_DIRS	:= .ansible .ansible/cache $(ANSIBLE_CACHE) $(ANSIBLE_TMP)
+ANSIBLE_DIRS	:= .ansible .ansible/cache .ansible/cache/facts .ansible/tmp
 GALAXY		:= $(VENV)/bin/ansible-galaxy
 PLAYBOOK	:= $(VENV)/bin/ansible-playbook
 
@@ -113,7 +111,7 @@ list:
 # --- Venv / deps -------------------------------------------------------------
 
 $(ANSIBLE_DIRS):
-	@mkdir -pm 0700 $(ANSIBLE_DIRS)
+	@mkdir -pm 0700 $@
 
 $(PIP):
 	@$(PYTHON) -m venv $(VENV)
