@@ -13,4 +13,4 @@ exclude_paths:
   - roles/
 
 # Offline mode disables installation of requirements.yml and schema refreshing
-offline: false
+offline: true

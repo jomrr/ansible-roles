@@ -9,7 +9,7 @@ galaxy_info:
 {% for tag in role.galaxy_tags %}
     - {{ tag }}
 {% endfor %}
-  issue_tracker_url: {{ role.scm_base_url + '/' + role.namespace + '/' + role.name + '/issues' }}
+  issue_tracker_url: {{ role.scm_base_url }}/{{ role.namespace }}/{{ role.repo_prefix }}{{ role.name }}/issues
   license: {{ role.license }}
   min_ansible_version: "{{ role.min_ansible_version }}"
   namespace: {{ role.namespace }}

@@ -61,8 +61,7 @@ molecule:
         - name: "{{ role.name }}"
           image: "docker.io/${uns:-{{ role.namespace }}}/molecule-${img:-fedora}:${tag:-latest}"
           pre_build_image: true
-          entrypoint: null
-          command: null
+          override_command: false
           systemd: true
     - scenario:
         name: all

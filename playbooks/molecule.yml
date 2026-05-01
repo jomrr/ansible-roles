@@ -4,7 +4,7 @@
 
 - name: "PLAYBOOK | Molecule scenarios"
   hosts: "{{ target | default('all') }}"
-  gather_facts: true
+  gather_facts: false
   tasks:
     - name: "Render molecule resources and scenarios"
       when: molecule.enabled | bool

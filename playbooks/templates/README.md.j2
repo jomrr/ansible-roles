@@ -10,7 +10,7 @@
 
 ## Description
 
-{% if read_description is defined -%}
+{% if readme.description is defined -%}
 {{ readme.description }}
 {% else -%}
 Install and configure {{ inventory_hostname }} with Ansible.
@@ -23,36 +23,36 @@ Install and configure {{ inventory_hostname }} with Ansible.
 ### System packages (Fedora)
 
 - `python3` (>= 3.9)
-{% if reqs_packages is defined -%}
-{% for package in reqs_packages %}
+{% if requirements.packages is defined -%}
+{% for package in requirements.packages %}
 - `{{ package }}`
 {% endfor %}
 {% endif %}
 
 ### Python (requirements.txt)
 
-- ansible >= {{ meta_min_ansible_version }}
-{% if reqs_pip is defined -%}
-{% for pip in reqs_pip %}
+- ansible >= {{ role.min_ansible_version }}
+{% if requirements.pip is defined -%}
+{% for pip in requirements.pip %}
 - {{ pip }}
 {% endfor %}
 {% endif %}
 
 ## Dependencies (requirements.yml)
 
-{% if reqs_collections | default([]) | length > 0 or reqs_roles | default([]) | length > 0 -%}
+{% if requirements.collections | default([]) | length > 0 or requirements.roles | default([]) | length > 0 -%}
 ```yaml
-{% if reqs_collections | default([]) | length > 0 -%}
+{% if requirements.collections | default([]) | length > 0 -%}
 collections:
-{% for collection in reqs_collections %}
+{% for collection in requirements.collections %}
   - {{ collection | jomrr.dev.to_lintable_yaml }}
 {% endfor %}
 {% else -%}
 collections: []
 {% endif %}
-{% if reqs_roles | default([]) | length > 0 -%}
+{% if requirements.roles | default([]) | length > 0 -%}
 roles:
-{% for role in reqs_roles %}
+{% for role in requirements.roles %}
   - {{ role | jomrr.dev.to_lintable_yaml  }}
 {% endfor %}
 {% else -%}
@@ -65,10 +65,10 @@ This role has no dependencies.
 
 ## Supported Platforms
 
-{% if meta_platforms is defined -%}
+{% if platforms is defined -%}
 | OS Family | Distribution | Version | Container Image |
 |-----------|--------------|---------|-----------------|
-{% for platform in meta_platforms %}
+{% for platform in platforms %}
 {% set platform_image = platform.distribution | lower | replace(' ','-') %}
 {% for tag in platform.tags %}
 {% if loop.first %}
@@ -98,7 +98,7 @@ No role default variables specified, see [defaults/main.yml](defaults/main.yml).
 
 Example playbooks(s) that show how to use this role.
 
-{% for example in read_examples %}
+{% for example in readme.examples %}
 ## {{ example.name }}
 
 {{ example.description }}
@@ -113,10 +113,10 @@ Example playbooks(s) that show how to use this role.
 - :triangular_flag_on_post: Copyright:: {{ role.year_created }}, {{ role.author }}
 - :page_with_curl:          License::   [{{ role.license | default('MIT') }}](LICENSE)
 
-{% if read_references | default([]) | length > 0 -%}
+{% if readme.references | default([]) | length > 0 -%}
 ## References
 
-{% for reference in read_references %}
+{% for reference in readme.references %}
 - {{ reference }}
 {% endfor %}
 {%- endif %}
