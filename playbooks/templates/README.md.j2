@@ -2,109 +2,216 @@
 {%- set role_namespace = role.namespace | default('jomrr') -%}
 {%- set role_repo_prefix = role.repo_prefix | default('ansible-role-') -%}
 {%- set role_repo = role_repo_prefix ~ role_name -%}
+{%- set role_scm_base_url = role.scm_base_url | default('https://github.com') -%}
+{%- set role_scm_provider = role.scm_provider | default('github') -%}
+{%- set role_license = role.license | default('MIT') -%}
+{%- set readme_data = readme | default({}) -%}
+{%- set readme_scope = readme_data.scope | default({}) -%}
+{%- set readme_check_mode = readme_data.check_mode | default({}) -%}
+{%- set readme_service_behavior = readme_data.service_behavior | default({}) -%}
+{%- set requirements_data = requirements | default({}) -%}
+{%- set role_argument_specs = role.argument_specs | default({}) -%}
+{%- set role_argument_options = role_argument_specs.options | default({}) -%}
+{%- set role_defaults = role_defaults_files | default([]) -%}
+{%- set role_defaults_main_file = 'defaults/main.yml' if 'defaults/main.yml' in role_defaults else ('defaults/main.yaml' if 'defaults/main.yaml' in role_defaults else '') -%}
+{%- set role_defaults_main_files = role_defaults | select('match', '^defaults/main/.*\\.ya?ml$') | list -%}
+# Ansible Role: {{ role_name }}
 
-# Ansible role: {{ role_name | upper }}
-
+{% if role_scm_provider == 'github' %}
 ![GitHub](https://img.shields.io/github/license/{{ role_namespace }}/{{ role_repo }}) ![GitHub last commit](https://img.shields.io/github/last-commit/{{ role_namespace }}/{{ role_repo }}) ![GitHub issues](https://img.shields.io/github/issues-raw/{{ role_namespace }}/{{ role_repo }})
-
-{% if role.description is defined -%}
-**{{ role.description }}**
-{% else -%}
-**Ansible role for setting up {{ role_name }}**
 {% endif %}
 
-## Description
-
-{% if readme.description is defined -%}
-{{ readme.description }}
-{% else -%}
-Install and configure {{ role_name }} with Ansible.
+{% if role.description | default('') | length > 0 %}
+{{ role.description }}
 {% endif %}
 
-## Prerequisites
+{% if readme_data.purpose | default('') | length > 0 %}
+## Purpose
 
-{{ readme.prerequisites | default('This role has no special prerequisites.') }}
+{{ readme_data.purpose }}
+{% endif %}
 
-## Dependencies (requirements.yml)
+{% if readme_scope.managed | default([]) | length > 0 or readme_scope.not_managed | default([]) | length > 0 %}
+## Scope
 
-{% if requirements.collections | default([]) | length > 0 or requirements.roles | default([]) | length > 0 %}
+{% if readme_scope.managed | default([]) | length > 0 %}
+### Managed
+
+{% for item in readme_scope.managed %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if readme_scope.not_managed | default([]) | length > 0 %}
+### Not Managed
+
+{% for item in readme_scope.not_managed %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if readme_data.requirements | default([]) | length > 0 %}
+## Requirements
+
+{% if readme_data.requirements is string %}
+{{ readme_data.requirements }}
+{% else %}
+{% for item in readme_data.requirements %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if requirements_data.collections | default([]) | length > 0 or requirements_data.roles | default([]) | length > 0 %}
+## Dependencies
+
 ```yaml
-{% if requirements.collections | default([]) | length > 0 %}
+{% if requirements_data.collections | default([]) | length > 0 %}
 collections:
-{{ requirements.collections | jomrr.dev.to_lintable_yaml(indent=2) | indent(2, true) }}
-{% else %}
-collections: []
+{{ requirements_data.collections | jomrr.dev.to_lintable_yaml(indent=2) | indent(2, true) }}
 {% endif %}
-
-{% if requirements.roles | default([]) | length > 0 %}
+{% if requirements_data.roles | default([]) | length > 0 %}
 roles:
-{{ requirements.roles | jomrr.dev.to_lintable_yaml(indent=2) | indent(2, true) }}
-{% else %}
-roles: []
+{{ requirements_data.roles | jomrr.dev.to_lintable_yaml(indent=2) | indent(2, true) }}
 {% endif %}
 ```
-{% else %}
-This role has no dependencies.
-{% endif %}
-
-## Supported Platforms
-
-{% if platforms is defined -%}
-| OS Family | Distribution | Version | Container Image |
-|-----------|--------------|---------|-----------------|
-{% for platform in platforms %}
-{% set platform_image = platform.distribution | lower | replace(' ','-') %}
-{% for tag in platform.tags %}
-{% if loop.first %}
-| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ role_namespace }}/molecule-{{ platform_image }}:{{ tag }}](https://hub.docker.com/r/{{ role_namespace }}/molecule-{{ platform_image }}) |
-{% else -%}
-| | | {{ tag }} | [{{ role_namespace }}/molecule-{{ platform_image }}:{{ tag }}](https://hub.docker.com/r/{{ role_namespace }}/molecule-{{ platform_image }}) |
-{% endif %}
-{% endfor %}
-{% endfor %}
-{% else %}
-This role has no specific platform requirements.
 {% endif %}
 
 ## Role Variables
 
-{% if role.argument_spec.options | default({}) | length > 0 -%}
-The following variables can be adjusted:
+{% if role_argument_options | length > 0 %}
+The following variables are part of the public role interface.
 
 | Name | Required | Default | Description |
 | ---- | -------- | ------- | ----------- |
-{% for variable_name, variable in role.argument_spec.options.items() %}
-| `{{ variable_name }}` | {{ variable.required | default(false) }} | `{{ variable.default | default('') | string }}` | {{ variable.description | default('') }} |
+{% for variable_name, variable in role_argument_options.items() %}
+| `{{ variable_name }}` | {{ variable.required | default(false) | ansible.builtin.to_json }} | `{{ variable.default | default('') | string | replace('|', '\\|') | replace('\n', '<br>') }}` | {{ variable.description | default('') | string | replace('|', '\\|') | replace('\n', '<br>') }} |
 {% endfor %}
-{% else -%}
-No role default variables specified, see [defaults/main.yml](defaults/main.yml).
+
+{% elif role.argument_specs is not defined and role_defaults_main_file | length > 0 %}
+Role defaults are defined in [`{{ role_defaults_main_file }}`]({{ role_defaults_main_file }}).
+
+{% elif role.argument_specs is not defined and role_defaults_main_files | length > 0 %}
+Role defaults are split across the following files:
+
+{% for defaults_file in role_defaults_main_files %}
+- [`{{ defaults_file }}`]({{ defaults_file }})
+{% endfor %}
+
+{% elif role.argument_specs is defined %}
+No public role variable interface is declared in `meta/argument_specs.yml`.
+
+{% else %}
+No role variable source was detected by the README generator.
 {% endif %}
 
+{% if readme_data.managed_files | default([]) | length > 0 %}
+## Managed Files
+
+{% for item in readme_data.managed_files %}
+- `{{ item }}`
+{% endfor %}
+{% endif %}
+
+{% if readme_check_mode.summary | default('') | length > 0 or readme_check_mode.notes | default([]) | length > 0 %}
+## Check Mode
+
+{% if readme_check_mode.summary | default('') | length > 0 %}
+{{ readme_check_mode.summary }}
+{% endif %}
+
+{% if readme_check_mode.notes | default([]) | length > 0 %}
+{% for item in readme_check_mode.notes %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if readme_service_behavior.summary | default('') | length > 0 or readme_service_behavior.handlers | default([]) | length > 0 %}
+## Service Behavior
+
+{% if readme_service_behavior.summary | default('') | length > 0 %}
+{{ readme_service_behavior.summary }}
+{% endif %}
+
+{% if readme_service_behavior.handlers | default([]) | length > 0 %}
+### Handlers
+
+{% for handler in readme_service_behavior.handlers %}
+- {{ handler }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if readme_data.security | default([]) | length > 0 %}
+## Security Notes
+
+{% for item in readme_data.security %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if readme_data.operational_notes | default([]) | length > 0 %}
+## Operational Notes
+
+{% for item in readme_data.operational_notes %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if platforms | default([]) | length > 0 %}
+## Supported Platforms
+
+| OS Family | Distribution | Version | Container Image |
+| --------- | ------------ | ------- | --------------- |
+{% for platform in platforms %}
+{% set platform_image = platform.distribution | lower | replace(' ', '-') %}
+{% for tag in platform.tags %}
+{% if loop.first %}
+| {{ platform.os_family }} | {{ platform.distribution }} | {{ tag }} | [{{ role_namespace }}/molecule-{{ platform_image }}:{{ tag }}](https://hub.docker.com/r/{{ role_namespace }}/molecule-{{ platform_image }}) |
+{% else %}
+| | | {{ tag }} | [{{ role_namespace }}/molecule-{{ platform_image }}:{{ tag }}](https://hub.docker.com/r/{{ role_namespace }}/molecule-{{ platform_image }}) |
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+{% if readme_data.examples | default([]) | length > 0 %}
 ## Example Playbook
 
-Example playbooks that show how to use this role.
-
-{% for example in readme.examples %}
+{% for example in readme_data.examples %}
+{% if example.name | default('') | length > 0 %}
 ### {{ example.name }}
+{% endif %}
 
+{% if example.description | default('') | length > 0 %}
 {{ example.description }}
+{% endif %}
+
+{% if example.code | default('') | length > 0 %}
 ```yaml
 {{ example.code }}
 ```
+{% endif %}
 {% endfor %}
+{% endif %}
 
-## Author(s) and License
-
-- :octocat: Author: [{{ role_namespace }}]({{ role.scm_base_url }}/{{ role_namespace }})
-- :triangular_flag_on_post: Copyright: {{ role.year_created }}, {{ role.author }}
-- :page_with_curl: License: [{{ role.license | default('MIT') }}](LICENSE)
-
-{% if readme.references | default([]) | length > 0 -%}
+{% if readme_data.references | default([]) | length > 0 %}
 ## References
 
-{% for reference in readme.references %}
+{% for reference in readme_data.references %}
 - {{ reference }}
 {% endfor %}
-
 {% endif %}
----
+
+## Author
+
+[{{ role.author }}]({{ role_scm_base_url }}/{{ role_namespace }})
+
+## License
+
+This project is licensed under the {{ role_license }} License.
+See [LICENSE](LICENSE) for the full license text.
+
+Copyright (c) {{ role.year_created }} {{ role.author }}.

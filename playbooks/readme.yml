@@ -6,7 +6,42 @@
   hosts: "{{ target | default('all') }}"
   gather_facts: false
   tasks:
-    - name: "Render README.md"
+    - name: "README | Check defaults directory"
+      become: false
+      delegate_to: localhost
+      ansible.builtin.stat:
+        path: "{{ ansible_host }}/defaults"
+      register: readme_defaults_dir
+
+    - name: "README | Find defaults files"
+      become: false
+      delegate_to: localhost
+      ansible.builtin.find:
+        paths:
+          - "{{ ansible_host }}/defaults"
+        patterns:
+          - "*.yml"
+          - "*.yaml"
+        recurse: true
+        file_type: file
+      register: readme_defaults_find
+      when: readme_defaults_dir.stat.isdir | default(false)
+
+    - name: "README | Set defaults file list"
+      ansible.builtin.set_fact:
+        role_defaults_files: >-
+          {{
+            readme_defaults_find.files
+              | default([])
+              | map(attribute='path')
+              | map('regex_replace', '^' ~ ansible_host ~ '/', '')
+              | sort
+              | list
+          }}
+
+    - name: "README | Render README.md"
+      become: false
+      delegate_to: localhost
       ansible.builtin.template:
         src: "README.md.j2"
         dest: "{{ ansible_host }}/README.md"

@@ -2,22 +2,41 @@
 # name: ansible-roles
 # file: inventory/group_vars/all/30-readme-defaults.yml
 
-# default readme variables for all roles
+# Default README variables for generated role repositories.
+# Role-specific content belongs into inventory/host_vars/<role>.yml.
 readme:
-  description: |-
-    This Ansible role installs and configures {{ role.name }} on supported platforms.
+  purpose: ""
+
+  scope:
+    managed: []
+    not_managed: []
+
+  requirements: []
+
+  managed_files: []
+
+  check_mode:
+    summary: ""
+    notes: []
+
+  service_behavior:
+    summary: ""
+    handlers: []
+
+  security: []
+
+  operational_notes: []
+
   examples:
     - name: Simple example playbook
       description: |-
-        A simple default example playbook for using {{ role.namespace }}.{{ role.name }}.
+        Minimal example for applying this role.
       code: |-
         ---
-        # name: "{{ role.namespace }}.{{ role.name }}"
-        # file: "playbook_{{ role.name }}.yml"
-
-        - name: "PLAYBOOK | {{ role.name }}"
+        - name: "Configure {{ role.name }}"
           hosts: "{{ role.name }}"
           gather_facts: true
           roles:
             - role: "{{ role.namespace }}.{{ role.name }}"
+
   references: []
