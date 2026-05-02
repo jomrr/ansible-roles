@@ -114,7 +114,7 @@ list:
 # two step process to ensure permissions for existing .ansible dirs as well
 $(ANSIBLE_DIRS):
 	@mkdir -p $@
-	@@chmod 0700 $@
+	@chmod 0700 $@
 
 $(PIP):
 	@$(PYTHON) -m venv $(VENV)
