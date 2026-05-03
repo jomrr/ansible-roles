@@ -7,3 +7,4 @@ precommit:
   ansible_lint: v26.4.0
   commitizen: v4.13.10
   hooks: v6.0.0
+  reuse: v6.2.0

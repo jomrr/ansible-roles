@@ -68,12 +68,10 @@
 
 ```yaml
 {% if requirements_data.collections | default([]) | length > 0 %}
-collections:
-{{ requirements_data.collections | jomrr.dev.to_lintable_yaml(indent=2) | indent(2, true) }}
+{{ {"collections": requirements_data.collections} | to_nice_yaml }}
 {% endif %}
 {% if requirements_data.roles | default([]) | length > 0 %}
-roles:
-{{ requirements_data.roles | jomrr.dev.to_lintable_yaml(indent=2) | indent(2, true) }}
+{{ {"roles": requirements_data.roles} | to_nice_yaml }}
 {% endif %}
 ```
 {% endif %}
@@ -86,7 +84,7 @@ The following variables are part of the public role interface.
 | Name | Required | Default | Description |
 | ---- | -------- | ------- | ----------- |
 {% for variable_name, variable in role_argument_options.items() %}
-| `{{ variable_name }}` | {{ variable.required | default(false) | ansible.builtin.to_json }} | `{{ variable.default | default('') | string | replace('|', '\\|') | replace('\n', '<br>') }}` | {{ variable.description | default('') | string | replace('|', '\\|') | replace('\n', '<br>') }} |
+| `{{ variable_name }}` | {{ variable.required | default(false) }} | `{{ variable.default | default('') | string | replace('|', '\\|') | replace('\n', '<br>') }}` | {{ variable.description | default('') | string | replace('|', '\\|') | replace('\n', '<br>') }} |
 {% endfor %}
 
 {% elif role.argument_specs is not defined and role_defaults_main_file | length > 0 %}
@@ -214,4 +212,4 @@ No role variable source was detected by the README generator.
 This project is licensed under the {{ role_license }} License.
 See [LICENSE](LICENSE) for the full license text.
 
-Copyright (c) {{ role.year_created }} {{ role.author }}.
+Copyright (c) {{ _leg.repo.copyright.year_range }} {{ role.author }}.

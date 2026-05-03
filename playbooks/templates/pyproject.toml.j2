@@ -1,9 +1,6 @@
-{% set v = lookup('pipe', 'git describe --tags --abbrev=0 2>/dev/null || true') | trim %}
-{% set version = (v[1:] if v.startswith('v') else v) if v else '0.0.0' %}
-
 [project]
 name = "{{ role.name }}"
-version = "{{ version }}"
+version = "{{ _leg.repo.version }}"
 description = "{{ role.description }}"
 authors = ["{{ role.author }}"]
 license = "{{ role.license }}"
@@ -12,7 +9,7 @@ repository = "{{ role.scm_base_url }}/{{ role.namespace }}/{{ role.repo_prefix }
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "{{ version }}"
+version = "{{ _leg.repo.version }}"
 tag_format = "v$version"
 
 [tool.semantic_release]

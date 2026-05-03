@@ -29,8 +29,17 @@ REQ_GALAXY	?= requirements.yml
 export ANSIBLE_CONFIG := $(ANSIBLE_CFG)
 
 # --- Discovery ---------------------------------------------------------------
-ROLES		:= $(shell find -L roles -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+#CREATE_DIRS	:= meta molecule/{default,all,resources} .forgejo/workflows
+FIND_ROLES	:= -L roles -mindepth 1 -maxdepth 1 -type d
+ROLES		:= $(shell find $(FIND_ROLES) -printf '%f\n' | sort)
 TPL_DIR		:= playbooks/templates
+
+RDR_ROOT	:= .gitignore .pre-commit-config.yaml pyproject.toml
+RDR_ROOT	+= requirements.yml
+RDR_ROOT	+= LICENSE README.md
+RDR_META	:= meta/main.yml meta/argument_specs.yml
+RDRS		:= $(RDR_ROOT) $(RDR_META)
+RENDER		:= $(foreach role,$(ROLES),$(addprefix roles/$(role)/,$(RDRS)))
 
 # --- Help --------------------------------------------------------------------
 .PHONY: help
@@ -142,56 +151,57 @@ upgrade: requirements-galaxy | $(PIP)
 # --- File-driven render rules (mtime-based) ----------------------------------
 GROUP_VARS := $(wildcard inventory/group_vars/all/*.yml)
 HOST_VARS  := inventory/host_vars
+RENDER_DEPS = $(GROUP_VARS) $(HOST_VARS)/%.yml
+
+#$(CREATE_DIRS):
+#	@mkdir -p "$@"
 
 # .gitignore template
 $(ROLES:%=roles/%/.gitignore): roles/%/.gitignore: \
-	$(TPL_DIR)/.gitignore.j2 \
-	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit "$*" playbooks/gitignore.yml
+	$(TPL_DIR)/.gitignore.j2 $(RENDER_DEPS) | $(LEG)
+	@$(LEG) render -s "$<" -d "$@" -r "$*"
 
 # .pre-commit-config.yaml template
 $(ROLES:%=roles/%/.pre-commit-config.yaml): roles/%/.pre-commit-config.yaml: \
-	$(TPL_DIR)/.pre-commit-config.yaml.j2 \
-	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit "$*" playbooks/pre-commit.yml
+	$(TPL_DIR)/.pre-commit-config.yaml.j2 $(RENDER_DEPS) | $(LEG)
+	@$(LEG) render -s "$<" -d "$@" -r "$*"
 
 # LICENSE template
 $(ROLES:%=roles/%/LICENSE): roles/%/LICENSE: \
-	$(TPL_DIR)/LICENSE.j2 \
-	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit "$*" playbooks/license.yml
+	$(TPL_DIR)/LICENSE.j2 $(RENDER_DEPS) | $(LEG)
+	@$(LEG) render -s "$<" -d "$@" -r "$*"
 
 # README template
 $(ROLES:%=roles/%/README.md): roles/%/README.md: \
-	$(TPL_DIR)/README.md.j2 \
-	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit "$*" playbooks/readme.yml
+	$(TPL_DIR)/README.md.j2 $(RENDER_DEPS) | $(LEG)
+	@$(LEG) render -s "$<" -d "$@" -r "$*"
 
 # pyproject.toml template
 $(ROLES:%=roles/%/pyproject.toml): roles/%/pyproject.toml: \
-	$(TPL_DIR)/pyproject.toml.j2 \
-	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit "$*" playbooks/pyproject.yml
+	$(TPL_DIR)/pyproject.toml.j2 $(RENDER_DEPS) | $(LEG)
+	@$(LEG) render -s "$<" -d "$@" -r "$*"
 
 # requirements.yml template
 $(ROLES:%=roles/%/requirements.yml): roles/%/requirements.yml: \
-	$(TPL_DIR)/requirements.yml.j2 \
-	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit "$*" playbooks/requirements-galaxy.yml
+	$(TPL_DIR)/requirements.yml.j2 $(RENDER_DEPS) | $(LEG)
+	@$(LEG) render -s "$<" -d "$@" -r "$*"
 
-.PHONY: $(ROLES:%=roles/%/meta)
-$(ROLES:%=roles/%/meta): roles/%/meta: \
-	$(TPL_DIR)/meta/main.yml.j2 \
-	$(TPL_DIR)/meta/argument_specs.yml.j2 \
-	$(GROUP_VARS) \
-	$(HOST_VARS)/%.yml | $(PLAYBOOK)
-	@$(PLAYBOOK) --limit "$*" playbooks/meta.yml
+$(ROLES:%=roles/%/meta/main.yml): roles/%/meta/main.yml: \
+	$(TPL_DIR)/meta/main.yml.j2 $(RENDER_DEPS) | $(LEG)
+	@$(LEG) render -s "$<" -d "$@" -r "$*"
 
-# molecule templates
+$(ROLES:%=roles/%/meta/argument_specs.yml): roles/%/meta/argument_specs.yml: \
+	$(TPL_DIR)/meta/argument_specs.yml.j2 $(RENDER_DEPS) | $(LEG)
+	@$(LEG) render -s "$<" -d "$@" -r "$*" -o role.argument_specs.options
+
+$(ROLES:%=roles/%/meta/): roles/%/meta/: \
+	roles/%/meta/main.yml roles/%/meta/argument_specs.yml
+
+# molecule legacy templates
 $(ROLES:%=roles/%/molecule): roles/%/molecule: \
 	$(TPL_DIR)/molecule/molecule.yml.j2 \
 	$(TPL_DIR)/molecule/playbook.yml.j2 \
-	$(GROUP_VARS) $(HOST_VARS)/%.yml | $(PLAYBOOK)
+	$(RENDER_DEPS) | $(PLAYBOOK)
 	@$(PLAYBOOK) --limit "$*" playbooks/molecule.yml
 
 # per role pre-commit targets
@@ -315,20 +325,31 @@ $(ROLES:%=roles/%/archive): roles/%/archive: | $(LEG)
 # clean: remove tool artifacts and caches for a role
 .PHONY: $(ROLES:%=roles/%/clean)
 $(ROLES:%=roles/%/clean): roles/%/clean:
-	@rm -rf roles/$*/.ansible
+	@find "roles/$*" -type d -name .ansible -prune -exec rm -rf -- {} +
+	@find "roles/$*" -type d -empty -delete
 	@echo "Cleaned up role '$*'."
 
 # dist-clean: remove generated artifacts for a role
+DISTCLEAN = \
+	roles/$*/.git/hooks/pre-commit \
+	roles/$*/.git/hooks/commit-msg \
+	roles/$*/.gitignore \
+	roles/$*/.pre-commit-config.yaml \
+	roles/$*/LICENSE \
+	roles/$*/README.md \
+	roles/$*/pyproject.toml \
+	roles/$*/requirements.yml \
+	roles/$*/meta/main.yml \
+	roles/$*/meta/argument_specs.yml \
+	roles/$*/molecule/default/molecule.yml \
+	roles/$*/molecule/dev/molecule.yml \
+	roles/$*/molecule/resources/playbooks/converge.yml \
+	roles/$*/molecule/resources/playbooks/prepare.yml \
+	roles/$*/molecule/resources/playbooks/verify.yml
 .PHONY: $(ROLES:%=roles/%/dist-clean)
 $(ROLES:%=roles/%/dist-clean): roles/%/dist-clean: roles/%/clean
-	@rm -f roles/$*/.gitignore
-	@rm -f roles/$*/.pre-commit-config.yaml
-	@rm -f roles/$*/LICENSE
-	@rm -f roles/$*/README.md
-	@rm -f roles/$*/pyproject.toml
-	@rm -f roles/$*/requirements.yml
-	@rm -rf roles/$*/meta
-	@rm -rf roles/$*/molecule
+	@rm -f $(DISTCLEAN)
+	@find "roles/$*" -type d -empty -delete
 	@echo "Removed build artifacts for role '$*'."
 
 # --- Aggregates --------------------------------------------------------------

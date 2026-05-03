@@ -3,15 +3,13 @@
 # file: requirements.yml
 
 {% if requirements.collections | default([]) | length > 0 %}
-collections:
-{{ requirements.collections | jomrr.dev.to_lintable_yaml(indent=2) | indent(2, true) }}
+{{ {"collections": requirements.collections} | to_nice_yaml }}
 {% else %}
 collections: []
 {% endif %}
 
 {% if requirements.roles | default([]) | length > 0 %}
-roles:
-{{ requirements.roles | jomrr.dev.to_lintable_yaml(indent=2) | indent(2, true) }}
+{{ {"roles": requirements.roles} | to_nice_yaml }}
 {% else %}
 roles: []
 {% endif %}

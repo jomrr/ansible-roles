@@ -1,0 +1,17 @@
+---
+# name: ansible-roles
+# file: inventory/group_vars/all/10-role-defaults.yml
+
+# default role variables for all roles
+role:
+  author: Jonas Mauer
+  allow_duplicate: false
+  description: "Ansible role for setting up {{ _leg.role.name }}."
+  galaxy_tags: ['ansible', 'role', '{{ _leg.role.name }}']
+  license: "MIT"
+  min_ansible_version: "2.20"
+  name: "{{ _leg.role.name }}"
+  namespace: jomrr
+  repo_prefix: ansible-role-
+  scm_base_url: https://github.com
+  year_created: "{{ _leg.repo.copyright.year }}"

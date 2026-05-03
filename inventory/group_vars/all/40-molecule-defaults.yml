@@ -57,4 +57,4 @@ molecule:
           override_command: false
           systemd: true
     - scenario:
-        name: all
+        name: dev
