@@ -1,0 +1,50 @@
+---
+# role: {{ role.namespace }}.{{ role.name }}
+# file: .forgejo/workflows/dev-push-validate.yml
+
+name: dev push validate
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+concurrency:
+  group: "{{ '${{ forgejo.workflow }}-${{ forgejo.ref }}' }}"
+  cancel-in-progress: true
+
+jobs:
+  molecule-default:
+    name: Molecule {{ '${{ matrix.name }}' }}
+    runs-on: {{ workflows.forgejo.runner_label }}
+    timeout-minutes: {{ workflows.forgejo.timeout_minutes }}
+
+    strategy:
+      fail-fast: true
+      max-parallel: {{ workflows.forgejo.max_parallel }}
+      matrix:
+        include:
+{% for platform in platforms %}
+{% set platform_image = platform.distribution | lower | replace(' ', '-') %}
+{% for tag in platform.tags %}
+          - name: {{ role.name }}-{{ platform_image }}-{{ tag }}
+            uns: {{ role.namespace }}
+            img: {{ platform_image }}
+            tag: {{ tag }}
+{% endfor %}
+{% endfor %}
+
+    steps:
+      - name: Checkout repository
+        uses: {{ workflows.forgejo.checkout_action }}
+        with:
+          persist-credentials: false
+
+      - name: Run Molecule default scenario
+        run: |
+          set -euo pipefail
+          export uns="{{ '${{ matrix.uns }}' }}"
+          export img="{{ '${{ matrix.img }}' }}"
+          export tag="{{ '${{ matrix.tag }}' }}"
+          molecule test -s default

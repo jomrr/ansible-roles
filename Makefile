@@ -186,16 +186,26 @@ $(ROLES:%=roles/%/requirements.yml): roles/%/requirements.yml: \
 	$(TPL_DIR)/requirements.yml.j2 $(RENDER_DEPS) | $(LEG)
 	@$(LEG) render -s "$<" -d "$@" -r "$*"
 
+# meta/main.yml template
 $(ROLES:%=roles/%/meta/main.yml): roles/%/meta/main.yml: \
 	$(TPL_DIR)/meta/main.yml.j2 $(RENDER_DEPS) | $(LEG)
 	@$(LEG) render -s "$<" -d "$@" -r "$*"
 
+# meta/argument_specs.yml template
 $(ROLES:%=roles/%/meta/argument_specs.yml): roles/%/meta/argument_specs.yml: \
 	$(TPL_DIR)/meta/argument_specs.yml.j2 $(RENDER_DEPS) | $(LEG)
-	@$(LEG) render -s "$<" -d "$@" -r "$*" -o role.argument_specs.options
+	@$(LEG) render -s "$<" -d "$@" -r "$*" -o role.argument_specs
 
+# meta/ directory target to ensure meta/*.yml are built when meta is requested
 $(ROLES:%=roles/%/meta/): roles/%/meta/: \
 	roles/%/meta/main.yml roles/%/meta/argument_specs.yml
+
+# .forgejo/workflows/dev-push-validate.yml template
+$(ROLES:%=roles/%/.forgejo/workflows/dev-push-validate.yml): \
+	roles/%/.forgejo/workflows/dev-push-validate.yml: \
+	$(TPL_DIR)/.forgejo/workflows/dev-push-validate.yml.j2 \
+	$(RENDER_DEPS) | $(LEG)
+	@$(LEG) render -s "$<" -d "$@" -r "$*"
 
 # molecule legacy templates
 $(ROLES:%=roles/%/molecule): roles/%/molecule: \

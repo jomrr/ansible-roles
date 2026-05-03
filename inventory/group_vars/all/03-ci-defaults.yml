@@ -1,3 +1,33 @@
 ---
 # name: ansible-roles
 # file: inventory/group_vars/all/02-ci-defaults.yml
+
+# Default workflow variables for generated role repositories.
+# Platform matrices are built from the top-level `platforms` variable.
+
+workflows:
+  forgejo:
+    runner_label: podman
+    checkout_action: actions/checkout@v4
+
+    timeout_minutes: 45
+    max_parallel: 8
+
+    static_gate:
+      timeout_minutes: 10
+      command: pre-commit run --all-files
+
+    drift:
+      # Generated deterministically per role when unset.
+      # Day is limited to 1..28 to be valid for every month.
+      minute:
+      hour:
+      day:
+
+    promote:
+      timeout_minutes: 10
+      command: leg release pr --head dev --base main
+
+    release:
+      timeout_minutes: 15
+      command: make release/publish
